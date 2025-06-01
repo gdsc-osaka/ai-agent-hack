@@ -1,2 +1,8 @@
-# <app-name>
-<app-name> for AI Agent Hackathon 2025.
+# (アプリ名)
+(アプリ名) is an app for AI Agent Hackathon by Zenn 2025.
+
+## Git rules
+- Branch naming convention:
+  - `main`: The main branch for production.
+  - `<username>/<short-description>`: Feature branches for development.
+- Commit messages: free format, but should be descriptive.
