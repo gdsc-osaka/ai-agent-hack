@@ -9,7 +9,10 @@ def main():
     image_path3 = "./images/3.webp"
     image_path4 = "./images/4.webp"
 
-    dlib_api.verify(image_path1, image_path4)
+    image_list = [image_path2, image_path3, image_path4]
+
+    for image_path in image_list:
+        dlib_api.verify(image_path1, image_path)
 
 
 if __name__ == "__main__":

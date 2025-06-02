@@ -7,7 +7,6 @@ requires-python = ">=3.10"
 dependencies = [
     "dlib>=20.0.0",
     "onnx>=1.18.0",
-    "onnxruntime>=1.22.0",
     "onnxruntime-gpu>=1.22.0",
     "opencv-python>=4.11.0.86",
     "torchvision>=0.22.0",
