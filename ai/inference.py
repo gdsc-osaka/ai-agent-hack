@@ -1,4 +1,6 @@
 from typing import List, Tuple
+import os
+import time
 
 import cv2
 import dlib
@@ -61,6 +63,7 @@ class Dlib_api:
         raw_face_landmark,  # dlib.rectangle type.
         size: int = 224,
         _PADDING: float = 0.1,
+        debug: bool = True,
     ) -> npt.NDArray[np.float32]:
         """JAPANESE FACE V1モデルを使用して顔の特徴量を計算します。
 
@@ -90,6 +93,20 @@ class Dlib_api:
             size=self.size,
             padding=self._PADDING,
         )  # type: ignore
+        
+        # デバッグ用: クロップした顔画像を保存
+        if debug:
+            debug_dir = "debug_face_crops"
+            os.makedirs(debug_dir, exist_ok=True)
+            
+            # タイムスタンプを使ってユニークなファイル名を生成
+            timestamp = int(time.time() * 1000)  # ミリ秒単位のタイムスタンプ
+            debug_filename = f"{debug_dir}/face_crop_{timestamp}.jpg"
+            
+            # BGRフォーマットで保存（OpenCVの標準フォーマット）
+            cv2.imwrite(debug_filename, face_image_np)
+            print(f"Debug: Cropped face saved to {debug_filename}")
+        
         # face_imageをBGRからRGBに変換する
         face_image_rgb = cv2.cvtColor(face_image_np, cv2.COLOR_BGR2RGB)  # type: ignore
         # VidCap().frame_imshow_for_debug(face_image_rgb)
