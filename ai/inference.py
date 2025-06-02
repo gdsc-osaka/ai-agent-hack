@@ -42,11 +42,6 @@ class Dlib_api:
             self.cnn_face_detection_model
         )  # type: ignore
 
-        self.dlib_resnet_model = Models_obj.dlib_resnet_model_location()
-        self.dlib_resnet_face_encoder = dlib.face_recognition_model_v1(
-            self.dlib_resnet_model
-        )  # type: ignore
-
         self.JAPANESE_FACE_V1 = Models_obj.JAPANESE_FACE_V1_model_location()
         self.JAPANESE_FACE_V1_model = onnx.load(self.JAPANESE_FACE_V1)
         # self.ort_session = ort.InferenceSession(self.JAPANESE_FACE_V1)
@@ -349,32 +344,18 @@ class Dlib_api:
 
             raw_face_landmark: dlib.full_object_detection  # type: ignore
             face_landmark_ndarray: npt.NDArray[np.float64] = np.array([])
-            if self.deep_learning_model == 0:
-                for raw_face_landmark in raw_face_landmarks:
-                    # face_landmark_ndarray: npt.NDArray[np.float64] = []
-                    face_landmark_ndarray: npt.NDArray[np.float64] = np.array(
-                        # Make 128 dimensional vector
-                        self.dlib_resnet_face_encoder.compute_face_descriptor(
-                            self.face_encodings_resized_frame,
-                            raw_face_landmark,
-                            self.num_jitters,
-                            _PADDING,
-                        )
+            for raw_face_landmark in raw_face_landmarks:
+                face_landmark_ndarray: npt.NDArray[np.float64] = np.array(
+                    self.JAPANESE_FACE_V1_model_compute_face_descriptor(
+                        self.face_encodings_resized_frame,
+                        raw_face_landmark,
+                        size=224,
+                        _PADDING=0.1,
                     )
-                    face_encodings.append(face_landmark_ndarray)
-            elif self.deep_learning_model == 1:
-                for raw_face_landmark in raw_face_landmarks:
-                    face_landmark_ndarray: npt.NDArray[np.float64] = np.array(
-                        self.JAPANESE_FACE_V1_model_compute_face_descriptor(
-                            self.face_encodings_resized_frame,
-                            raw_face_landmark,
-                            size=224,
-                            _PADDING=0.1,
-                        )
-                    ).astype(np.float64)
-                    face_encodings.append(
-                        face_landmark_ndarray
-                    )  # 修正: 各顔のエンコーディングをリストに追加
+                ).astype(np.float64)
+                face_encodings.append(
+                    face_landmark_ndarray
+                )  # 修正: 各顔のエンコーディングをリストに追加
         return face_encodings
 
     def face_distance(
