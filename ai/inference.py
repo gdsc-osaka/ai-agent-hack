@@ -11,6 +11,7 @@ from PIL import Image
 
 from model import Models
 
+
 class Dlib_api:
     """Dlib api.
 
@@ -29,26 +30,30 @@ class Dlib_api:
         """
         Models_obj = Models()
 
-
         self.face_detector = dlib.get_frontal_face_detector()  # type: ignore
 
-        self.predictor_5_point_model = Models_obj.pose_predictor_five_point_model_location()
-        self.pose_predictor_5_point = dlib.shape_predictor(
-            self.predictor_5_point_model)  # type: ignore
+        self.predictor_5_point_model = (
+            Models_obj.pose_predictor_five_point_model_location()
+        )
+        self.pose_predictor_5_point = dlib.shape_predictor(self.predictor_5_point_model)  # type: ignore
 
         self.cnn_face_detection_model = Models_obj.cnn_face_detector_model_location()
         self.cnn_face_detector = dlib.cnn_face_detection_model_v1(
-            self.cnn_face_detection_model)  # type: ignore
+            self.cnn_face_detection_model
+        )  # type: ignore
 
         self.dlib_resnet_model = Models_obj.dlib_resnet_model_location()
         self.dlib_resnet_face_encoder = dlib.face_recognition_model_v1(
-            self.dlib_resnet_model)  # type: ignore
+            self.dlib_resnet_model
+        )  # type: ignore
 
         self.JAPANESE_FACE_V1 = Models_obj.JAPANESE_FACE_V1_model_location()
         self.JAPANESE_FACE_V1_model = onnx.load(self.JAPANESE_FACE_V1)
         # self.ort_session = ort.InferenceSession(self.JAPANESE_FACE_V1)
-        self.ort_session = ort.InferenceSession(self.JAPANESE_FACE_V1, providers=[
-                                                'CUDAExecutionProvider', 'CPUExecutionProvider'])
+        self.ort_session = ort.InferenceSession(
+            self.JAPANESE_FACE_V1,
+            providers=["CUDAExecutionProvider", "CPUExecutionProvider"],
+        )
 
         # 署名表示
         for prop in self.JAPANESE_FACE_V1_model.metadata_props:
@@ -60,7 +65,7 @@ class Dlib_api:
         resized_frame: npt.NDArray[np.uint8],
         raw_face_landmark,  # dlib.rectangle type.
         size: int = 224,
-        _PADDING: float = 0.1
+        _PADDING: float = 0.1,
     ) -> npt.NDArray[np.float32]:
         """JAPANESE FACE V1モデルを使用して顔の特徴量を計算します。
 
@@ -85,10 +90,13 @@ class Dlib_api:
         self._PADDING: float = _PADDING
 
         face_image_np: npt.NDArray = dlib.get_face_chip(
-            self.resized_frame, self.raw_face_landmark, size=self.size, padding=self._PADDING)  # type: ignore
+            self.resized_frame,
+            self.raw_face_landmark,
+            size=self.size,
+            padding=self._PADDING,
+        )  # type: ignore
         # face_imageをBGRからRGBに変換する
-        face_image_rgb = cv2.cvtColor(
-            face_image_np, cv2.COLOR_BGR2RGB)  # type: ignore
+        face_image_rgb = cv2.cvtColor(face_image_np, cv2.COLOR_BGR2RGB)  # type: ignore
         # VidCap().frame_imshow_for_debug(face_image_rgb)
 
         # 入力名を取得
@@ -97,14 +105,13 @@ class Dlib_api:
         # 画像の前処理を定義
         mean_value = [0.485, 0.456, 0.406]
         std_value = [0.229, 0.224, 0.225]
-        transform = transforms.Compose([
-            transforms.Resize((224, 224)),
-            transforms.ToTensor(),
-            transforms.Normalize(
-                mean=mean_value,
-                std=std_value
-            )
-        ])
+        transform = transforms.Compose(
+            [
+                transforms.Resize((224, 224)),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=mean_value, std=std_value),
+            ]
+        )
 
         # numpy配列からPIL Imageに変換
         face_image_pil: Image.Image = Image.fromarray(face_image_rgb)
@@ -113,7 +120,8 @@ class Dlib_api:
         image = image.unsqueeze(0)  # バッチ次元を追加  # type: ignore
         image = image.numpy()
         embedding: npt.NDArray[np.float32] = self.ort_session.run(
-            None, {input_name: image})[0]  # 'input'をinput_nameに変更
+            None, {input_name: image}
+        )[0]  # 'input'をinput_nameに変更
         return embedding
 
     def _rect_to_css(self, rect: dlib.rectangle) -> Tuple[int, int, int, int]:
@@ -144,9 +152,7 @@ class Dlib_api:
         return dlib.rectangle(self.css[3], self.css[0], self.css[1], self.css[2])  # type: ignore
 
     def _trim_css_to_bounds(
-        self,
-        css: Tuple[int, int, int, int],
-        image_shape: Tuple[int, int, int]
+        self, css: Tuple[int, int, int, int], image_shape: Tuple[int, int, int]
     ) -> Tuple[int, int, int, int]:
         self._trim_css_to_bounds_css: Tuple[int, int, int, int] = css
         self.image_shape: Tuple[int, int, int] = image_shape
@@ -169,14 +175,10 @@ class Dlib_api:
             max(self._trim_css_to_bounds_css[0], 0),
             min(self._trim_css_to_bounds_css[1], self.image_shape[1]),
             min(self._trim_css_to_bounds_css[2], self.image_shape[0]),
-            max(self._trim_css_to_bounds_css[3], 0)
+            max(self._trim_css_to_bounds_css[3], 0),
         )
 
-    def load_image_file(
-        self,
-        file: str,
-        mode: str = 'RGB'
-    ) -> npt.NDArray[np.uint8]:
+    def load_image_file(self, file: str, mode: str = "RGB") -> npt.NDArray[np.uint8]:
         """Loads an image file (.jpg, .png, etc) into a numpy array.
 
         Args:
@@ -199,7 +201,7 @@ class Dlib_api:
         self,
         resized_frame: npt.NDArray[np.uint8],
         number_of_times_to_upsample: int = 0,
-        mode: str = "cnn"
+        mode: str = "cnn",
     ) -> List[dlib.rectangle]:  # type: ignore
         """Returns an array of bounding boxes of human faces in a image.
 
@@ -220,15 +222,19 @@ class Dlib_api:
         self.number_of_times_to_upsample: int = number_of_times_to_upsample
         self.mode: str = mode
         if self.mode == "cnn":
-            return self.cnn_face_detector(self.resized_frame, self.number_of_times_to_upsample)
+            return self.cnn_face_detector(
+                self.resized_frame, self.number_of_times_to_upsample
+            )
         else:
-            return self.face_detector(self.resized_frame, self.number_of_times_to_upsample)
+            return self.face_detector(
+                self.resized_frame, self.number_of_times_to_upsample
+            )
 
     def face_locations(
         self,
         resized_frame: npt.NDArray[np.uint8],
         number_of_times_to_upsample: int = 0,
-        mode: str = "hog"
+        mode: str = "hog",
     ) -> List[Tuple[int, int, int, int]]:
         """Returns an array of bounding boxes of human faces in a image.
 
@@ -247,28 +253,22 @@ class Dlib_api:
         self.mode: str = mode
         face_locations: List[Tuple[int, int, int, int]] = []
 
-        if self.mode == 'cnn':
+        if self.mode == "cnn":
             for face in self._raw_face_locations(
-                self.resized_frame,
-                self.number_of_times_to_upsample,
-                self.mode
+                self.resized_frame, self.number_of_times_to_upsample, self.mode
             ):
                 face_locations.append(
                     self._trim_css_to_bounds(
-                        self._rect_to_css(face.rect),
-                        self.resized_frame.shape
+                        self._rect_to_css(face.rect), self.resized_frame.shape
                     )
                 )
         else:
             for face in self._raw_face_locations(
-                self.resized_frame,
-                self.number_of_times_to_upsample,
-                self.mode
+                self.resized_frame, self.number_of_times_to_upsample, self.mode
             ):
                 face_locations.append(
                     self._trim_css_to_bounds(
-                        self._rect_to_css(face),
-                        self.resized_frame.shape
+                        self._rect_to_css(face), self.resized_frame.shape
                     )
                 )
 
@@ -278,20 +278,17 @@ class Dlib_api:
         self,
         resized_frame: npt.NDArray[np.uint8],
         face_location_list: List[Tuple[int, int, int, int]],
-        model: str = "small"
+        model: str = "small",
     ) -> List[dlib.rectangle]:  # type: ignore
-
         # type: ignore
-        new_face_location_list: List[dlib.rectangle[Tuple[int, int, int, int]]] = [
-        ]
+        new_face_location_list: List[dlib.rectangle[Tuple[int, int, int, int]]] = []
         raw_face_location: Tuple[int, int, int, int]
 
         for raw_face_location in face_location_list:
             new_face_location_list.append(self._css_to_rect(raw_face_location))
 
         # type: ignore
-        raw_face_landmarks: List[dlib.rectangle[Tuple[int, int, int, int]]] = [
-        ]
+        raw_face_landmarks: List[dlib.rectangle[Tuple[int, int, int, int]]] = []
         # type: ignore
         new_face_location: dlib.rectangle[Tuple[int, int, int, int]]
 
@@ -309,7 +306,7 @@ class Dlib_api:
         # Initial value of 'face_location_list' is '[]'.
         face_location_list: List = [],
         num_jitters: int = 0,
-        model: str = "small"
+        model: str = "small",
     ) -> List[np.ndarray]:
         """Given an image, return the 128-dimension face encoding for each face in the image.
 
@@ -347,7 +344,7 @@ class Dlib_api:
             raw_face_landmarks: List = self._return_raw_face_landmarks(
                 self.face_encodings_resized_frame,
                 self.face_location_list,
-                self.face_encodings_model
+                self.face_encodings_model,
             )
 
             raw_face_landmark: dlib.full_object_detection  # type: ignore
@@ -361,7 +358,7 @@ class Dlib_api:
                             self.face_encodings_resized_frame,
                             raw_face_landmark,
                             self.num_jitters,
-                            _PADDING
+                            _PADDING,
                         )
                     )
                     face_encodings.append(face_landmark_ndarray)
@@ -372,16 +369,18 @@ class Dlib_api:
                             self.face_encodings_resized_frame,
                             raw_face_landmark,
                             size=224,
-                            _PADDING=0.1
+                            _PADDING=0.1,
                         )
                     ).astype(np.float64)
-                    face_encodings.append(face_landmark_ndarray)  # 修正: 各顔のエンコーディングをリストに追加
+                    face_encodings.append(
+                        face_landmark_ndarray
+                    )  # 修正: 各顔のエンコーディングをリストに追加
         return face_encodings
 
     def face_distance(
         self,
         face_encodings: List[npt.NDArray[np.float64]],
-        face_to_compare: npt.NDArray[np.float64]
+        face_to_compare: npt.NDArray[np.float64],
         # face_encodings: List[np.ndarray],
         # face_to_compare: np.ndarray
     ) -> npt.NDArray[np.float64]:
@@ -427,8 +426,9 @@ class Dlib_api:
         embedding2 = embedding2.flatten()
         for emb1 in embedding1:
             emb1 = emb1.flatten()
-            cos_sim: float = np.dot(
-                emb1, embedding2) / (np.linalg.norm(emb1) * np.linalg.norm(embedding2))
+            cos_sim: float = np.dot(emb1, embedding2) / (
+                np.linalg.norm(emb1) * np.linalg.norm(embedding2)
+            )
             if cos_sim >= threshold:
                 results.append((True, cos_sim))
             else:
@@ -447,7 +447,7 @@ class Dlib_api:
             float: percentage of similarity
         """
         # BUG: Issue #25
-        return round(-23.71 * cos_sim ** 2 + 49.98 * cos_sim + 73.69, 2)
+        return round(-23.71 * cos_sim**2 + 49.98 * cos_sim + 73.69, 2)
 
     def compare_faces(
         self,
@@ -455,7 +455,7 @@ class Dlib_api:
         known_face_encodings: List[npt.NDArray[np.float64]],
         face_encoding_to_check: npt.NDArray[np.float64],
         tolerance: float = 0.6,
-        threshold: float = 0.4
+        threshold: float = 0.4,
     ) -> Tuple[np.ndarray, float]:
         """顔エンコーディングのリストを候補エンコーディングと比較して、それら数値の比較をします。
 
@@ -479,8 +479,7 @@ class Dlib_api:
         if self.deep_learning_model == 0:
             face_distance_list: List[float] = list(
                 self.face_distance(
-                    self.known_face_encodings,
-                    self.face_encoding_to_check
+                    self.known_face_encodings, self.face_encoding_to_check
                 )
             )
 
@@ -491,7 +490,9 @@ class Dlib_api:
             else:
                 bool_list: List[Tuple[bool, float]] = []
                 for face_distance in face_distance_list:
-                    if self.tolerance >= face_distance:  # face_distanceがtolerance以下のとき。
+                    if (
+                        self.tolerance >= face_distance
+                    ):  # face_distanceがtolerance以下のとき。
                         bool_list.append((True, face_distance))
                     elif self.tolerance < face_distance:
                         bool_list.append((False, face_distance))
@@ -504,16 +505,13 @@ class Dlib_api:
         # JAPANESE_FACE_V1 model:
         elif self.deep_learning_model == 1:
             results: List[Tuple[bool, float]] = []
-            results, max_cos_sim = \
-                self.cosine_similarity(
-                    self.known_face_encodings, self.face_encoding_to_check, self.threshold)
+            results, max_cos_sim = self.cosine_similarity(
+                self.known_face_encodings, self.face_encoding_to_check, self.threshold
+            )
             return np.array(results), max_cos_sim
 
     def verify(
-        self,
-        image_path1: str,
-        image_path2: str,
-        threshold: float = 0.3
+        self, image_path1: str, image_path2: str, threshold: float = 0.3
     ) -> bool:
         """
         verify()メソッドは、入力された2枚の画像が同一人物かどうかを判定します。
@@ -529,7 +527,9 @@ class Dlib_api:
         """
 
         frame1: npt.NDArray[np.uint8] = self.load_image_file(image_path1)
-        face_locations1 = self.face_locations(frame1, number_of_times_to_upsample=0, mode='cnn')
+        face_locations1 = self.face_locations(
+            frame1, number_of_times_to_upsample=0, mode="cnn"
+        )
         if len(face_locations1) == 0:
             print(f"画像1({image_path1})から顔が検出できませんでした。")
             return False
@@ -537,14 +537,16 @@ class Dlib_api:
         encodings1 = self.face_encodings(
             deep_learning_model=1,
             resized_frame=frame1,
-            face_location_list=face_locations1
+            face_location_list=face_locations1,
         )
         if len(encodings1) == 0:
             print(f"画像1({image_path1})の特徴量を抽出できませんでした。")
             return False
 
         frame2: npt.NDArray[np.uint8] = self.load_image_file(image_path2)
-        face_locations2 = self.face_locations(frame2, number_of_times_to_upsample=0, mode='cnn')
+        face_locations2 = self.face_locations(
+            frame2, number_of_times_to_upsample=0, mode="cnn"
+        )
         if len(face_locations2) == 0:
             print(f"画像2({image_path2})から顔が検出できませんでした。")
             return False
@@ -552,7 +554,7 @@ class Dlib_api:
         encodings2 = self.face_encodings(
             deep_learning_model=1,
             resized_frame=frame2,
-            face_location_list=face_locations2
+            face_location_list=face_locations2,
         )
         if len(encodings2) == 0:
             print(f"画像2({image_path2})の特徴量を抽出できませんでした。")
@@ -562,7 +564,9 @@ class Dlib_api:
         embedding2 = encodings2[0]
 
         emb_list = np.array([embedding1])
-        sim_result, max_cos_sim = self.cosine_similarity(emb_list, embedding2, threshold=threshold)
+        sim_result, max_cos_sim = self.cosine_similarity(
+            emb_list, embedding2, threshold=threshold
+        )
 
         is_same_person = sim_result[0][0]
         if is_same_person:
