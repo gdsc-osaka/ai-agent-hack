@@ -46,7 +46,9 @@ class Dlib_api:
         )  # type: ignore
 
         # InsightFaceを追加
-        self.face_app = FaceAnalysis(providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
+        self.face_app = FaceAnalysis(
+            providers=["CUDAExecutionProvider", "CPUExecutionProvider"]
+        )
         self.face_app.prepare(ctx_id=0, det_size=(640, 640))
 
         self.JAPANESE_FACE_V1 = Models_obj.JAPANESE_FACE_V1_model_location()
@@ -98,20 +100,20 @@ class Dlib_api:
             size=self.size,
             padding=self._PADDING,
         )  # type: ignore
-        
+
         # デバッグ用: クロップした顔画像を保存
         if debug:
             debug_dir = "debug_face_crops"
             os.makedirs(debug_dir, exist_ok=True)
-            
+
             # タイムスタンプを使ってユニークなファイル名を生成
             timestamp = int(time.time() * 1000)  # ミリ秒単位のタイムスタンプ
             debug_filename = f"{debug_dir}/face_crop_{timestamp}.jpg"
-            
+
             # BGRフォーマットで保存（OpenCVの標準フォーマット）
             cv2.imwrite(debug_filename, face_image_np)
             print(f"Debug: Cropped face saved to {debug_filename}")
-        
+
         # face_imageをBGRからRGBに変換する
         face_image_rgb = cv2.cvtColor(face_image_np, cv2.COLOR_BGR2RGB)  # type: ignore
         # VidCap().frame_imshow_for_debug(face_image_rgb)
@@ -238,7 +240,7 @@ class Dlib_api:
         self.resized_frame: npt.NDArray[np.uint8] = resized_frame
         self.number_of_times_to_upsample: int = number_of_times_to_upsample
         self.mode: str = mode
-    
+
         if self.mode == "insightface":
             # InsightFaceで顔検出してdlib.rectangleに変換
             face_locations = self.insightface_face_locations(self.resized_frame)
@@ -601,17 +603,17 @@ class Dlib_api:
         """
         # RGBからBGRに変換（InsightFaceはBGR形式を期待）
         bgr_frame = cv2.cvtColor(resized_frame, cv2.COLOR_RGB2BGR)
-        
+
         # InsightFaceで顔検出
         faces = self.face_app.get(bgr_frame)
         face_locations = []
-        
+
         for face in faces:
             bbox = face.bbox.astype(int)
             x1, y1, x2, y2 = bbox
             # (top, right, bottom, left)形式に変換
             face_locations.append((y1, x2, y2, x1))
-        
+
         return face_locations
 
     def insightface_face_landmarks(
@@ -634,5 +636,5 @@ class Dlib_api:
             # dlib.rectangleに変換
             rect = dlib.rectangle(left, top, right, bottom)
             rectangles.append(rect)
-        
+
         return rectangles
