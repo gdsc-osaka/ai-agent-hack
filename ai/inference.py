@@ -10,6 +10,7 @@ import onnx
 import onnxruntime as ort
 import torchvision.transforms as transforms
 from PIL import Image
+from insightface.app import FaceAnalysis
 
 from model import Models
 
@@ -43,6 +44,10 @@ class Dlib_api:
         self.cnn_face_detector = dlib.cnn_face_detection_model_v1(
             self.cnn_face_detection_model
         )  # type: ignore
+
+        # InsightFaceを追加
+        self.face_app = FaceAnalysis(providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
+        self.face_app.prepare(ctx_id=0, det_size=(640, 640))
 
         self.JAPANESE_FACE_V1 = Models_obj.JAPANESE_FACE_V1_model_location()
         self.JAPANESE_FACE_V1_model = onnx.load(self.JAPANESE_FACE_V1)
@@ -225,7 +230,7 @@ class Dlib_api:
             - How many times to upsample the image looking for faces. Higher numbers find smaller faces.
 
             str: mode
-            - Which face detection mode to use. "hog" is less accurate but faster on CPUs. "cnn" is a more accurate deep-learning mode which is GPU/CUDA accelerated (if available). The default is "hog".
+            - Which face detection mode to use. "hog" is less accurate but faster on CPUs. "cnn" is a more accurate deep-learning mode which is GPU/CUDA accelerated (if available). "insightface" uses InsightFace detection (highest accuracy).
 
         Returns:
             List[dlib.rectangle]: a list of dlib 'rect' objects of found face locations
@@ -233,7 +238,12 @@ class Dlib_api:
         self.resized_frame: npt.NDArray[np.uint8] = resized_frame
         self.number_of_times_to_upsample: int = number_of_times_to_upsample
         self.mode: str = mode
-        if self.mode == "cnn":
+    
+        if self.mode == "insightface":
+            # InsightFaceで顔検出してdlib.rectangleに変換
+            face_locations = self.insightface_face_locations(self.resized_frame)
+            return self.insightface_face_landmarks(self.resized_frame, face_locations)
+        elif self.mode == "cnn":
             return self.cnn_face_detector(
                 self.resized_frame, self.number_of_times_to_upsample
             )
@@ -246,7 +256,7 @@ class Dlib_api:
         self,
         resized_frame: npt.NDArray[np.uint8],
         number_of_times_to_upsample: int = 0,
-        mode: str = "hog",
+        mode: str = "insightface",  # デフォルトをinsightfaceに変更
     ) -> List[Tuple[int, int, int, int]]:
         """Returns an array of bounding boxes of human faces in a image.
 
@@ -255,7 +265,7 @@ class Dlib_api:
         Args:
             resized_frame (npt.NDArray[np.uint8]): Resized image
             number_of_times_to_upsample (int): How many times to upsample the image looking for faces. Higher numbers find smaller faces.
-            mode (str): Which face detection mode to use. "hog" is less accurate but faster on CPUs. "cnn" is a more accurate deep-learning mode which is GPU/CUDA accelerated (if available). The default is "hog".
+            mode (str): Which face detection mode to use. "hog" is less accurate but faster on CPUs. "cnn" is a more accurate deep-learning mode which is GPU/CUDA accelerated (if available). "insightface" uses InsightFace detection (highest accuracy).
 
         Returns:
             A list of tuples of found face locations in css (top, right, bottom, left) order
@@ -265,7 +275,10 @@ class Dlib_api:
         self.mode: str = mode
         face_locations: List[Tuple[int, int, int, int]] = []
 
-        if self.mode == "cnn":
+        if self.mode == "insightface":
+            # InsightFaceで直接顔検出
+            return self.insightface_face_locations(self.resized_frame)
+        elif self.mode == "cnn":
             for face in self._raw_face_locations(
                 self.resized_frame, self.number_of_times_to_upsample, self.mode
             ):
@@ -368,6 +381,7 @@ class Dlib_api:
                         raw_face_landmark,
                         size=224,
                         _PADDING=0.1,
+                        debug=False,
                     )
                 ).astype(np.float64)
                 face_encodings.append(
@@ -526,7 +540,7 @@ class Dlib_api:
 
         frame1: npt.NDArray[np.uint8] = self.load_image_file(image_path1)
         face_locations1 = self.face_locations(
-            frame1, number_of_times_to_upsample=0, mode="cnn"
+            frame1, number_of_times_to_upsample=0, mode="insightface"
         )
         if len(face_locations1) == 0:
             print(f"画像1({image_path1})から顔が検出できませんでした。")
@@ -543,7 +557,7 @@ class Dlib_api:
 
         frame2: npt.NDArray[np.uint8] = self.load_image_file(image_path2)
         face_locations2 = self.face_locations(
-            frame2, number_of_times_to_upsample=0, mode="cnn"
+            frame2, number_of_times_to_upsample=0, mode="insightface"
         )
         if len(face_locations2) == 0:
             print(f"画像2({image_path2})から顔が検出できませんでした。")
@@ -572,3 +586,53 @@ class Dlib_api:
         else:
             print(f"2枚の画像は別人と判定しました。cos_sim={sim_result[0][1]:.3f}")
         return is_same_person
+
+    def insightface_face_locations(
+        self,
+        resized_frame: npt.NDArray[np.uint8],
+    ) -> List[Tuple[int, int, int, int]]:
+        """InsightFaceを使って高精度な顔検出を行う
+
+        Args:
+            resized_frame: 入力画像
+
+        Returns:
+            顔の位置のリスト (top, right, bottom, left)
+        """
+        # RGBからBGRに変換（InsightFaceはBGR形式を期待）
+        bgr_frame = cv2.cvtColor(resized_frame, cv2.COLOR_RGB2BGR)
+        
+        # InsightFaceで顔検出
+        faces = self.face_app.get(bgr_frame)
+        face_locations = []
+        
+        for face in faces:
+            bbox = face.bbox.astype(int)
+            x1, y1, x2, y2 = bbox
+            # (top, right, bottom, left)形式に変換
+            face_locations.append((y1, x2, y2, x1))
+        
+        return face_locations
+
+    def insightface_face_landmarks(
+        self,
+        resized_frame: npt.NDArray[np.uint8],
+        face_location_list: List[Tuple[int, int, int, int]],
+    ) -> List[dlib.rectangle]:
+        """InsightFaceの検出結果をdlib.rectangleに変換
+
+        Args:
+            resized_frame: 入力画像
+            face_location_list: 顔の位置リスト
+
+        Returns:
+            dlib.rectangle形式の顔の位置リスト
+        """
+        rectangles = []
+        for face_location in face_location_list:
+            top, right, bottom, left = face_location
+            # dlib.rectangleに変換
+            rect = dlib.rectangle(left, top, right, bottom)
+            rectangles.append(rect)
+        
+        return rectangles
