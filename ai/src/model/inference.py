@@ -1,5 +1,6 @@
 import os
 import time
+from typing import BinaryIO, Union
 
 import cv2
 import dlib
@@ -446,39 +447,66 @@ class Dlib_api:
             max_cos_sim = max(max_cos_sim, cos_sim)
         return results, max_cos_sim
 
+    def load_image_from_binary(self, file: BinaryIO, mode: str = "RGB") -> npt.NDArray[np.uint8]:
+        self.file = file
+        self.mode = mode
+        
+        # ファイルポインタを先頭に戻す
+        if hasattr(file, 'seek'):
+            file.seek(0)
+        
+        # PILでバイナリデータから画像を読み込み
+        im = Image.open(file)
+
+        if self.mode:
+            im = im.convert(self.mode)
+
+        return np.array(im)
+
     def embedding(
-        self, image_path: str,
+        self, image_input: Union[str, BinaryIO],
     ) -> npt.NDArray[np.float32]:
         """
-        verify()メソッドは、入力された2枚の画像が同一人物かどうかを判定します。
+        画像から顔の特徴量（embedding）を抽出します。
         dlibの学習モデルは使わず、JAPANESE_FACE_V1モデルのみ使用します。
 
         Args:
-            image_path1 (str): 1枚目の画像ファイルパス
-            image_path2 (str): 2枚目の画像ファイルパス
-            threshold (float): 0 ~ 1 の範囲で指定するコサイン類似度のしきい値(デフォルト0.3)
+            image_input (Union[str, BinaryIO]): 画像ファイルパス または バイナリファイルオブジェクト
 
         Returns:
-            bool: True なら同一人物、False なら別人
-        """
+            npt.NDArray[np.float32]: 顔の特徴量（embedding）
 
-        frame: npt.NDArray[np.uint8] = self.load_image_file(image_path)
+        Raises:
+            ValueError: 顔が検出されない場合や特徴量抽出に失敗した場合
+        """
+        # 入力タイプに応じて画像を読み込み
+        if isinstance(image_input, str):
+            # ファイルパスの場合
+            frame: npt.NDArray[np.uint8] = self.load_image_file(image_input)
+            image_identifier = image_input
+        else:
+            # BinaryIOの場合
+            frame: npt.NDArray[np.uint8] = self.load_image_from_binary(image_input)
+            image_identifier = "binary_input"
+        
+        # 顔検出
         face_locations = self.face_locations(
             frame, number_of_times_to_upsample=0, mode="insightface"
         )
         if len(face_locations) == 0:
             raise ValueError(
-                f"画像({image_path})に顔が検出されませんでした。"
+                f"画像({image_identifier})に顔が検出されませんでした。"
             )
         
-        encodings1 = self.face_encodings(
+        # 特徴量抽出
+        encodings = self.face_encodings(
             deep_learning_model=1,
             resized_frame=frame,
             face_location_list=face_locations,
         )
-        if len(encodings1) == 0:
+        if len(encodings) == 0:
             raise ValueError(
-                f"画像({image_path})の顔から特徴量を抽出できませんでした。"
+                f"画像({image_identifier})の顔から特徴量を抽出できませんでした。"
             )
 
-        return encodings1[0]
+        return encodings[0]

@@ -1,7 +1,9 @@
+import uvicorn
+
 from model.inference import Dlib_api
 
 
-def main():
+def embedding_test():
     dlib_api = Dlib_api()
 
     image_path1 = "./src/model/images/1.webp"
@@ -23,4 +25,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    uvicorn.run(
+        "server:app",
+        port=8080,
+        host="0.0.0.0",
+        workers=1,
+        reload=True,
+    )
+    
