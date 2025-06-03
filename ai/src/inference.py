@@ -40,11 +40,6 @@ class Dlib_api:
         )
         self.pose_predictor_5_point = dlib.shape_predictor(self.predictor_5_point_model)  # type: ignore
 
-        self.cnn_face_detection_model = Models_obj.cnn_face_detector_model_location()
-        self.cnn_face_detector = dlib.cnn_face_detection_model_v1(
-            self.cnn_face_detection_model
-        )  # type: ignore
-
         # InsightFaceを追加
         self.face_app = FaceAnalysis(
             providers=["CUDAExecutionProvider", "CPUExecutionProvider"]
@@ -53,7 +48,6 @@ class Dlib_api:
 
         self.JAPANESE_FACE_V1 = Models_obj.JAPANESE_FACE_V1_model_location()
         self.JAPANESE_FACE_V1_model = onnx.load(self.JAPANESE_FACE_V1)
-        # self.ort_session = ort.InferenceSession(self.JAPANESE_FACE_V1)
         self.ort_session = ort.InferenceSession(
             self.JAPANESE_FACE_V1,
             providers=["CUDAExecutionProvider", "CPUExecutionProvider"],
