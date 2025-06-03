@@ -1,13 +1,13 @@
-from inference import Dlib_api
+from model.inference import Dlib_api
 
 
 def main():
     dlib_api = Dlib_api()
 
-    image_path1 = "./images/1.webp"
-    image_path2 = "./images/2.webp"
-    image_path3 = "./images/3.webp"
-    image_path4 = "./images/4.webp"
+    image_path1 = "./src/model/images/1.webp"
+    image_path2 = "./src/model/images/2.webp"
+    image_path3 = "./src/model/images/3.webp"
+    image_path4 = "./src/model/images/4.webp"
 
     image_list = [image_path2, image_path3, image_path4]
 

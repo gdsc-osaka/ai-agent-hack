@@ -12,7 +12,7 @@ import torchvision.transforms as transforms
 from PIL import Image
 from insightface.app import FaceAnalysis
 
-from model import Models
+from model.load import Models
 
 
 class Dlib_api:
@@ -132,9 +132,9 @@ class Dlib_api:
         image = transform(face_image_pil)
         image = image.unsqueeze(0)  # バッチ次元を追加  # type: ignore
         image = image.numpy()
-        embedding: npt.NDArray[np.float32] = self.ort_session.run(
-            None, {input_name: image}
-        )[0]  # 'input'をinput_nameに変更
+        embedding: npt.NDArray[np.float32] = np.array(
+            self.ort_session.run(None, {input_name: image})[0], dtype=np.float32
+        )
         return embedding
 
     def _rect_to_css(self, rect: dlib.rectangle) -> Tuple[int, int, int, int]:
@@ -236,13 +236,8 @@ class Dlib_api:
         self.mode: str = mode
 
         if self.mode == "insightface":
-            # InsightFaceで顔検出してdlib.rectangleに変換
             face_locations = self.insightface_face_locations(self.resized_frame)
             return self.insightface_face_landmarks(self.resized_frame, face_locations)
-        elif self.mode == "cnn":
-            return self.cnn_face_detector(
-                self.resized_frame, self.number_of_times_to_upsample
-            )
         else:
             return self.face_detector(
                 self.resized_frame, self.number_of_times_to_upsample
