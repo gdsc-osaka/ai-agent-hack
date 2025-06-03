@@ -9,10 +9,17 @@ def main():
     image_path3 = "./src/model/images/3.webp"
     image_path4 = "./src/model/images/4.webp"
 
-    image_list = [image_path2, image_path3, image_path4]
+    image_list = [image_path1, image_path2, image_path3, image_path4]
+
+    embeddings = []
 
     for image_path in image_list:
-        dlib_api.verify(image_path1, image_path)
+        embedding = dlib_api.embedding(image_path)
+        embeddings.append(embedding)
+
+    for i in range(len(embeddings)-1):
+        similarity = dlib_api.cosine_similarity(embeddings[0], embeddings[i+1])
+        print(f"Similarity between {image_list[0]} and {image_list[i+1]}: {similarity}")
 
 
 if __name__ == "__main__":
