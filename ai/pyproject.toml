@@ -1,0 +1,30 @@
+[project]
+name = "ai"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "dlib>=20.0.0",
+    "fastapi>=0.115.12",
+    "insightface>=0.7.3",
+    "onnx>=1.18.0",
+    "opencv-python>=4.11.0.86",
+    "pydantic>=2.11.5",
+    "python-multipart>=0.0.20",
+    "torchvision>=0.22.0",
+    "uvicorn>=0.34.3",
+]
+
+[project.optional-dependencies]
+cpu = [
+    "onnxruntime>=1.22.0"
+]
+gpu = [
+    "onnxruntime-gpu>=1.22.0"
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.11.12",
+]

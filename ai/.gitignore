@@ -1,0 +1,7 @@
+__pycache__/
+
+models
+images
+debug_face_crops
+build
+src/ai.egg-info
