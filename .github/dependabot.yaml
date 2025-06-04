@@ -1,0 +1,13 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "deps"
+    ignore:
+      - dependency-name: "pnpm"
+        versions: ["<8.0.0"]
+      - dependency-name: "node"
+        versions: ["<22.0.0"]
