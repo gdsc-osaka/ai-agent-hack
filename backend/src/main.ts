@@ -13,8 +13,8 @@ const app = new Hono();
 
 app.use(logger);
 app.get("/api/openapi", openApiSpec(app));
-app.use("/api/*", authorize);
 app.get("/api/ping", (c) => c.text("pong"));
+app.use("/api/*", authorize);
 app.route("/api/v1/users", users);
 
 serve({
