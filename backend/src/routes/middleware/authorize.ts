@@ -1,8 +1,9 @@
 import { createMiddleware } from "hono/factory";
 import { HTTPException } from "hono/http-exception";
-import { AuthUser, verifyIdToken } from "../../infra/auth-repo";
+import { verifyIdToken } from "../../infra/auth-repo";
 import { Context } from "hono";
 import env from "../../env";
+import { AuthUser } from "../../domain/auth";
 
 const authorize = createMiddleware<{
   Variables: {

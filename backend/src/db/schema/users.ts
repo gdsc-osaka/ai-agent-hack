@@ -1,10 +1,5 @@
 import { createId } from "@paralleldrive/cuid2";
-import {
-  index,
-  pgTable,
-  timestamp,
-  varchar,
-} from "drizzle-orm/pg-core";
+import { index, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
 import { CUID_LENGTH } from "../constants";
 
 const UID_LENGTH = 28;

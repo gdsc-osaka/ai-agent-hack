@@ -4,16 +4,18 @@ import { openApiSpec } from "./openapiSpec";
 import authorize from "./routes/middleware/authorize";
 import env from "./env";
 import { logger } from "./routes/middleware/logger";
+import users from "./routes/users";
 
 const app = new Hono();
 
-// Production 環境では Firebase Hosting で /api/** のパスを受け取る
+// Production 環境では Firebase Hosting で /api/** のパスをリダクレクトするため、
+// ここでは /api/** のパスを受け取る
 
 app.use(logger);
 app.get("/api/openapi", openApiSpec(app));
 app.use("/api/*", authorize);
-app.get("/ping", (c) => c.text("pong"));
-// app.route("/api/examples", examples);
+app.get("/api/ping", (c) => c.text("pong"));
+app.route("/api/v1/users", users);
 
 serve({
   fetch: app.fetch,

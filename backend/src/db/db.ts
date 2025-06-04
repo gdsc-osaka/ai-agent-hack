@@ -11,7 +11,7 @@ function getDBUrl(): string {
   }
   return "postgres://user:password@localhost:6543/db";
 }
-const db = () => drizzle(postgres(getDBUrl()), { schema });
+const db = drizzle(postgres(getDBUrl()), { schema });
 
 type TransactionClient = PgTransaction<
   PostgresJsQueryResultHKT,
@@ -19,7 +19,7 @@ type TransactionClient = PgTransaction<
   ExtractTablesWithRelations<typeof schema>
 >;
 
-export type DB = ReturnType<typeof db>;
+export type DB = typeof db;
 export type DBorTx = DB | TransactionClient;
 
 export default db;
