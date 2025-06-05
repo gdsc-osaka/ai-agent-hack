@@ -16,7 +16,7 @@ export const AuthUnknownError = errorBuilder(
   "AuthUnknownError",
   z.object({
     code: z.string(),
-  }),
+  })
 );
 export type AuthUnknownError = InferError<typeof AuthUnknownError>;
 

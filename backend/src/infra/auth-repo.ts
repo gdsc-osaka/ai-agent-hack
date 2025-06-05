@@ -12,13 +12,13 @@ import { AuthUser, convertToAuthUser } from "../domain/auth";
 
 export type VerifyIdToken = (
   fireSa: string,
-  idToken: string,
+  idToken: string
 ) => ResultAsync<AuthUser, AuthError>;
 
 export const verifyIdToken: VerifyIdToken = (fireSa, idToken) =>
   ResultAsync.fromPromise(
     firebase(fireSa).auth().verifyIdToken(idToken),
-    handleFirebaseAuthError,
+    handleFirebaseAuthError
   )
     // ドメイン層に依存してるが, 局所的なので許してください
     .map(convertToAuthUser)
@@ -29,11 +29,11 @@ const deleteAuthUserLogger = infraLogger("deleteAuthUser");
 export const deleteAuthUser: DeleteAuthUser = (uid) =>
   ResultAsync.fromPromise(
     firebase(env.FIRE_SA).auth().deleteUser(uid),
-    handleFirebaseAuthError,
+    handleFirebaseAuthError
   )
     .andTee(deleteAuthUserLogger.info)
     .orTee((error) =>
       match(error)
         .with(AuthUnknownError.is, deleteAuthUserLogger.error)
-        .otherwise(deleteAuthUserLogger.warn),
+        .otherwise(deleteAuthUserLogger.warn)
     );

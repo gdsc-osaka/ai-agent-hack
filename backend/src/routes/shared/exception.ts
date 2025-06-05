@@ -15,6 +15,6 @@ export const toHTTPException = (err: ErrorCarrier) =>
         headers: {
           "Content-Type": "application/json",
         },
-      },
+      }
     ),
   });
