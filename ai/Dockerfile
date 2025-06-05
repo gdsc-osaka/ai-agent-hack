@@ -29,8 +29,8 @@ FROM python:3.12-slim
 
 RUN apt-get update && apt-get install -y libgl1 libglib2.0-0
 
-COPY --from=builder --chown=app:app /app/.venv /app/.venv
-COPY --from=builder --chown=app:app /app/src /app/src
+COPY --from=builder /app/.venv /app/.venv
+COPY --from=builder /app/src /app/src
 
 WORKDIR /app
 
