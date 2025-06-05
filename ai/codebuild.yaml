@@ -33,5 +33,7 @@ steps:
       - '--region=${_REGION}'
       - '--max-instances=1'
       - '--min-instances=0'
+      - '--memory=4GiB'
+      - '--cpu=1'
       - '--port=8080'
       - '--allow-unauthenticated'
