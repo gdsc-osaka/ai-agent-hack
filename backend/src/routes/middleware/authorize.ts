@@ -25,7 +25,7 @@ const authorize = createMiddleware<{
     });
   }
 
-  const res = await verifyIdToken(env.FIRE_SA, match[1]);
+  const res = await verifyIdToken(match[1]);
 
   if (res.isErr()) {
     throw new HTTPException(401, { message: res.error.message });
