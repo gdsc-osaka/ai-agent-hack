@@ -7,11 +7,11 @@
     "node": "22.x"
   },
   "scripts": {
-    "dev": "export FIREBASE_AUTH_EMULATOR_HOST=\"127.0.0.1:9099\" && dotenvx run --env-file=.env -- npx ts-node-dev ./src/main.ts",
+    "dev": "export FIREBASE_AUTH_EMULATOR_HOST=\"127.0.0.1:9099\" && export FIRESTORE_EMULATOR_HOST=\"127.0.0.1:8081\" && dotenvx run --env-file=.env -- npx ts-node-dev ./src/main.ts",
     "start": "node ./dist/main.js",
     "build": "tsc",
     "lint": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\" && eslint src test -c eslint.config.mjs",
-    "fix": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" && eslint --fix src/**/*.ts test/**/*.ts -c eslint.config.mjs",
+    "fix": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" && eslint --fix src test -c eslint.config.mjs",
     "test:unit": "dotenvx run --env-file=.env -- vitest test/unit/",
     "test:integration": "dotenvx run --env-file=.env -- vitest test/integration/",
     "test:coverage": "dotenvx run --env-file=.env -- vitest test/ --coverage",

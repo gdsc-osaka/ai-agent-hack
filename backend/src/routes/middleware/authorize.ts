@@ -2,7 +2,6 @@ import { createMiddleware } from "hono/factory";
 import { HTTPException } from "hono/http-exception";
 import { verifyIdToken } from "../../infra/auth-repo";
 import { Context } from "hono";
-import env from "../../env";
 import { AuthUser } from "../../domain/auth";
 
 const authorize = createMiddleware<{
@@ -25,7 +24,7 @@ const authorize = createMiddleware<{
     });
   }
 
-  const res = await verifyIdToken(env.FIRE_SA, match[1]);
+  const res = await verifyIdToken(match[1]);
 
   if (res.isErr()) {
     throw new HTTPException(401, { message: res.error.message });

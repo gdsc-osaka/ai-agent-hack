@@ -11,13 +11,12 @@ import { match } from "ts-pattern";
 import { AuthUser, convertToAuthUser } from "../domain/auth";
 
 export type VerifyIdToken = (
-  fireSa: string,
   idToken: string
 ) => ResultAsync<AuthUser, AuthError>;
 
-export const verifyIdToken: VerifyIdToken = (fireSa, idToken) =>
+export const verifyIdToken: VerifyIdToken = (idToken) =>
   ResultAsync.fromPromise(
-    firebase(fireSa).auth().verifyIdToken(idToken),
+    firebase(env.FIRE_SA).auth().verifyIdToken(idToken),
     handleFirebaseAuthError
   )
     // ドメイン層に依存してるが, 局所的なので許してください
