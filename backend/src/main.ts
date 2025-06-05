@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
-import { openApiSpec } from "./openapiSpec";
+import { openApiSpec } from "./openapi-spec";
 import authorize from "./routes/middleware/authorize";
 import env from "./env";
 import { logger } from "./routes/middleware/logger";
@@ -22,4 +22,9 @@ serve({
   port: env.PORT,
 });
 
-console.log("Server started");
+console.log(
+  "Server started" +
+    (env.NODE_ENV === "development"
+      ? ` at http://localhost:${env.PORT}/api`
+      : "")
+);
