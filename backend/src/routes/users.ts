@@ -10,7 +10,7 @@ const app = new Hono();
 
 app.get("/", usersRoute.getUser, async (c) => {
   const res = await fetchUserController(
-    fetchUser(fetchDBUserByUid)(getAuthUser(c)),
+    fetchUser(fetchDBUserByUid)(getAuthUser(c))
   );
   if (res.isErr()) {
     throw toHTTPException(res.error);

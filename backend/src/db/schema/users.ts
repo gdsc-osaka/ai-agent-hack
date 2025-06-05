@@ -17,5 +17,5 @@ export const users = pgTable(
       .$onUpdate(() => new Date())
       .notNull(),
   },
-  (t) => [index("users_uid_idx").using("btree", t.uid)],
+  (t) => [index("users_uid_idx").using("btree", t.uid)]
 );

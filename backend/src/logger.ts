@@ -54,10 +54,10 @@ const gcloudLogger =
                       }
                     : v,
               }),
-              {},
+              {}
             ),
           }),
-          { message: msg, severity },
+          { message: msg, severity }
         );
 
       return JSON.stringify(entries);
@@ -66,19 +66,19 @@ const gcloudLogger =
     return {
       debug: (message: unknown, ...args: unknown[]) =>
         console.debug(
-          formatGCloudMessage(category, "DEBUG", label, message, ...args),
+          formatGCloudMessage(category, "DEBUG", label, message, ...args)
         ),
       info: (message: unknown, ...args: unknown[]) =>
         console.info(
-          formatGCloudMessage(category, "INFO", label, message, ...args),
+          formatGCloudMessage(category, "INFO", label, message, ...args)
         ),
       warn: (message: unknown, ...args: unknown[]) =>
         console.warn(
-          formatGCloudMessage(category, "WARNING", label, message, ...args),
+          formatGCloudMessage(category, "WARNING", label, message, ...args)
         ),
       error: (message: unknown, ...args: unknown[]) =>
         console.error(
-          formatGCloudMessage(category, "ERROR", label, message, ...args),
+          formatGCloudMessage(category, "ERROR", label, message, ...args)
         ),
     };
   };

@@ -7,7 +7,7 @@ import { ErrorCarrier, StatusCode } from "./error/api-error";
 import { DBUserNotFoundError } from "../infra/user-repo.error";
 
 export const fetchUserController = (
-  fetchUserRes: ReturnType<FetchUser>,
+  fetchUserRes: ReturnType<FetchUser>
 ): ResultAsync<User, ErrorCarrier> =>
   fetchUserRes.mapErr((err) =>
     match(err)
@@ -15,13 +15,13 @@ export const fetchUserController = (
         ErrorCarrier(StatusCode.InternalServerError, {
           message: e.message,
           code: "DATABASE_UNKNOWN_ERROR",
-        }),
+        })
       )
       .with(DBUserNotFoundError.is, (e) =>
         ErrorCarrier(StatusCode.NotFound, {
           message: e.message,
           code: "DATABASE_NOT_FOUND",
-        }),
+        })
       )
-      .exhaustive(),
+      .exhaustive()
   );

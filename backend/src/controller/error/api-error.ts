@@ -1,4 +1,5 @@
 import z from "zod";
+import "zod-openapi/extend";
 
 export const ApiErrorCode = z
   .enum(["DATABASE_UNKNOWN_ERROR", "DATABASE_NOT_FOUND"])

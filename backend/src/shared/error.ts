@@ -48,12 +48,12 @@ export const errorBuilder = <
     : never,
 >(
   tag: Tag,
-  extraSchema?: Extra,
+  extraSchema?: Extra
 ): ErrorBuilder<Tag, ActualExtra> =>
   Object.assign(
     (
       message: string,
-      options?: ErrorOptions<ActualExtra>,
+      options?: ErrorOptions<ActualExtra>
     ): BaseError<Tag, ActualExtra> => {
       return {
         [TAG]: tag,
@@ -85,7 +85,7 @@ export const errorBuilder = <
         [TAG]: tag,
       },
       zod: extraSchema,
-    },
+    }
   );
 
 function replaceErrorName(stack: string | undefined, name: string): string {
