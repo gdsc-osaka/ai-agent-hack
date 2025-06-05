@@ -12,9 +12,8 @@ steps:
       touch .env
 
   - name: 'gcr.io/cloud-builders/docker'
-    env:
-      - DOCKER_BUILDKIT=1
     args:
+      - DOCKER_BUILDKIT=1
       - build
       - '-t'
       - '${_CONTAINER}'
