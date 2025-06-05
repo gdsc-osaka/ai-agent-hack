@@ -1,3 +1,5 @@
+import os
+
 import uvicorn
 
 from model.inference import Dlib_api
@@ -30,6 +32,6 @@ if __name__ == "__main__":
         port=8080,
         host="0.0.0.0",
         workers=1,
-        reload=True,
+        reload=os.getenv("ENV", "prod") == "dev"
     )
     
