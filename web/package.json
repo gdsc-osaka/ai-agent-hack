@@ -7,7 +7,8 @@
     "start": "next start",
     "build": "next build",
     "lint": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\" && eslint src test -c eslint.config.mjs",
-    "fix": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" && eslint --fix src/**/*.ts test/**/*.ts -c eslint.config.mjs"
+    "fix": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" && eslint --fix src test -c eslint.config.mjs",
+    "test:unit": "dotenvx run --env-file=.env -- vitest test/unit/"
   },
   "dependencies": {
     "axios": "^1.9.0",
