@@ -24,6 +24,7 @@ type ErrorOptions<Ext extends BaseExtra> = {
 type ErrorBuilder<Tag extends BaseTag, Extra extends BaseExtra> = {
   handle: (error: unknown) => BaseError<Tag, Extra>;
   is: { [TAG]: Tag };
+  isFn: (val: unknown) => val is BaseError<Tag, Extra>;
 } & ([Extra] extends [never]
   ? {
       (message: string, options?: ErrorOptions<Extra>): BaseError<Tag, Extra>;
@@ -39,13 +40,18 @@ export type InferError<Builder extends ErrorBuilder<any, any>> =
 
 export const errorBuilder = <
   Tag extends BaseTag,
-  Extra extends ZodType<Output, Def, Input> | undefined = undefined,
+  Extra extends
+    | ZodType<Output, Def, Input>
+    | Record<string | number | symbol, unknown>
+    | undefined = undefined,
   Output extends object = object,
   Def extends ZodTypeDef = ZodTypeDef,
   Input = Output,
   ActualExtra extends object = Extra extends ZodType<Output, Def, Input>
     ? Extra["_output"]
-    : never,
+    : Extra extends object
+      ? Extra
+      : never,
 >(
   tag: Tag,
   extraSchema?: Extra
@@ -84,6 +90,11 @@ export const errorBuilder = <
       is: {
         [TAG]: tag,
       },
+      isFn: (val: unknown): val is BaseError<Tag, ActualExtra> =>
+        typeof val === "object" &&
+        val !== null &&
+        TAG in val &&
+        val[TAG] === tag,
       zod: extraSchema,
     }
   );
