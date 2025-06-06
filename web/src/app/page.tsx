@@ -1,11 +1,11 @@
-import { usersApi } from '../api-client';
+// import { usersApi } from '../api-client';
 
 export default async function Home() {
-  const user = await usersApi.getUser();
+  // const user = await usersApi.getUser();
 
   return (
     <div>
-      {user.data.id}
+      {"Hello, world!"}
     </div>
   );
 }
