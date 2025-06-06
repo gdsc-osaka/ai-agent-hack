@@ -1,6 +1,6 @@
-import { InvalidUserError, validateUser } from '../../../src/domain/user';
-import { ok } from 'neverthrow';
-import { toTimestamp } from '../../../src/domain/timestamp';
+import { InvalidUserError, validateUser } from "../../../src/domain/user";
+import { ok } from "neverthrow";
+import { toTimestamp } from "../../../src/domain/timestamp";
 
 describe("validateUser", () => {
   it("returns valid User object for correct DBUser input", () => {
