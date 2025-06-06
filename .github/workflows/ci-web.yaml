@@ -18,7 +18,10 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
+permissions:
+  checks: write
+  contents: read
+  pull-requests: write
 jobs:
   analyze:
     timeout-minutes: 5
@@ -61,6 +64,52 @@ jobs:
       - name: Test
         shell: bash
         run: npm run test:unit
-      - name: Build
-        shell: bash
-        run: npm run build
+  # Deploy to Firebase Hosting on PR
+  build_and_preview:
+    defaults:
+      run:
+        working-directory: web
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+          cache-dependency-path: 'web/pnpm-lock.yaml'
+      - name: cache-node-modules
+        uses: actions/cache@v3
+        id: cache-node
+        env:
+          cache-name: cache-node
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-cache-node-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-cache-node-
+            ${{ runner.os }}-cache-
+            ${{ runner.os }}-
+      - name: Install node modules
+        if: ${{ steps.cache-node.outputs.cache-hit != 'true' }}
+        run: pnpm i
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_RECALL_YOU }}
+          projectId: recall-you
+          expires: '3d'
+          entryPoint: 'web'
+        env:
+          FIREBASE_CLI_EXPERIMENTS: webframeworks
+      # if previous step fails, upload firebase-debug.log as an artifact
+      - name: Archive firebase-debug.log
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: firebase-debug-log
+          path: firebase-debug.log
+

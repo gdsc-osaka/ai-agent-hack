@@ -1,7 +1,7 @@
 .gitignore
 .npmignore
 .openapi-generator-ignore
-api.ts
+api-client.ts
 base.ts
 common.ts
 configuration.ts
