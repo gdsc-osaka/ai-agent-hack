@@ -7,6 +7,6 @@ export default function (FIRE_SA: string): app.App {
   }
 
   return admin.initializeApp({
-    credential: admin.credential.cert(JSON.parse(FIRE_SA)),
+    credential: admin.credential.cert(FIRE_SA),
   });
 }
