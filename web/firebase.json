@@ -1,5 +1,4 @@
 {
-  "_": "Firebase Hosting は PR 時の Preview のために使用する. Production では App Hosting を使用する.",
   "hosting": {
     "source": ".",
     "ignore": [
@@ -10,7 +9,6 @@
     "frameworksBackend": {
       "region": "asia-east1"
     },
-    "_": "TODO: PR ごとに Preview 用の Cloud Run を作成し, /api/** はその Cloud Run にリダイレクトする. DB も PR ごとに作成すると良いかもしれない.",
     "rewrites": [
       {
         "source": "/api/**",
