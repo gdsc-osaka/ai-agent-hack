@@ -7,7 +7,7 @@ import { FieldErrors, ForUpdate, OmitBrand } from "./shared/types";
 import { Uid } from "./auth";
 import { errorBuilder, InferError } from "../shared/error";
 
-export const UserId = z.string().brand<"USER_ID">();
+export const UserId = z.string().min(1).brand<"USER_ID">();
 export type UserId = z.infer<typeof UserId>;
 
 export const User = z
