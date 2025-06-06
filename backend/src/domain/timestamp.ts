@@ -1,4 +1,3 @@
-import { ok, Result } from "neverthrow";
 import z from "zod";
 import "zod-openapi/extend";
 
@@ -10,11 +9,11 @@ export const Timestamp = z
   .openapi({ ref: "Timestamp" });
 export type Timestamp = z.infer<typeof Timestamp>;
 
-export const toTimestamp = (date: Date): Result<Timestamp, never> => {
-  return ok({
+export const toTimestamp = (date: Date): Timestamp => {
+  return {
     seconds: Math.floor(date.getTime() / 1000),
     nanoseconds: (date.getTime() % 1000) * 1_000_000,
-  });
+  };
 };
 
 export const toDate = (timestamp: Timestamp): Date => {
