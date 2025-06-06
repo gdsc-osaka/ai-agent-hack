@@ -1,8 +1,8 @@
 import { HTTPException } from "hono/http-exception";
-import { ErrorCarrier, StatusCode } from "../../controller/error/api-error";
+import { HTTPErrorCarrier } from "../../controller/error/api-error";
 
-export const toHTTPException = (err: ErrorCarrier) =>
-  new HTTPException(err.status as StatusCode, {
+export const toHTTPException = (err: HTTPErrorCarrier) =>
+  new HTTPException(err.status, {
     message: err.error.message,
     res: new Response(
       JSON.stringify({

@@ -8,7 +8,7 @@ import {
   handleFirebaseAuthError,
 } from "./auth-repo.error";
 import { match } from "ts-pattern";
-import { AuthUser, convertToAuthUser } from "../domain/auth";
+import { AuthUser, validateAuthUser } from "../domain/auth";
 
 export type VerifyIdToken = (
   idToken: string
@@ -20,7 +20,7 @@ export const verifyIdToken: VerifyIdToken = (idToken) =>
     handleFirebaseAuthError
   )
     // ドメイン層に依存してるが, 局所的なので許してください
-    .map(convertToAuthUser)
+    .map(validateAuthUser)
     .orTee(infraLogger("verifyIdToken").warn);
 
 export type DeleteAuthUser = (uid: string) => ResultAsync<void, AuthError>;

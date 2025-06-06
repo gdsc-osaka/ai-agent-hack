@@ -1,13 +1,14 @@
 import { users } from "../db/schema/users";
 import z from "zod";
 import "zod-openapi/extend";
-import { Result } from "neverthrow";
+import { err, ok, Result } from "neverthrow";
 import { Timestamp, toTimestamp } from "./timestamp";
-import { ForUpdate } from "./shared/types";
+import { FieldErrors, ForUpdate, OmitBrand } from "./shared/types";
 import { Uid } from "./auth";
+import { errorBuilder, InferError } from "../shared/error";
 
-const UserId = z.string().brand("UserId");
-type UserId = z.infer<typeof UserId>;
+export const UserId = z.string().min(1).brand<"USER_ID">();
+export type UserId = z.infer<typeof UserId>;
 
 export const User = z
   .object({
@@ -16,6 +17,7 @@ export const User = z
     createdAt: Timestamp,
     updatedAt: Timestamp,
   })
+  .brand<"USER">()
   .openapi({ ref: "User" });
 export type User = z.infer<typeof User>;
 
@@ -23,16 +25,26 @@ export type DBUser = typeof users.$inferSelect;
 export type DBUserForCreate = typeof users.$inferInsert;
 export type DBUserForUpdate = ForUpdate<DBUser>;
 
-export const convertToUser = (user: DBUser): Result<User, never> => {
-  // TODO: validate user with zod
+export const InvalidUserError = errorBuilder<
+  "InvalidUserError",
+  FieldErrors<typeof User>
+>("InvalidUserError");
+export type InvalidUserError = InferError<typeof InvalidUserError>;
 
-  return Result.combine([
-    toTimestamp(user.createdAt),
-    toTimestamp(user.updatedAt),
-  ]).map(([createdAt, updatedAt]) => ({
+export const validateUser = (user: DBUser): Result<User, InvalidUserError> => {
+  const res = User.safeParse({
     id: user.id as UserId,
     uid: user.uid as Uid,
-    createdAt,
-    updatedAt,
-  }));
+    createdAt: toTimestamp(user.createdAt),
+    updatedAt: toTimestamp(user.updatedAt),
+  } satisfies OmitBrand<User>);
+
+  if (res.success) return ok(res.data);
+
+  return err(
+    InvalidUserError("Invalid user data", {
+      cause: res.error,
+      extra: res.error.flatten().fieldErrors,
+    })
+  );
 };

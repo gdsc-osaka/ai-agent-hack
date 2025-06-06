@@ -36,7 +36,10 @@ const gcloudLogger =
 
       // args is like [{error: new Error(), user: {id: 1, name: "John Doe"}}]
       const entries = _args
-        .filter((arg) => typeof arg === "object" && arg !== null)
+        .filter(
+          (arg): arg is Record<string, unknown> =>
+            typeof arg === "object" && arg !== null
+        )
         .reduce(
           (acc, arg) => ({
             ...acc,

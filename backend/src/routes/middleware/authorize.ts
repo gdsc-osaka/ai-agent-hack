@@ -35,8 +35,8 @@ const authorize = createMiddleware<{
   return next();
 });
 
-export const getAuthUser = (c: Context) => {
-  const authUser = c.get("authUser");
+export const getAuthUser = (c: Context): AuthUser => {
+  const authUser = c.get("authUser") as AuthUser;
   if (!authUser) {
     throw new HTTPException(401, { message: "Unauthorized" });
   }
