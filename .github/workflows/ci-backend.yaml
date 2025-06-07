@@ -18,12 +18,7 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-env:
-  GCP_PROJECT_ID: 'recall-you'
-  GCP_REGION: 'asia-northeast1'
-  GCP_SERVICE_ACCOUNT: 'github-action-994212429@recall-you.iam.gserviceaccount.com'
-  GCP_WORKLOAD_IDENTITY_PROVIDER: 'projects/966744275445/locations/global/workloadIdentityPools/gh-pool/providers/gh-repo-provider'
-  REPO_NAME: 'cloud-run-source-deploy'
+
 jobs:
   analyze:
     timeout-minutes: 5
@@ -73,91 +68,3 @@ jobs:
       - name: Build
         shell: bash
         run: npm run build
-  preview:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: 'read'
-      id-token: 'write' # OIDC認証に必要
-      pull-requests: 'write' # PRへのコメントに必要
-    defaults:
-      run:
-        working-directory: backend
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      # Authenticate to Google Cloud
-      - name: Authenticate to Google Cloud
-        uses: 'google-github-actions/auth@v2'
-        with:
-          project_id: ${{ env.GCP_PROJECT_ID }}
-          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
-          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-      - name: Set up Cloud SDK
-        uses: 'google-github-actions/setup-gcloud@v2'
-      - name: Configure Docker
-        run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev
-      # Set up Docker Buildx
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      # env
-      - name: Setting Environment Variables
-        run: |
-          echo "IMAGE_TAG_API=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-api-preview:${{ github.sha }}" >> $GITHUB_ENV
-          echo "IMAGE_TAG_DB=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-db-preview:${{ github.sha }}" >> $GITHUB_ENV
-          echo "SERVICE_NAME=recall-you-api-preview-pr-${{ github.event.number }}" >> $GITHUB_ENV
-      # Build
-      - name: Build API Image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend
-          file: ./backend/Dockerfile.preview.api
-          tags: ${{ env.IMAGE_TAG_API }}
-          push: false
-          load: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-      - name: Build DB Image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend
-          file: ./backend/Dockerfile.preview.db
-          tags: ${{ env.IMAGE_TAG_DB }}
-          push: false
-          load: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-      # Push
-      - name: Push API Image
-        run: docker push ${{ env.IMAGE_TAG_API }}
-      - name: Push DB Image
-        run: docker push ${{ env.IMAGE_TAG_DB }}
-      # Deploy
-      - name: Deploy to Cloud Run
-        run: |
-          PR_NUMBER=${{ github.event.number }}
-          
-          gcloud run deploy $SERVICE_NAME \
-            --project=${{ env.GCP_PROJECT_ID }} \
-            --region=${{ env.GCP_REGION }} \
-            --platform=managed \
-            --allow-unauthenticated \
-            --labels="preview-env=true,created-at=$(date +%s),pr-number=$PR_NUMBER" \
-            --container api \
-              --image=$IMAGE_TAG_API \
-              --port=8080 \
-              --set-env-vars="PULL_REQUEST_NUMBER=$PR_NUMBER" \
-              --set-env-vars="DATABASE_URL=postgresql://user:password@localhost:5432/db" \
-              --set-secrets="FIRE_SA=FIRE_SA:latest" \
-            --container db \
-              --image=$IMAGE_TAG_DB \
-              --set-env-vars="PULL_REQUEST_NUMBER=$PR_NUMBER" \
-              --set-env-vars="POSTGRES_USER=user" \
-              --set-env-vars="POSTGRES_PASSWORD=password" \
-              --set-env-vars="POSTGRES_DB=db" \
-              --memory=1Gi
-      - name: Get Preview URL and Comment on PR
-        run: |
-          SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --platform managed --region ${{ env.GCP_REGION }} --format 'value(status.url)')
-          gh pr comment ${{ github.event.number }} --body "🚀 Preview environment is ready! URL: $SERVICE_URL"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
