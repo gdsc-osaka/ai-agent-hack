@@ -21,7 +21,11 @@ concurrency:
 env:
   GCP_PROJECT_ID: 'recall-you'
   GCP_REGION: 'asia-northeast1'
+  GCP_SERVICE_ACCOUNT: 'github-action-994212429@recall-you.iam.gserviceaccount.com'
+  GCP_WORKLOAD_IDENTITY_PROVIDER: 'projects/966744275445/locations/global/workloadIdentityPools/gh-pool/providers/gh-repo-provider'
   REPO_NAME: 'cloud-run-source-deploy'
+permissions:
+  pull-requests: write
 jobs:
   analyze:
     timeout-minutes: 5
@@ -86,28 +90,28 @@ jobs:
         uses: 'google-github-actions/auth@v2'
         with:
           project_id: ${{ env.GCP_PROJECT_ID }}
-          service_account: 'github-action-994212429@recall-you.iam.gserviceaccount.com'
-          workload_identity_provider: 'projects/966744275445/locations/global/workloadIdentityPools/gh-pool/providers/gh-repo-provider'
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       - name: Set up Cloud SDK
         uses: 'google-github-actions/setup-gcloud@v2'
       - name: Configure Docker
         run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev
+      - name: Setting Environment Variables
+        run: |
+          echo "IMAGE_TAG_API=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-api-preview:${{ github.sha }}" >> $GITHUB_ENV
+          echo "IMAGE_TAG_DB=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-db-preview:${{ github.sha }}" >> $GITHUB_ENV
+          echo "SERVICE_NAME=recall-you-api-preview-pr-${{ github.event.number }}" >> $GITHUB_ENV
       - name: Build and Push API Image
         run: |
-          docker build \
-            -t ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-api-preview:${{ github.sha }} \
-            -f Dockerfile.preview.api .
-          docker push ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-api-preview:${{ github.sha }}
+          docker build -t $IMAGE_TAG_API -f Dockerfile.preview.api .
+          docker push $IMAGE_TAG_API
       - name: Build and Push DB Image
         run: |
-          docker build \
-            -t ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-db-preview:${{ github.sha }} \
-            -f Dockerfile.preview.db .
-          docker push ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-db-preview:${{ github.sha }}
+          docker build t $IMAGE_TAG_DB -f Dockerfile.preview.db .
+          docker push $IMAGE_TAG_DB
       - name: Deploy to Cloud Run
         run: |
           PR_NUMBER=${{ github.event.number }}
-          SERVICE_NAME="recall-you-api-preview-pr-${PR_NUMBER}"
           
           gcloud run deploy $SERVICE_NAME \
             --project=${{ env.GCP_PROJECT_ID }} \
@@ -116,22 +120,20 @@ jobs:
             --allow-unauthenticated \
             --labels="preview-env=true,created-at=$(date +%s),pr-number=$PR_NUMBER" \
             --container api \
-              --image=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-api-preview:${{ github.sha }} \
+              --image=$IMAGE_TAG_API \
               --port=8080 \
               --set-env-vars="PULL_REQUEST_NUMBER=$PR_NUMBER" \
               --set-env-vars="DATABASE_URL=postgresql://user:password@localhost:5432/db" \
               --set-secrets="FIRE_SA=FIRE_SA:latest" \
             --container db \
-              --image=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-db-preview:${{ github.sha }} \
+              --image=$IMAGE_TAG_DB \
               --set-env-vars="PULL_REQUEST_NUMBER=$PR_NUMBER" \
               --set-env-vars="POSTGRES_USER=user" \
               --set-env-vars="POSTGRES_PASSWORD=password" \
               --set-env-vars="POSTGRES_DB=db" \
-
-      # --- PRにプレビューURLをコメント ---
       - name: Get Preview URL and Comment on PR
         run: |
-          SERVICE_URL=$(gcloud run services describe recall-you-api-preview-pr-${{ github.event.number }} --platform managed --region ${{ env.GCP_REGION }} --format 'value(status.url)')
+          SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --platform managed --region ${{ env.GCP_REGION }} --format 'value(status.url)')
           gh pr comment ${{ github.event.number }} --body "🚀 Preview environment is ready! URL: $SERVICE_URL"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
