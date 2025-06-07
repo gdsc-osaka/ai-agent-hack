@@ -107,7 +107,7 @@ jobs:
           docker push $IMAGE_TAG_API
       - name: Build and Push DB Image
         run: |
-          docker build t $IMAGE_TAG_DB -f Dockerfile.preview.db .
+          docker build -t $IMAGE_TAG_DB -f Dockerfile.preview.db .
           docker push $IMAGE_TAG_DB
       - name: Deploy to Cloud Run
         run: |
@@ -130,7 +130,7 @@ jobs:
               --set-env-vars="PULL_REQUEST_NUMBER=$PR_NUMBER" \
               --set-env-vars="POSTGRES_USER=user" \
               --set-env-vars="POSTGRES_PASSWORD=password" \
-              --set-env-vars="POSTGRES_DB=db" \
+              --set-env-vars="POSTGRES_DB=db"
       - name: Get Preview URL and Comment on PR
         run: |
           SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --platform managed --region ${{ env.GCP_REGION }} --format 'value(status.url)')
