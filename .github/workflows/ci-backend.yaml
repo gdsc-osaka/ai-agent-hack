@@ -87,7 +87,7 @@ jobs:
         with:
           project_id: ${{ env.GCP_PROJECT_ID }}
           service_account: 'github-action-994212429@recall-you.iam.gserviceaccount.com'
-          workload_identity_provider: 'projects/966744275445/locations/global/workloadIdentityPools/gh-pool/providers/gh-repo-provide'
+          workload_identity_provider: 'projects/966744275445/locations/global/workloadIdentityPools/gh-pool/providers/gh-repo-provider'
       - name: Set up Cloud SDK
         uses: 'google-github-actions/setup-gcloud@v2'
       - name: Configure Docker
