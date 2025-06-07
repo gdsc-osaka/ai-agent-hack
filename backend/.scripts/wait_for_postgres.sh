@@ -8,6 +8,8 @@ host="$1"
 shift
 cmd="$@"
 
+echo "Waiting for PostgreSQL at $host:5432..."
+
 # pg_isready を使ってPostgreSQLが準備完了になるまでループで待機
 # -h でホストを指定し、-U でユーザーを指定する
 # 2>&1 >/dev/null でエラー出力(stderr)と標準出力(stdout)を捨てて、静かに実行する
