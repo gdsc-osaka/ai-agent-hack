@@ -119,7 +119,7 @@ jobs:
               --image=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-api-preview:${{ github.sha }} \
               --port=8080 \
               --set-env-vars="PULL_REQUEST_NUMBER=$PR_NUMBER" \
-              --set-env-vars="DATABASE_URL=postgresql://user:password@localhost:5432/db"
+              --set-env-vars="DATABASE_URL=postgresql://user:password@localhost:5432/db" \
               --set-secrets="FIRE_SA=FIRE_SA:latest" \
             --container db \
               --image=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-db-preview:${{ github.sha }} \
