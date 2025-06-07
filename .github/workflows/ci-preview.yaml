@@ -41,7 +41,7 @@ jobs:
               - '.github/workflows/ci-preview.yaml'
   backend:
     needs: check-changes
-    if: needs.changes.outputs.backend == 'true'
+    if: needs.check-changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
@@ -139,7 +139,7 @@ jobs:
     defaults:
       run:
         working-directory: web
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    if: always() && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
