@@ -95,13 +95,13 @@ jobs:
         run: |
           docker build \
             -t ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/api:${{ github.sha }} \
-            -f Dockerfile.api .
+            -f Dockerfile.preview.api .
           docker push ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/api:${{ github.sha }}
       - name: Build and Push DB Image
         run: |
           docker build \
             -t ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/db:${{ github.sha }} \
-            -f Dockerfile.db .
+            -f Dockerfile.preview.db .
           docker push ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/db:${{ github.sha }}
       - name: Deploy to Cloud Run
         run: |
