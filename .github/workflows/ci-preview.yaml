@@ -20,12 +20,29 @@ env:
   GCP_SERVICE_ACCOUNT: 'github-action-994212429@recall-you.iam.gserviceaccount.com'
   GCP_WORKLOAD_IDENTITY_PROVIDER: 'projects/966744275445/locations/global/workloadIdentityPools/gh-pool/providers/gh-repo-provider'
   REPO_NAME: 'cloud-run-source-deploy'
-permissions:
-  checks: write
-  contents: read
-  pull-requests: write
 jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      web: ${{ steps.filter.outputs.web }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+              - '.github/workflows/ci-backend.yaml'
+            web:
+              - 'web/**'
+              - '.github/workflows/ci-web.yaml'
   backend:
+    needs: check-changes
+    if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
@@ -119,12 +136,15 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   # Deploy to Firebase Hosting
   web:
-    needs: backend
+    needs: [check-changes, backend]
     defaults:
       run:
         working-directory: web
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      pull-requests: 'write'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -155,7 +175,9 @@ jobs:
           PREVIEW_URL: ${{ needs.backend.outputs.preview_url }}
         run: |
           echo "NODE_ENV=production" > .env
-          echo "API_URL=${PREVIEW_URL}" >> .env
+          if [[ "${{ needs.backend.result }}" == "success" ]]; then
+            echo "API_URL=${{ needs.backend.outputs.preview_url }}" >> .env
+          fi
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
