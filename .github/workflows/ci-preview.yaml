@@ -8,8 +8,7 @@ on:
     paths:
       - 'backend/**'
       - 'web/**'
-      - '.github/workflows/ci-backend.yaml'
-      - '.github/workflows/ci-web.yaml'
+      - '.github/workflows/ci-preview.yaml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -36,10 +35,10 @@ jobs:
           filters: |
             backend:
               - 'backend/**'
-              - '.github/workflows/ci-backend.yaml'
+              - '.github/workflows/ci-preview.yaml'
             web:
               - 'web/**'
-              - '.github/workflows/ci-web.yaml'
+              - '.github/workflows/ci-preview.yaml'
   backend:
     needs: check-changes
     if: needs.changes.outputs.backend == 'true'
