@@ -107,7 +107,7 @@ jobs:
       - name: Deploy to Cloud Run
         run: |
           PR_NUMBER=${{ github.event.number }}
-          SERVICE_NAME="preview-${{ env.REPO_NAME }}-pr-${PR_NUMBER}"
+          SERVICE_NAME="recall-you-api-preview-pr-${PR_NUMBER}"
           
           gcloud run deploy $SERVICE_NAME \
             --project=${{ env.GCP_PROJECT_ID }} \
@@ -115,12 +115,6 @@ jobs:
             --platform=managed \
             --allow-unauthenticated \
             --labels="preview-env=true,created-at=$(date +%s),pr-number=$PR_NUMBER" \
-            --container api \
-              --image=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-api-preview:${{ github.sha }} \
-              --port=8080 \
-              --set-env-vars="PULL_REQUEST_NUMBER=$PR_NUMBER" \
-              --set-env-vars="DATABASE_URL=postgresql://user:password@localhost:5432/db"
-              --set-secrets="FIRE_SA=FIRE_SA:latest" \
             --container db \
               --image=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-db-preview:${{ github.sha }} \
               --port=5432 \
@@ -128,11 +122,17 @@ jobs:
               --set-env-vars="POSTGRES_USER=user" \
               --set-env-vars="POSTGRES_PASSWORD=password" \
               --set-env-vars="POSTGRES_DB=db" \
+            --container api \
+              --image=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-api-preview:${{ github.sha }} \
+              --port=8080 \
+              --set-env-vars="PULL_REQUEST_NUMBER=$PR_NUMBER" \
+              --set-env-vars="DATABASE_URL=postgresql://user:password@localhost:5432/db"
+              --set-secrets="FIRE_SA=FIRE_SA:latest" \
 
       # --- PRにプレビューURLをコメント ---
       - name: Get Preview URL and Comment on PR
         run: |
-          SERVICE_URL=$(gcloud run services describe preview-${{ env.REPO_NAME }}-pr-${{ github.event.number }} --platform managed --region ${{ env.GCP_REGION }} --format 'value(status.url)')
+          SERVICE_URL=$(gcloud run services describe recall-you-api-preview-pr-${{ github.event.number }} --platform managed --region ${{ env.GCP_REGION }} --format 'value(status.url)')
           gh pr comment ${{ github.event.number }} --body "🚀 Preview environment is ready! URL: $SERVICE_URL"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

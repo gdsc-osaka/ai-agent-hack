@@ -27,7 +27,7 @@ jobs:
         uses: 'google-github-actions/setup-gcloud@v2'
       - name: Delete Cloud Run Service
         run: |
-          SERVICE_NAME="preview-${{ env.REPO_NAME }}-pr-${{ github.event.number }}"
+          SERVICE_NAME="recall-you-api-preview-pr-${{ github.event.number }}"
           gcloud run services delete $SERVICE_NAME \
             --project=${{ env.GCP_PROJECT_ID }} \
             --region=${{ env.GCP_REGION }} \
