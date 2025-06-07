@@ -13,7 +13,7 @@ echo "Waiting for PostgreSQL at $host:5432..."
 # pg_isready を使ってPostgreSQLが準備完了になるまでループで待機
 # -h でホストを指定し、-U でユーザーを指定する
 # 2>&1 >/dev/null でエラー出力(stderr)と標準出力(stdout)を捨てて、静かに実行する
-until pg_isready --host="$host" --port=5432 --dbname=db --username="user" -q; do
+until pg_isready --host="$host" --port=5432 --dbname=db --username="user" --password="password" -q; do
   >&2 echo "Postgres is unavailable - sleeping"
   sleep 1
 done

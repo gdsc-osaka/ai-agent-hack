@@ -20,4 +20,4 @@ COPY --chmod=755 .scripts/wait_for_postgres.sh .
 
 EXPOSE $PORT
 
-CMD ["./wait_for_postgres.sh", "localhost", "npm", "start"]
+CMD ["npm", "start"]
