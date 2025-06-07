@@ -115,6 +115,9 @@ jobs:
             --platform=managed \
             --allow-unauthenticated \
             --set-env-vars="PULL_REQUEST_NUMBER=$PR_NUMBER" \
+            --set-env-vars="POSTGRES_USER=user" \
+            --set-env-vars="POSTGRES_PASSWORD=password" \
+            --set-env-vars="POSTGRES_DB=db" \
             --set-env-vars="DATABASE_URL=postgresql://user:password@localhost:5432/db"
             --set-secrets="FIRE_SA=FIRE_SA:latest" \
             --labels="preview-env=true,created-at=$(date +%s),pr-number=$PR_NUMBER" \

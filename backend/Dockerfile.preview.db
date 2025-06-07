@@ -1,11 +1,6 @@
 # Dockerfile.db
 FROM postgres:15
 
-# データベースのユーザー、パスワード、DB名を設定
-ENV POSTGRES_USER=user
-ENV POSTGRES_PASSWORD=password
-ENV POSTGRES_DB=db
-
 RUN cat drizzle/*.sql > init.sql
 
 # コンテナ初回起動時に実行される初期化スクリプトをコピー
