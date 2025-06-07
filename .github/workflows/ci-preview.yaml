@@ -137,7 +137,7 @@ jobs:
           echo "PREVIEW_URL=$SERVICE_URL" >> $GITHUB_OUTPUT
 
           COMMENT_TAG="<!-- PREVIEW_URL_COMMENT -->"
-          COMMENT_BODY="🚀 Preview API Server is ready! URL: $SERVICE_URL\n$COMMENT_TAG"          
+          COMMENT_BODY="🚀 Preview API Server is ready! URL: $SERVICE_URL $COMMENT_TAG"          
           EXISTING_COMMENT=$(gh pr view ${{ github.event.number }} --json comments -q '.comments[] | select(.body | contains("<!-- PREVIEW_URL_COMMENT -->"))')
           # コメントが存在しない場合のみ、新しいコメントを投稿
           if [ -z "$EXISTING_COMMENT" ]; then
