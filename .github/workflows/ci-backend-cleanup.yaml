@@ -7,7 +7,7 @@ on:
 env:
   GCP_PROJECT_ID: 'recall-you'
   GCP_REGION: 'asia-northeast1'
-  REPO_NAME: ${{ github.event.repository.name }}
+  REPO_NAME: 'cloud-run-source-deploy'
 
 jobs:
   cleanup:

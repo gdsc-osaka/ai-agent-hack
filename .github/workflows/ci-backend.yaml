@@ -21,7 +21,7 @@ concurrency:
 env:
   GCP_PROJECT_ID: 'recall-you'
   GCP_REGION: 'asia-northeast1'
-  REPO_NAME: ${{ github.event.repository.name }}
+  REPO_NAME: 'cloud-run-source-deploy'
 jobs:
   analyze:
     timeout-minutes: 5
@@ -97,13 +97,13 @@ jobs:
           docker build \
             -t ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/api:${{ github.sha }} \
             -f Dockerfile.preview.api .
-          docker push ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/api:${{ github.sha }}
+          docker push ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-api-preview:${{ github.sha }}
       - name: Build and Push DB Image
         run: |
           docker build \
             -t ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/db:${{ github.sha }} \
             -f Dockerfile.preview.db .
-          docker push ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/db:${{ github.sha }}
+          docker push ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-db-preview:${{ github.sha }}
       - name: Deploy to Cloud Run
         run: |
           PR_NUMBER=${{ github.event.number }}
@@ -118,7 +118,7 @@ jobs:
             --set-env-vars="DATABASE_URL=postgresql://user:password@localhost:5432/db"
             --set-secrets="FIRE_SA=FIRE_SA:latest" \
             --labels="preview-env=true,created-at=$(date +%s),pr-number=$PR_NUMBER" \
-            --images=api=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/api:${{ github.sha }},db=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/db:${{ github.sha }}
+            --images=api=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-api-preview:${{ github.sha }},db=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-db-preview:${{ github.sha }}
 
       # --- PRにプレビューURLをコメント ---
       - name: Get Preview URL and Comment on PR
