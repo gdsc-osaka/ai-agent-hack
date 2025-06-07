@@ -24,8 +24,6 @@ env:
   GCP_SERVICE_ACCOUNT: 'github-action-994212429@recall-you.iam.gserviceaccount.com'
   GCP_WORKLOAD_IDENTITY_PROVIDER: 'projects/966744275445/locations/global/workloadIdentityPools/gh-pool/providers/gh-repo-provider'
   REPO_NAME: 'cloud-run-source-deploy'
-permissions:
-  pull-requests: write
 jobs:
   analyze:
     timeout-minutes: 5
@@ -80,6 +78,8 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write' # OIDC認証に必要
+      packages: 'write'  # Artifact Registryへの書き込みに必要
+      pull-requests: 'write' # PRへのコメントに必要
     defaults:
       run:
         working-directory: backend
