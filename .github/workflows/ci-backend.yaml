@@ -114,14 +114,20 @@ jobs:
             --region=${{ env.GCP_REGION }} \
             --platform=managed \
             --allow-unauthenticated \
-            --set-env-vars="PULL_REQUEST_NUMBER=$PR_NUMBER" \
-            --set-env-vars="POSTGRES_USER=user" \
-            --set-env-vars="POSTGRES_PASSWORD=password" \
-            --set-env-vars="POSTGRES_DB=db" \
-            --set-env-vars="DATABASE_URL=postgresql://user:password@localhost:5432/db"
-            --set-secrets="FIRE_SA=FIRE_SA:latest" \
             --labels="preview-env=true,created-at=$(date +%s),pr-number=$PR_NUMBER" \
-            --images=api=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-api-preview:${{ github.sha }},db=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-db-preview:${{ github.sha }}
+            --container api \
+              --image=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-api-preview:${{ github.sha }} \
+              --port=8080 \
+              --set-env-vars="PULL_REQUEST_NUMBER=$PR_NUMBER" \
+              --set-env-vars="DATABASE_URL=postgresql://user:password@localhost:5432/db"
+              --set-secrets="FIRE_SA=FIRE_SA:latest" \
+            --container db \
+              --image=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-db-preview:${{ github.sha }} \
+              --port=5432 \
+              --set-env-vars="PULL_REQUEST_NUMBER=$PR_NUMBER" \
+              --set-env-vars="POSTGRES_USER=user" \
+              --set-env-vars="POSTGRES_PASSWORD=password" \
+              --set-env-vars="POSTGRES_DB=db" \
 
       # --- PRにプレビューURLをコメント ---
       - name: Get Preview URL and Comment on PR
