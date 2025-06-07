@@ -1,0 +1,23 @@
+FROM node:22-alpine
+
+RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /usr/src/app
+
+RUN npm install -g pnpm
+
+COPY package.json ./
+COPY pnpm-lock.yaml ./
+RUN pnpm install
+
+COPY tsconfig.* ./
+COPY *.ts ./
+COPY src ./src
+
+RUN npm run build
+
+COPY --chmod=755 .scripts/wait_for_postgres.sh .
+
+EXPOSE $PORT
+
+CMD ["./wait_for_postgres.sh", "localhost", "npm", "start"]
