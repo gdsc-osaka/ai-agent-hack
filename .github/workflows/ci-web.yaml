@@ -64,8 +64,11 @@ jobs:
       - name: Test
         shell: bash
         run: npm run test:unit
+      - name: Build
+        shell: bash
+        run: npm run build
   # Deploy to Firebase Hosting on PR
-  build_and_preview:
+  preview:
     defaults:
       run:
         working-directory: web
