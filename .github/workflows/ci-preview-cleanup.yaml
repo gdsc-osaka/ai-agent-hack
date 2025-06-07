@@ -1,0 +1,34 @@
+name: Cleanup Preview Environment
+
+on:
+  pull_request:
+    types: [closed]
+
+env:
+  GCP_PROJECT_ID: 'recall-you'
+  GCP_REGION: 'asia-northeast1'
+  REPO_NAME: 'cloud-run-source-deploy'
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: 'google-github-actions/auth@v2'
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+          service_account: 'github-action-994212429@recall-you.iam.gserviceaccount.com'
+          workload_identity_provider: 'projects/966744275445/locations/global/workloadIdentityPools/gh-pool/providers/gh-repo-provider'
+      - name: Set up Cloud SDK
+        uses: 'google-github-actions/setup-gcloud@v2'
+      - name: Delete Cloud Run Service
+        run: |
+          SERVICE_NAME="recall-you-api-preview-pr-${{ github.event.number }}"
+          gcloud run services delete $SERVICE_NAME \
+            --project=${{ env.GCP_PROJECT_ID }} \
+            --region=${{ env.GCP_REGION }} \
+            --platform=managed \
+            --quiet

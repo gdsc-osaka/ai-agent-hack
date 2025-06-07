@@ -1,0 +1,211 @@
+name: Deploy Preview Environment
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'web/**'
+      - '.github/workflows/ci-preview.yaml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  GCP_PROJECT_ID: 'recall-you'
+  GCP_REGION: 'asia-northeast1'
+  GCP_SERVICE_ACCOUNT: 'github-action-994212429@recall-you.iam.gserviceaccount.com'
+  GCP_WORKLOAD_IDENTITY_PROVIDER: 'projects/966744275445/locations/global/workloadIdentityPools/gh-pool/providers/gh-repo-provider'
+  REPO_NAME: 'cloud-run-source-deploy'
+permissions:
+  checks: write
+  contents: read
+  pull-requests: write
+jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      web: ${{ steps.filter.outputs.web }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+              - '.github/workflows/ci-preview.yaml'
+            web:
+              - 'web/**'
+              - '.github/workflows/ci-preview.yaml'
+  backend:
+    needs: check-changes
+    if: needs.check-changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write' # OIDC認証に必要
+      pull-requests: 'write' # PRへのコメントに必要
+    outputs:
+      preview_url: ${{ steps.comment.outputs.PREVIEW_URL }}
+    defaults:
+      run:
+        working-directory: backend
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      # Authenticate to Google Cloud
+      - name: Authenticate to Google Cloud
+        uses: 'google-github-actions/auth@v2'
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      - name: Set up Cloud SDK
+        uses: 'google-github-actions/setup-gcloud@v2'
+      - name: Configure Docker
+        run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev
+      # Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      # env
+      - name: Setting Environment Variables
+        run: |
+          echo "IMAGE_TAG_API=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-api-preview:${{ github.sha }}" >> $GITHUB_ENV
+          echo "IMAGE_TAG_DB=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-db-preview:${{ github.sha }}" >> $GITHUB_ENV
+          echo "SERVICE_NAME=recall-you-api-preview-pr-${{ github.event.number }}" >> $GITHUB_ENV
+      # Build
+      - name: Build API Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile.preview.api
+          tags: ${{ env.IMAGE_TAG_API }}
+          push: false
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Build DB Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile.preview.db
+          tags: ${{ env.IMAGE_TAG_DB }}
+          push: false
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      # Push
+      - name: Push API Image
+        run: docker push ${{ env.IMAGE_TAG_API }}
+      - name: Push DB Image
+        run: docker push ${{ env.IMAGE_TAG_DB }}
+      # Deploy
+      - name: Deploy to Cloud Run
+        run: |
+          PR_NUMBER=${{ github.event.number }}
+          
+          gcloud run deploy $SERVICE_NAME \
+            --project=${{ env.GCP_PROJECT_ID }} \
+            --region=${{ env.GCP_REGION }} \
+            --platform=managed \
+            --allow-unauthenticated \
+            --labels="preview-env=true,created-at=$(date +%s),pr-number=$PR_NUMBER" \
+            --container api \
+              --image=$IMAGE_TAG_API \
+              --port=8080 \
+              --set-env-vars="PULL_REQUEST_NUMBER=$PR_NUMBER" \
+              --set-env-vars="DATABASE_URL=postgresql://user:password@localhost:5432/db" \
+              --set-secrets="FIRE_SA=FIRE_SA:latest" \
+            --container db \
+              --image=$IMAGE_TAG_DB \
+              --set-env-vars="PULL_REQUEST_NUMBER=$PR_NUMBER" \
+              --set-env-vars="POSTGRES_USER=user" \
+              --set-env-vars="POSTGRES_PASSWORD=password" \
+              --set-env-vars="POSTGRES_DB=db" \
+              --memory=1Gi
+      - name: Get Preview URL and Comment on PR
+        id: comment
+        run: |
+          SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --platform managed --region ${{ env.GCP_REGION }} --format 'value(status.url)')
+          echo "PREVIEW_URL=$SERVICE_URL" >> $GITHUB_OUTPUT
+
+          COMMENT_TAG="<!-- PREVIEW_URL_COMMENT -->"
+          COMMENT_BODY="🚀 Preview API Server is ready! URL: $SERVICE_URL\n$COMMENT_TAG"          
+          EXISTING_COMMENT=$(gh pr view ${{ github.event.number }} --json comments -q '.comments[] | select(.body | contains("<!-- PREVIEW_URL_COMMENT -->"))')
+          # コメントが存在しない場合のみ、新しいコメントを投稿
+          if [ -z "$EXISTING_COMMENT" ]; then
+            gh pr comment ${{ github.event.number }} --body-file - <<< "$COMMENT_BODY"
+          else
+            echo "Preview URL comment already exists."
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # Deploy to Firebase Hosting
+  web:
+    needs: [check-changes, backend]
+    defaults:
+      run:
+        working-directory: web
+    if: always() && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: 'read'
+      pull-requests: 'write'
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+          cache-dependency-path: 'web/pnpm-lock.yaml'
+      - name: cache-node-modules
+        uses: actions/cache@v3
+        id: cache-node
+        env:
+          cache-name: cache-node
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-cache-node-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-cache-node-
+            ${{ runner.os }}-cache-
+            ${{ runner.os }}-
+      - name: Install node modules
+        if: ${{ steps.cache-node.outputs.cache-hit != 'true' }}
+        run: pnpm i
+      - name: Generate .env
+        env:
+          PREVIEW_URL: ${{ needs.backend.outputs.preview_url }}
+        run: |
+          echo "NODE_ENV=production" > .env
+          if [[ "${{ needs.backend.result }}" == "success" ]]; then
+            echo "API_URL=${{ needs.backend.outputs.preview_url }}" >> .env
+          fi
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_RECALL_YOU }}
+          projectId: recall-you
+          expires: '3d'
+          entryPoint: 'web'
+        env:
+          FIREBASE_CLI_EXPERIMENTS: webframeworks
+      # if previous step fails, upload firebase-debug.log as an artifact
+      - name: Archive firebase-debug.log
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: firebase-debug-log
+          path: firebase-debug.log
