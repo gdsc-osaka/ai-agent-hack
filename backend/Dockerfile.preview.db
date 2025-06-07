@@ -1,8 +1,5 @@
 # Dockerfile.db
 FROM postgres:15
 
-COPY drizzle/*.sql ./drizzle/
-RUN cat drizzle/*.sql > init.sql
-
 # コンテナ初回起動時に実行される初期化スクリプトをコピー
-COPY init.sql /docker-entrypoint-initdb.d/
+COPY sql/* /docker-entrypoint-initdb.d/
