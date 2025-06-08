@@ -68,3 +68,24 @@ jobs:
       - name: Build
         shell: bash
         run: npm run build
+  generate-openapi:
+    runs-on: ubuntu-latest
+    # ジョブにリポジトリへの書き込み権限を付与
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # プッシュするために、PRのヘッドブランチをチェックアウトする
+          ref: ${{ github.head_ref }}
+      - name: Run OpenAPI Generator Script
+        run: |
+          chmod +x .scripts/gen_openapi.sh
+          .scripts/gen_openapi.sh
+      # 差分があればコミットしてプッシュ
+      - name: Commit and push if changed
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: Generate OpenAPI specs"
+          commit_user_name: "github-actions[bot]"
+          commit_user_email: "github-actions[bot]@users.noreply.github.com"
