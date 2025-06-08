@@ -76,6 +76,7 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
         with:
