@@ -111,10 +111,13 @@ jobs:
         shell: bash
         run: |
           cp .env.sample .env
-      - name: Run server
-        run: npm run dev &
       - name: Run OpenAPI Generator Script
         run: |
+          npm run dev &
+
+          # wait-on を使った方がいい
+          sleep 5
+          
           cd ..
           chmod +x .scripts/gen_openapi.sh
           .scripts/gen_openapi.sh
