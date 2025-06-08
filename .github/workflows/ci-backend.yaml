@@ -116,7 +116,7 @@ jobs:
           npm run dev &
 
           # wait-on を使った方がいい
-          sleep 5
+          sleep 10
           
           cd ..
           chmod +x .scripts/gen_openapi.sh
