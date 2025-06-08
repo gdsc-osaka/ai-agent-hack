@@ -106,6 +106,10 @@ jobs:
         if: ${{ steps.cache-node.outputs.cache-hit != 'true' }}
         run: pnpm i
       # Generate openapi specs
+      - name: Generate .env
+        shell: bash
+        run: |
+          cp .env.sample .env
       - name: Run development server
         run: npm run dev
       - name: Run OpenAPI Generator Script
