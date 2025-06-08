@@ -111,9 +111,17 @@ jobs:
         run: |
           cp .env.sample .env
       - name: Run development server
-        run: npm run dev
+        run:
       - name: Run OpenAPI Generator Script
         run: |
+          # Run dev server in the background
+          npm run dev &
+          
+          # Wait for the server to start
+          npx wait-on http://localhost:8080
+          
+          echo "Server started successfully. Running script..."
+          
           cd ..
           chmod +x .scripts/gen_openapi.sh
           .scripts/gen_openapi.sh
