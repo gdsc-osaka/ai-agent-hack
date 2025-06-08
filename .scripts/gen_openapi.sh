@@ -7,10 +7,10 @@ curl -o tmp.openapi.json "http://localhost:8080/api/openapi"
 openapi-generator --version || brew install openapi-generator
 
 # Generate TypeScript Client
-openapi-generator generate -i tmp.openapi.json -g typescript-axios -o web/src/api
+openapi-generator generate -i tmp.openapi.json -g typescript-axios -o web/src/openapi
 
 # Clean up temporary files
 rm tmp.openapi.json
 
 echo "Adding generated files to git..."
-git add -A web/src/api
+git add -A web/src/openapi
