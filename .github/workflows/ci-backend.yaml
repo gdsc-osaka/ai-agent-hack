@@ -114,7 +114,7 @@ jobs:
       - name: Run OpenAPI Generator Script
         run: |
           # Run dev server in the background
-          npm run dev &
+          npm run dev > server.log 2>&1 &
           
           # Wait for the server to start
           npx wait-on http://localhost:8080
