@@ -73,13 +73,44 @@ jobs:
     # ジョブにリポジトリへの書き込み権限を付与
     permissions:
       contents: write
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - uses: actions/checkout@v4
         with:
           # プッシュするために、PRのヘッドブランチをチェックアウトする
           ref: ${{ github.head_ref }}
+      # Setup pnpm and Node.js
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+          cache-dependency-path: 'backend/pnpm-lock.yaml'
+      - name: cache-node-modules
+        uses: actions/cache@v3
+        id: cache-node
+        env:
+          cache-name: cache-node
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-cache-node-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-cache-node-
+            ${{ runner.os }}-cache-
+            ${{ runner.os }}-
+      - name: Install node modules
+        if: ${{ steps.cache-node.outputs.cache-hit != 'true' }}
+        run: pnpm i
+      # Generate openapi specs
+      - name: Run development server
+        run: npm run dev
       - name: Run OpenAPI Generator Script
         run: |
+          cd ..
           chmod +x .scripts/gen_openapi.sh
           .scripts/gen_openapi.sh
       # 差分があればコミットしてプッシュ
