@@ -29,7 +29,7 @@ def embedding_test():
 if __name__ == "__main__":
     uvicorn.run(
         "server:app",
-        port=8080,
+        port=8000,
         host="0.0.0.0",
         workers=1,
         reload=os.getenv("ENV", "prod") == "dev"
