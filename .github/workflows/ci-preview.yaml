@@ -192,8 +192,11 @@ jobs:
           echo "NODE_ENV=production" > .env
           if [[ "${{ needs.backend.result }}" == "success" ]]; then
             echo "API_URL=${{ needs.backend.outputs.preview_url }}" >> .env
+            # Preview 用 Firebase Hosting の rewrites 設定を更新
+            sed -i '' "s/recall-you-api-prod/${{ needs.backend.outputs.preview_url }}/g" firebase.json
           fi
       - uses: FirebaseExtended/action-hosting-deploy@v0
+        id: deploy
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_RECALL_YOU }}
