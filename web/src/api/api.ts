@@ -59,10 +59,10 @@ export interface ApiError {
   code: ApiErrorCode;
   /**
    *
-   * @type {{ [key: string]: any; }}
+   * @type {Array<any>}
    * @memberof ApiError
    */
-  details?: { [key: string]: any };
+  details: Array<any>;
 }
 
 /**
@@ -74,6 +74,7 @@ export interface ApiError {
 export const ApiErrorCode = {
   DatabaseUnknownError: "DATABASE_UNKNOWN_ERROR",
   DatabaseNotFound: "DATABASE_NOT_FOUND",
+  DatabaseInconsistentType: "DATABASE_INCONSISTENT_TYPE",
 } as const;
 
 export type ApiErrorCode = (typeof ApiErrorCode)[keyof typeof ApiErrorCode];
