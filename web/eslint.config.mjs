@@ -95,7 +95,7 @@ const myRules = {
 export default [
     {
         ignores: [
-            'src/openapi/**/*.{ts,js}',
+            'src/openapi/**/*.ts',
         ]
     },
     {languageOptions: {globals: globals.node}},
