@@ -110,8 +110,6 @@ jobs:
         shell: bash
         run: |
           cp .env.sample .env
-      - name: Run development server
-        run:
       - name: Run OpenAPI Generator Script
         run: |
           # Run dev server in the background
