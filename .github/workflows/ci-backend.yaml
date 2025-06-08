@@ -115,10 +115,6 @@ jobs:
         run: npm run dev &
       - name: Run OpenAPI Generator Script
         run: |
-          npx wait-on http://localhost:8080
-          
-          echo "Server started successfully. Running script..."
-          
           cd ..
           chmod +x .scripts/gen_openapi.sh
           .scripts/gen_openapi.sh
