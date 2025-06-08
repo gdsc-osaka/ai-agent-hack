@@ -53,6 +53,7 @@ jobs:
       pull-requests: 'write' # PRへのコメントに必要
     outputs:
       preview_url: ${{ steps.comment.outputs.PREVIEW_URL }}
+      service_name: ${{ steps.comment.outputs.SERVICE_NAME }}
     defaults:
       run:
         working-directory: backend
@@ -135,6 +136,7 @@ jobs:
         run: |
           SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --platform managed --region ${{ env.GCP_REGION }} --format 'value(status.url)')
           echo "PREVIEW_URL=$SERVICE_URL" >> $GITHUB_OUTPUT
+          echo "SERVICE_NAME=$SERVICE_NAME" >> $GITHUB_OUTPUT
 
           COMMENT_TAG="<!-- PREVIEW_URL_COMMENT -->"
           COMMENT_BODY="🚀 Preview API Server is ready! URL: $SERVICE_URL $COMMENT_TAG"          
@@ -192,8 +194,11 @@ jobs:
           echo "NODE_ENV=production" > .env
           if [[ "${{ needs.backend.result }}" == "success" ]]; then
             echo "API_URL=${{ needs.backend.outputs.preview_url }}" >> .env
+            # Preview 用 Firebase Hosting の rewrites 設定を更新
+            sed -i "s@recall-you-api-prod@${{ needs.backend.outputs.service_name }}@g" firebase.json
           fi
       - uses: FirebaseExtended/action-hosting-deploy@v0
+        id: deploy
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_RECALL_YOU }}

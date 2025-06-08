@@ -2,11 +2,10 @@
 (アプリ名) is an app for AI Agent Hackathon by Zenn 2025.
 
 ## Directory Structure
-
 ```
-├── ai // 顔認証サーバー
+├── ai      // 顔認証サーバー
 ├── backend // Web API サーバー
-├── web // Web フロントエンド
+├── web     // Web フロントエンド
 └── README.md
 ```
 
