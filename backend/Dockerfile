@@ -6,8 +6,11 @@ RUN npm install -g pnpm
 
 COPY package.json ./
 COPY pnpm-lock.yaml ./
-RUN pnpm install --prod --frozen-lockfile
-RUN pnpm install -D typescript
+
+RUN pnpm install
+# May not work these commands?
+#RUN pnpm install --prod --frozen-lockfile
+#RUN pnpm install -D typescript
 
 COPY tsconfig.* ./
 COPY *.ts ./
