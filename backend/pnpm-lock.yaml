@@ -12,8 +12,8 @@ importers:
         specifier: ^7.16.0
         version: 7.16.0
       '@google/genai':
-        specifier: ^1.3.0
-        version: 1.3.0(@modelcontextprotocol/sdk@1.12.1)
+        specifier: ^1.4.0
+        version: 1.4.0(@modelcontextprotocol/sdk@1.12.1)
       '@hono/node-server':
         specifier: ^1.14.4
         version: 1.14.4(hono@4.7.11)
@@ -543,8 +543,8 @@ packages:
     resolution: {integrity: sha512-7/5LRgykyOfQENcm6hDKP8SX/u9XxE5YOiWOkgkwcoO+cG8xT/cyOvp9wwN3IxfdYgpHs8CE7Nq2PKX2lNaEXw==}
     engines: {node: '>=14'}
 
-  '@google/genai@1.3.0':
-    resolution: {integrity: sha512-rrMzAELX4P902FUpuWy/W3NcQ7L3q/qtCzfCmGVqIce8yWpptTF9hkKsw744tvZpwqhuzD0URibcJA95wd8QFA==}
+  '@google/genai@1.4.0':
+    resolution: {integrity: sha512-u9LQZbWBhqaaLelCcYsxMNDTeW12jzNwGkI/eqUeMG/iB1gJBu56LCxrFJ/hkHeZQgPg+j1pckBLZS/dnOh+Bw==}
     engines: {node: '>=20.0.0'}
     peerDependencies:
       '@modelcontextprotocol/sdk': ^1.11.0
@@ -3249,13 +3249,13 @@ snapshots:
       - encoding
       - supports-color
 
-  '@google/genai@1.3.0(@modelcontextprotocol/sdk@1.12.1)':
+  '@google/genai@1.4.0(@modelcontextprotocol/sdk@1.12.1)':
     dependencies:
       '@modelcontextprotocol/sdk': 1.12.1
       google-auth-library: 9.15.1
       ws: 8.18.2
-      zod: 3.25.51
-      zod-to-json-schema: 3.24.5(zod@3.25.51)
+      zod: 3.25.56
+      zod-to-json-schema: 3.24.5(zod@3.25.56)
     transitivePeerDependencies:
       - bufferutil
       - encoding
@@ -5688,10 +5688,6 @@ snapshots:
   yocto-queue@0.1.0: {}
 
   zod-openapi@4.2.4(zod@3.25.51):
-    dependencies:
-      zod: 3.25.51
-
-  zod-to-json-schema@3.24.5(zod@3.25.51):
     dependencies:
       zod: 3.25.51
 
