@@ -179,7 +179,7 @@ jobs:
           cache-name: cache-node
         with:
           path: '**/node_modules'
-          key: ${{ runner.os }}-cache-node-${{ hashFiles('**/pnpm-lock.yaml') }}
+          key: ${{ runner.os }}-cache-web-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-cache-node-
             ${{ runner.os }}-cache-
