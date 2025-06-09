@@ -12,29 +12,37 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ faceRecognition }) => {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunks = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
 
   // Start recording
   const startRecording = async () => {
     if (recording) return;
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const mediaRecorder = new MediaRecorder(stream);
-    mediaRecorderRef.current = mediaRecorder;
-    audioChunks.current = [];
+    setAudioUrl(null); // Clear old audio URL
+    try{
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunks.current = [];
 
-    mediaRecorder.ondataavailable = (event) => {
-      if (event.data.size > 0) {
-        audioChunks.current.push(event.data);
-      }
-    };
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunks.current.push(event.data);
+        }
+      };
 
-    mediaRecorder.onstop = () => {
-      const audioBlob = new Blob(audioChunks.current, { type: "audio/webm" });
-      const url = URL.createObjectURL(audioBlob);
-      setAudioUrl(url);
-    };
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunks.current, { type: "audio/webm" });
+        const url = URL.createObjectURL(audioBlob);
+        setAudioUrl(url);
+      };
 
-    mediaRecorder.start();
-    setRecording(true);
+      mediaRecorder.start();
+      setRecording(true);
+    } catch (error) {
+      console.error("Error accessing microphone:", error);
+      alert("Unable to access microphone. Please check your permissions and try again.");
+    }
   };
 
   // Stop recording
@@ -42,6 +50,8 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ faceRecognition }) => {
     if (!recording) return;
     mediaRecorderRef.current?.stop();
     setRecording(false);
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
   };
 
   useEffect(() => {
@@ -50,7 +60,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ faceRecognition }) => {
     } else if (faceRecognition === "no-face" && recording) {
       stopRecording();
     }
-  }, [faceRecognition]);
+  }, [faceRecognition, recording, startRecording, stopRecording]);
 
   const downloadAudio = () => {
     if (!audioUrl) return;
