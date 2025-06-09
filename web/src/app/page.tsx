@@ -1,7 +1,7 @@
 'use client';
 
 import { useAtom } from 'jotai';
-import AudioRecorder from '../components/modules/AudioRecorder';
+import AudioRecorder from '../components/AudioRecorder';
 import { Button } from '../components/ui/button';
 import { faceRecognitionAtom } from './atoms';
 

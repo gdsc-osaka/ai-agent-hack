@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Button } from "../ui/button";
+import { Button } from "./ui/button";
 
 type AudioRecorderProps = {
   faceRecognition: string;
