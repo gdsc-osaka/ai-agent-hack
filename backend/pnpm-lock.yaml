@@ -15,8 +15,8 @@ importers:
         specifier: ^1.3.0
         version: 1.3.0(@modelcontextprotocol/sdk@1.12.1)
       '@hono/node-server':
-        specifier: ^1.14.1
-        version: 1.14.3(hono@4.7.11)
+        specifier: ^1.14.4
+        version: 1.14.4(hono@4.7.11)
       '@hono/zod-validator':
         specifier: ^0.7.0
         version: 0.7.0(hono@4.7.11)(zod@3.25.51)
@@ -564,8 +564,8 @@ packages:
   '@hapi/topo@5.1.0':
     resolution: {integrity: sha512-foQZKJig7Ob0BMAYBfcJk8d77QtOe7Wo4ox7ff1lQYoNNAb6jwcY1ncdoy2e9wQZzvNy7ODZCYJkK8kzmcAnAg==}
 
-  '@hono/node-server@1.14.3':
-    resolution: {integrity: sha512-KuDMwwghtFYSmIpr4WrKs1VpelTrptvJ+6x6mbUcZnFcc213cumTF5BdqfHyW93B19TNI4Vaev14vOI2a0Ie3w==}
+  '@hono/node-server@1.14.4':
+    resolution: {integrity: sha512-DnxpshhYewr2q9ZN8ez/M5mmc3sucr8CT1sIgIy1bkeUXut9XWDkqHoFHRhWIQgkYnKpVRxunyhK7WzpJeJ6qQ==}
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: ^4
@@ -3282,7 +3282,7 @@ snapshots:
     dependencies:
       '@hapi/hoek': 9.3.0
 
-  '@hono/node-server@1.14.3(hono@4.7.11)':
+  '@hono/node-server@1.14.4(hono@4.7.11)':
     dependencies:
       hono: 4.7.11
 
