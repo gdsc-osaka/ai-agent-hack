@@ -26,10 +26,13 @@
   },
   "private": true,
   "dependencies": {
+    "@auth/core": "^0.39.1",
     "@google-cloud/storage": "^7.16.0",
     "@google/genai": "^1.4.0",
+    "@hono/auth-js": "^1.0.17",
     "@hono/node-server": "^1.14.4",
     "@hono/zod-validator": "^0.7.0",
+    "@paralleldrive/cuid2": "^2.2.2",
     "drizzle-orm": "^0.44.2",
     "firebase-admin": "^13.4.0",
     "hono": "^4.7.8",
@@ -44,7 +47,6 @@
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.42.2",
     "@eslint/js": "^9.26.0",
-    "@paralleldrive/cuid2": "^2.2.2",
     "@types/node": "^22.15.30",
     "@typescript-eslint/eslint-plugin": "^8.33.1",
     "@typescript-eslint/parser": "^8.31.1",
