@@ -82,31 +82,24 @@ jobs:
           echo "IMAGE_TAG_DB=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-db-preview:${{ github.sha }}" >> $GITHUB_ENV
           echo "SERVICE_NAME=recall-you-api-preview-pr-${{ github.event.number }}" >> $GITHUB_ENV
       # Build
-      - name: Build API Image
+      - name: Build and Push API Image
         uses: docker/build-push-action@v5
         with:
           context: ./backend
           file: ./backend/Dockerfile.preview.api
           tags: ${{ env.IMAGE_TAG_API }}
-          push: false
-          load: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-      - name: Build DB Image
+          push: true
+          cache-from: type=registry,ref=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-api-preview:cache
+          cache-to: type=registry,ref=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-api-preview:cache,mode=max
+      - name: Build and Push DB Image
         uses: docker/build-push-action@v5
         with:
           context: ./backend
           file: ./backend/Dockerfile.preview.db
           tags: ${{ env.IMAGE_TAG_DB }}
-          push: false
-          load: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-      # Push
-      - name: Push API Image
-        run: docker push ${{ env.IMAGE_TAG_API }}
-      - name: Push DB Image
-        run: docker push ${{ env.IMAGE_TAG_DB }}
+          push: true
+          cache-from: type=registry,ref=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-db-preview:cache
+          cache-to: type=registry,ref=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-db-preview:cache,mode=max
       # Deploy
       - name: Deploy to Cloud Run
         run: |
