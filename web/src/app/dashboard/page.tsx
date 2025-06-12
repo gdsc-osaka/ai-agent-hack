@@ -26,7 +26,7 @@ export default async function Dashboard() {
     return (
       <main>
         <h1>ログインが必要なページ</h1>
-        <p>ログインしてください。</p>
+        <p>${error}</p>
       </main>
     );
   }

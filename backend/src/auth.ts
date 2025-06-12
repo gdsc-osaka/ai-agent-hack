@@ -3,7 +3,6 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { authDB } from "./db/db";
 import { authSchema } from "./db/schema";
 import { nextCookies } from "better-auth/next-js";
-import { createAuthMiddleware } from "better-auth/plugins";
 import env from "./env";
 
 export const auth = betterAuth({
