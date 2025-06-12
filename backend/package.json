@@ -17,8 +17,8 @@
     "test:coverage": "dotenvx run --env-file=.env -- vitest test/ --coverage",
     "fire:start": "cd ../firebase && (ls .emulator_export && firebase emulators:start --import .emulator_export) || firebase emulators:start",
     "fire:export": "cd ../firebase && firebase emulators:export .emulator_export",
-    "db:gen": "drizzle-kit generate --config drizzle.config.ts",
-    "db:mig": "drizzle-kit migrate --config drizzle.config.ts"
+    "db:gen": "drizzle-kit generate --config drizzle.config.ts && drizzle-kit generate --config drizzle.config.auth.ts",
+    "db:mig": "drizzle-kit migrate --config drizzle.config.ts && drizzle-kit migrate --config drizzle.config.auth.ts"
   },
   "repository": {
     "type": "git",
@@ -26,13 +26,12 @@
   },
   "private": true,
   "dependencies": {
-    "@auth/core": "^0.39.1",
     "@google-cloud/storage": "^7.16.0",
     "@google/genai": "^1.4.0",
-    "@hono/auth-js": "^1.0.17",
     "@hono/node-server": "^1.14.4",
     "@hono/zod-validator": "^0.7.0",
     "@paralleldrive/cuid2": "^2.2.2",
+    "better-auth": "^1.2.9",
     "drizzle-orm": "^0.44.2",
     "firebase-admin": "^13.4.0",
     "hono": "^4.7.8",

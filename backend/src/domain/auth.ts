@@ -1,16 +1,25 @@
-import { DecodedIdToken } from "firebase-admin/auth";
 import z from "zod";
 
 export const Uid = z.string().brand<"UID">();
 export type Uid = z.infer<typeof Uid>;
 
-export type AuthUser = Omit<DecodedIdToken, "uid"> & {
+export type SessionUser = {
+  id: string;
+  name: string;
+  emailVerified: boolean;
+  email: string;
+  createdAt: Date;
+  updatedAt: Date;
+  image?: string | null | undefined;
+};
+
+export type AuthUser = SessionUser & {
   uid: Uid;
 };
 
-export const validateAuthUser = (decodedIdToken: DecodedIdToken): AuthUser => {
+export const validateAuthUser = (authUser: SessionUser): AuthUser => {
   return {
-    ...decodedIdToken,
-    uid: decodedIdToken.uid as Uid,
+    ...authUser,
+    uid: authUser.id as Uid,
   };
 };

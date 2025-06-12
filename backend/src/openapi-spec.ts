@@ -2,8 +2,15 @@ import { openAPISpecs } from "hono-openapi";
 import { Hono } from "hono";
 import { resolver } from "hono-openapi/zod";
 import { ApiError } from "./controller/error/api-error";
+import type { BlankEnv, BlankSchema, Env, Schema } from "hono/dist/types/types";
 
-export const openApiSpec = (app: Hono) =>
+export const openApiSpec = <
+  E extends Env = BlankEnv,
+  S extends Schema = BlankSchema,
+  BasePath extends string = "/",
+>(
+  app: Hono<E, S, BasePath>
+) =>
   openAPISpecs(app, {
     documentation: {
       info: {

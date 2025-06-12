@@ -1,6 +1,6 @@
 import { drizzle, PostgresJsQueryResultHKT } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import schema from "./schema";
+import schema, { authSchema } from "./schema";
 import env from "../env";
 import type { PgTransaction } from "drizzle-orm/pg-core/session";
 import { ExtractTablesWithRelations } from "drizzle-orm";
@@ -9,9 +9,18 @@ function getDBUrl(): string {
   if (env.NODE_ENV === "production") {
     return env.DATABASE_URL ?? "";
   }
-  return "postgres://user:password@localhost:6543/db";
+  return "postgres://user:password@localhost:5432/db";
 }
 const db = drizzle(postgres(getDBUrl()), { schema });
+
+function getAuthDBUrl(): string {
+  if (env.NODE_ENV === "production") {
+    return env.AUTH_DATABASE_URL ?? "";
+  }
+  return "postgres://user:password@localhost:5433/auth_db";
+}
+
+export const authDB = drizzle(postgres(getAuthDBUrl()), { schema: authSchema });
 
 type TransactionClient = PgTransaction<
   PostgresJsQueryResultHKT,

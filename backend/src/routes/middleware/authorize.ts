@@ -1,46 +1,34 @@
-import { createMiddleware } from "hono/factory";
 import { HTTPException } from "hono/http-exception";
-import { verifyIdToken } from "../../infra/auth-repo";
 import { Context } from "hono";
-import { AuthUser } from "../../domain/auth";
+import { AuthUser, SessionUser, validateAuthUser } from "../../domain/auth";
+import { auth } from "../../auth";
+import { createMiddleware } from "hono/factory";
 
 const authorize = createMiddleware<{
   Variables: {
-    authUser: AuthUser;
+    user: typeof auth.$Infer.Session.user | null;
+    session: typeof auth.$Infer.Session.session | null;
   };
 }>(async (c, next) => {
-  // check header
-  const authorizationHeader = c.req.header("Authorization");
-  if (!authorizationHeader) {
-    throw new HTTPException(401, { message: "Missing Authorization header" });
+  const session = await auth.api.getSession({ headers: c.req.raw.headers });
+
+  if (!session) {
+    c.set("user", null);
+    c.set("session", null);
+    return next();
   }
 
-  // check format
-  const bearerRegex = /^Bearer\s+(.+)$/;
-  const match = authorizationHeader.match(bearerRegex);
-  if (match === null || match.length < 2) {
-    throw new HTTPException(401, {
-      message: "Invalid Authorization header format",
-    });
-  }
-
-  const res = await verifyIdToken(match[1]);
-
-  if (res.isErr()) {
-    throw new HTTPException(401, { message: res.error.message });
-  }
-
-  c.set("authUser", res.value);
-
+  c.set("user", session.user);
+  c.set("session", session.session);
   return next();
 });
 
 export const getAuthUser = (c: Context): AuthUser => {
-  const authUser = c.get("authUser") as AuthUser;
+  const authUser = c.get("user") as SessionUser | null;
   if (!authUser) {
     throw new HTTPException(401, { message: "Unauthorized" });
   }
-  return authUser;
+  return validateAuthUser(authUser);
 };
 
 export default authorize;

@@ -1,10 +1,10 @@
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { openApiSpec } from "./openapi-spec";
-import authorize from "./routes/middleware/authorize";
 import env from "./env";
 import { logger } from "./routes/middleware/logger";
-import users from "./routes/users";
+import auth from "./routes/auth";
+import authorize from "./routes/middleware/authorize";
 
 const app = new Hono();
 
@@ -14,8 +14,14 @@ const app = new Hono();
 app.use(logger);
 app.get("/api/openapi", openApiSpec(app));
 app.get("/api/ping", (c) => c.text("pong"));
+
+// Auth
+app.route("/api/v1/auth", auth);
+
 app.use("/api/*", authorize);
-app.route("/api/v1/users", users);
+
+// endpoint
+// app.route("/api/v1/users", users);
 
 serve({
   fetch: app.fetch,
