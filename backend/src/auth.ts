@@ -31,10 +31,10 @@ export const auth = betterAuth({
     // openAPI(),
   ],
   hooks: {
-    after: createAuthMiddleware(async (ctx) => {
-      if (ctx.path.startsWith("/sign-up")) {
-        // TODO: ユーザー登録時の処理
-      }
-    }),
+    // TODO: ユーザー登録時に DB にデータを追加する
+    // after: createAuthMiddleware(async (ctx) => {
+    //   if (ctx.path.startsWith("/sign-up")) {
+    //   }
+    // }),
   },
 });
