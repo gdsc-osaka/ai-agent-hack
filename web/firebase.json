@@ -8,15 +8,6 @@
     ],
     "frameworksBackend": {
       "region": "asia-east1"
-    },
-    "rewrites": [
-      {
-        "source": "/api/**",
-        "run": {
-          "serviceId": "recall-you-api-prod",
-          "region": "asia-northeast1"
-        }
-      }
-    ]
+    }
   }
 }
