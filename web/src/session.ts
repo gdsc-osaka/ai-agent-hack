@@ -9,8 +9,7 @@ export const getSession = async () => {
     user: User;
     session: Session;
   }>(
-    (process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL) +
-      "/api/v1/auth/get-session",
+    new URL('/api/v1/auth/get-session', process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL).toString(),
     {
       method: "GET",
       headers: {
