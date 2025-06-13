@@ -116,8 +116,10 @@ jobs:
               --port=8080 \
               --set-env-vars="PULL_REQUEST_NUMBER=$PR_NUMBER" \
               --set-env-vars="DATABASE_URL=postgresql://user:password@localhost:5432/db" \
-              --set-env-vars="AUTH_DATABASE_URL=postgresql://user:password@localhost:5432/auth_db" \
               --set-secrets="FIRE_SA=FIRE_SA:latest" \
+              --set-env-vars="AUTH_SECRET=${{ secrets.AUTH_SECRET }}" \
+              --set-env-vars="AUTH_DATABASE_URL=postgresql://user:password@localhost:5432/auth_db" \
+              --set-env-vars="TRUSTED_ORIGIN_WEB=https://recall-you-*.web.app" \
             --container db \
               --image=$IMAGE_TAG_DB \
               --set-env-vars="PULL_REQUEST_NUMBER=$PR_NUMBER" \
@@ -187,7 +189,8 @@ jobs:
         run: |
           echo "NODE_ENV=production" > .env
           if [[ "${{ needs.backend.result }}" == "success" ]]; then
-            echo "API_URL=${{ needs.backend.outputs.preview_url }}" >> .env
+            echo "NEXT_PUBLIC_API_URL=${{ needs.backend.outputs.preview_url }}" >> .env
+            echo "AUTH_SECRET=${{ secrets.AUTH_SECRET }}" >> .env
             # Preview 用 Firebase Hosting の rewrites 設定を更新
             sed -i "s@recall-you-api-prod@${{ needs.backend.outputs.service_name }}@g" firebase.json
           fi

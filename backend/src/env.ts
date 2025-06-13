@@ -10,7 +10,7 @@ const env = {
   DISCORD_WEBHOOK_URL: process.env.DISCORD_WEBHOOK_URL!,
   AUTH_SECRET: process.env.AUTH_SECRET!,
   AUTH_DATABASE_URL: process.env.AUTH_DATABASE_URL!,
-  WEB_SERVER_URL: process.env.WEB_SERVER_URL!,
+  TRUSTED_ORIGIN_WEB: process.env.TRUSTED_ORIGIN_WEB!,
 } as const;
 
 export default env;

@@ -17,7 +17,7 @@ function getAuthDBUrl(): string {
   if (env.NODE_ENV === "production") {
     return env.AUTH_DATABASE_URL ?? "";
   }
-  return "postgres://user:password@localhost:5433/auth_db";
+  return "postgres://user:password@localhost:5432/auth_db";
 }
 
 export const authDB = drizzle(postgres(getAuthDBUrl()), { schema: authSchema });
