@@ -21,9 +21,9 @@ export const auth = betterAuth({
         name: "__session",
         attributes: {
           // Set custom cookie attributes
-        }
+        },
       },
-    }
+    },
   },
   secret: env.AUTH_SECRET,
   basePath: "/api/v1/auth",

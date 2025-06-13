@@ -22,9 +22,7 @@ export const getSession = async (requestCookies?: RequestCookies) => {
       },
       onResponse: async (ctx) => {
         const setCookie = ctx.response.headers.get("Set-Cookie");
-        const sessionToken = setCookie?.match(
-          /__session=([^;]+)/
-        )?.[1];
+        const sessionToken = setCookie?.match(/__session=([^;]+)/)?.[1];
         if (sessionToken) {
           const cookieStore = await cookies();
           cookieStore.set("__session", sessionToken);
