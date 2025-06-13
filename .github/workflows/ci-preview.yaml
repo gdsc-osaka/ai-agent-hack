@@ -180,6 +180,11 @@ jobs:
           echo "IMAGE_TAG_WEB=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-web-preview:${{ github.sha }}" >> $GITHUB_ENV
           echo "SERVICE_NAME=recall-you-web-preview-pr-${{ github.event.number }}" >> $GITHUB_ENV
       # Build
+      - name: Geenrate .env
+        run: |
+          echo "NODE_ENV=production" > .env.local
+          echo "NEXT_PUBLIC_API_URL=${{ needs.backend.outputs.preview_url }}" >> .env.local
+          echo "AUTH_SECRET=${{ secrets.AUTH_SECRET }}" >> .env.local
       - name: Build and Push Web Image
         uses: docker/build-push-action@v5
         with:
@@ -189,11 +194,6 @@ jobs:
           push: true
           cache-from: type=registry,ref=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-web-preview:cache
           cache-to: type=registry,ref=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-web-preview:cache,mode=max
-      - name: Geenrate .env
-        run: |
-          echo "NODE_ENV=production" > .env.local
-          echo "NEXT_PUBLIC_API_URL=${{ needs.backend.outputs.preview_url }}" >> .env.local
-          echo "AUTH_SECRET=${{ secrets.AUTH_SECRET }}" >> .env.local
       # Deploy
       - name: Deploy to Cloud Run
         run: |
