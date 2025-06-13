@@ -2,8 +2,10 @@ import { betterFetch } from "@better-fetch/fetch";
 import { cookies, headers } from "next/headers";
 import type { Session, User } from "better-auth";
 
-export const getSession = async () => {
-  const headerStore = await headers();
+export const getSession = async (header?: Headers) => {
+  const headerStore = header ?? await headers();
+
+  console.debug('Cookie:', headerStore.get("Cookie"));
 
   return betterFetch<{
     user: User;
@@ -15,17 +17,7 @@ export const getSession = async () => {
     ).toString(),
     {
       method: "GET",
-      headers: {
-        Cookie: headerStore.get("Cookie") || "",
-      },
-      onRequest: async (ctx) => {
-        const cookieStore = await cookies();
-        const sessionToken = cookieStore.get("auth.session_token")?.value;
-
-        if (sessionToken) {
-          ctx.headers.set("Cookie", `auth.session_token=${sessionToken}`);
-        }
-      },
+      headers: headerStore,
       // headers
       onResponse: async (ctx) => {
         const setCookie = ctx.response.headers.get("Set-Cookie");
