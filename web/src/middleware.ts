@@ -6,7 +6,7 @@ export const config = {
 };
 
 export async function middleware(request: NextRequest) {
-  const { data: session } = await getSession(request.headers);
+  const { data: session } = await getSession(request.cookies);
 
   if (request.nextUrl.pathname.startsWith("/dashboard") && !session) {
     return NextResponse.redirect(new URL("/login", request.url));
