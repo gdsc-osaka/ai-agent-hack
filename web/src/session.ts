@@ -1,12 +1,14 @@
 import { betterFetch } from "@better-fetch/fetch";
 import { cookies, headers } from "next/headers";
 import type { Session, User } from "better-auth";
+import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
 
-export const getSession = async (header?: Headers) => {
-  const headerStore = header ?? (await headers());
+export const getSession = async (requestCookies?: RequestCookies) => {
+  const sessionToken =
+    requestCookies?.get("auth.session_token")?.value ??
+    (await headers()).get("cookie")?.match(/auth\.session_token=([^;]+)/)?.[1];
 
-  console.debug("Header in request:", JSON.stringify(header));
-  console.debug("Header in headers:", JSON.stringify(await headers()));
+  console.debug("Session Token:", sessionToken);
   console.debug("NEXT_PUBLIC_API_URL:", process.env.NEXT_PUBLIC_API_URL);
   console.debug("API_URL:", process.env.API_URL);
 
@@ -14,14 +16,12 @@ export const getSession = async (header?: Headers) => {
     user: User;
     session: Session;
   }>(
-    new URL(
-      "/api/v1/auth/get-session",
-      process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL
-    ).toString(),
+    `${process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL}/api/v1/auth/get-session`,
     {
       method: "GET",
-      headers: headerStore,
-      // headers
+      headers: {
+        Cookie: sessionToken ? `auth.session_token=${sessionToken}` : "",
+      },
       onResponse: async (ctx) => {
         const setCookie = ctx.response.headers.get("Set-Cookie");
         const sessionToken = setCookie?.match(
