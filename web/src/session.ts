@@ -8,7 +8,7 @@ export const getSession = async () => {
   return betterFetch<{
     user: User;
     session: Session;
-  }>(process.env.NEXT_PUBLIC_API_URL + "/api/v1/auth/get-session", {
+  }>((process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL) + "/api/v1/auth/get-session", {
     method: "GET",
     headers: {
       Cookie: headerStore.get("Cookie") || "",

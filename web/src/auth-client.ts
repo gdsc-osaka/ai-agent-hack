@@ -3,7 +3,8 @@ import { nextCookies } from "better-auth/next-js";
 import { getCookie } from "typescript-cookie";
 
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  // Preview 環境では API サーバーと同じオリジンで動作するため、window.location.origin を使用
+  baseURL: process.env.NEXT_PUBLIC_API_URL ?? window.location.origin,
   basePath: "/api/v1/auth",
   plugins: [nextCookies()],
   fetchOptions: {
