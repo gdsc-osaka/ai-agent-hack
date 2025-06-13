@@ -12,5 +12,6 @@ env:
     availability:
       - BUILD
       - RUNTIME
+
   - variable: AUTH_SECRET
-    secret: projects/recall-you/secrets/AUTH_SECRET
+    secret: AUTH_SECRET
