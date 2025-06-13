@@ -189,6 +189,11 @@ jobs:
           push: true
           cache-from: type=registry,ref=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-web-preview:cache
           cache-to: type=registry,ref=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-web-preview:cache,mode=max
+      - name: Geenrate .env
+        run: |
+          echo "NODE_ENV=production" > .env.local
+          echo "NEXT_PUBLIC_API_URL=${{ needs.backend.outputs.preview_url }}" >> .env.local
+          echo "AUTH_SECRET=${{ secrets.AUTH_SECRET }}" >> .env.local
       # Deploy
       - name: Deploy to Cloud Run
         run: |
@@ -203,12 +208,8 @@ jobs:
             --container web \
               --image=$IMAGE_TAG_WEB \
               --port=3000 \
-              --set-env-vars="PULL_REQUEST_NUMBER=$PR_NUMBER" \
-              --set-env-vars="NODE_ENV=production" \
-              --set-env-vars="NEXT_PUBLIC_API_URL=${{ needs.backend.outputs.preview_url }}" \
-              --set-secrets="AUTH_SECRET=AUTH_SECRET:latest"
+              --set-env-vars="PULL_REQUEST_NUMBER=$PR_NUMBER"
       - name: Get Preview URL and Comment on PR
-        id: comment
         run: |
           SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --platform managed --region ${{ env.GCP_REGION }} --format 'value(status.url)')
 
