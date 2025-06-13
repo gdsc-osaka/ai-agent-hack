@@ -9,8 +9,6 @@ export const getSession = async (requestCookies?: RequestCookies) => {
     (await headers()).get("cookie")?.match(/auth\.session_token=([^;]+)/)?.[1];
 
   console.debug("Session Token:", sessionToken);
-  console.debug("NEXT_PUBLIC_API_URL:", process.env.NEXT_PUBLIC_API_URL);
-  console.debug("API_URL:", process.env.API_URL);
 
   return betterFetch<{
     user: User;
