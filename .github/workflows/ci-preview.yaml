@@ -116,7 +116,7 @@ jobs:
               --port=8080 \
               --set-env-vars="PULL_REQUEST_NUMBER=$PR_NUMBER" \
               --set-env-vars="DATABASE_URL=postgresql://user:password@localhost:5432/db" \
-              --set-env-vars="AUTH_DATABASE_URL=postgresql://user:password@localhost:5432/auth_db"
+              --set-env-vars="AUTH_DATABASE_URL=postgresql://user:password@localhost:5432/auth_db" \
               --set-secrets="FIRE_SA=FIRE_SA:latest" \
             --container db \
               --image=$IMAGE_TAG_DB \
