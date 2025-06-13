@@ -1,0 +1,43 @@
+# =================================================================
+# Stage 1: Builder
+# このステージでは、ソースコードをビルドするために必要なすべての依存関係をインストールします。
+# =================================================================
+FROM node:22-slim AS builder
+
+# Node.jsに同梱されているCorepackを使用してpnpmを有効化します。
+# これにより、`npm install -g pnpm`が不要になります。
+RUN corepack enable
+
+WORKDIR /usr/src/app
+
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --prod=false
+
+COPY . .
+RUN pnpm run build
+
+# ビルドが完了した後、本番環境に不要な開発用の依存関係を削除します。
+RUN pnpm prune --prod
+
+
+# =================================================================
+# Stage 2: Production
+# このステージでは、ビルドされたアプリケーションと本番用の依存関係のみを含む
+# 軽量な最終イメージを作成します。
+# =================================================================
+FROM node:22-slim
+
+# Node.jsに同梱されているCorepackを使用してpnpmを有効化します。
+RUN corepack enable
+
+WORKDIR /usr/src/app
+
+COPY --from=builder /usr/src/app/package.json ./
+COPY --from=builder /usr/src/app/pnpm-lock.yaml ./
+COPY --from=builder /usr/src/app/node_modules ./node_modules
+COPY --from=builder /usr/src/app/.next ./.next
+COPY --from=builder /usr/src/app/public ./public
+
+EXPOSE 3000
+
+CMD ["npm", "start"]
