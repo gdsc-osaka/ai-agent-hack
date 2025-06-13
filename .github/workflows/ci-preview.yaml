@@ -153,7 +153,7 @@ jobs:
               --set-env-vars="POSTGRES_DB=db" \
               --memory=1Gi
           
-          SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --platform managed --region ${{ env.GCP_REGION }} --format 'value(status.url)')
+          SERVICE_URL=$(gcloud run services describe ${{ needs.setup-env.outputs.api_service_name }} --platform managed --region ${{ env.GCP_REGION }} --format 'value(status.url)')
           echo "service_url=$SERVICE_URL" >> $GITHUB_OUTPUT
           echo "service_name=${{ needs.setup-env.outputs.api_service_name }}" >> $GITHUB_OUTPUT
   # Deploy to Firebase Hosting
@@ -222,7 +222,7 @@ jobs:
               --port=3000 \
               --set-env-vars="PULL_REQUEST_NUMBER=$PR_NUMBER"
           
-          SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --platform managed --region ${{ env.GCP_REGION }} --format 'value(status.url)')
+          SERVICE_URL=$(gcloud run services describe ${{ needs.setup-env.outputs.web_service_name }} --platform managed --region ${{ env.GCP_REGION }} --format 'value(status.url)')
           echo "service_url=$SERVICE_URL" >> $GITHUB_OUTPUT
           echo "service_name=${{ needs.setup-env.outputs.web_service_name }}" >> $GITHUB_OUTPUT
   hosting:
