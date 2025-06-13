@@ -15,7 +15,9 @@
   },
   "main": "lib/index.js",
   "dependencies": {
+    "@google/genai": "^1.4.0",
     "busboy": "^1.6.0",
+    "fetch-blob": "^4.0.0",
     "firebase-admin": "^11.8.0",
     "firebase-functions": "^4.9.0"
   },
