@@ -17,7 +17,7 @@ export type AuthUser = SessionUser & {
   uid: Uid;
 };
 
-export const validateAuthUser = (authUser: SessionUser): AuthUser => {
+export const convertToAuthUser = (authUser: SessionUser): AuthUser => {
   return {
     ...authUser,
     uid: authUser.id as Uid,

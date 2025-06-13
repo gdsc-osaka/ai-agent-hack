@@ -1,6 +1,6 @@
 import { HTTPException } from "hono/http-exception";
 import { Context } from "hono";
-import { AuthUser, SessionUser, validateAuthUser } from "../../domain/auth";
+import { AuthUser, SessionUser, convertToAuthUser } from "../../domain/auth";
 import { auth } from "../../auth";
 import { createMiddleware } from "hono/factory";
 
@@ -28,7 +28,7 @@ export const getAuthUser = (c: Context): AuthUser => {
   if (!authUser) {
     throw new HTTPException(401, { message: "Unauthorized" });
   }
-  return validateAuthUser(authUser);
+  return convertToAuthUser(authUser);
 };
 
 export default authorize;
