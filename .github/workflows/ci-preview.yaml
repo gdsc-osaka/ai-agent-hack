@@ -155,6 +155,7 @@ jobs:
     permissions:
       checks: write
       contents: 'read'
+      id-token: 'write' # OIDC認証に必要
       pull-requests: 'write'
     timeout-minutes: 10
     steps:
