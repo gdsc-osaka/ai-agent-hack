@@ -8,10 +8,10 @@ import env from "./env";
 export const auth = betterAuth({
   advanced: {
     // サブドメインで Cookie 共有する場合はコメントアウト
-    crossSubDomainCookies: {
+    crossSubDomainCookies: env.AUTH_COOKIE_DOMAIN !== undefined ? {
       enabled: true,
       domain: env.AUTH_COOKIE_DOMAIN,
-    },
+    } : undefined,
     cookiePrefix: "auth",
   },
   secret: env.AUTH_SECRET,
