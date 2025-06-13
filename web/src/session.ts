@@ -8,8 +8,6 @@ export const getSession = async (requestCookies?: RequestCookies) => {
     requestCookies?.get("__session")?.value ??
     (await headers()).get("cookie")?.match(/__session=([^;]+)/)?.[1];
 
-  console.debug("Session Token:", sessionToken);
-
   return betterFetch<{
     user: User;
     session: Session;
