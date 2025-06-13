@@ -43,6 +43,11 @@ jobs:
           project_id: ${{ env.GCP_PROJECT_ID }}
           service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
           workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      - uses: 'actions/setup-node@v4'
+        with:
+          node-version: '22'
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
       - name: Get latest firebase deployment
         working-directory: web
         id: firebase
