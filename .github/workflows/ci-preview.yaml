@@ -119,6 +119,7 @@ jobs:
               --set-secrets="FIRE_SA=FIRE_SA:latest" \
               --set-env-vars="AUTH_SECRET=${{ secrets.AUTH_SECRET }}" \
               --set-env-vars="AUTH_DATABASE_URL=postgresql://user:password@localhost:5432/auth_db" \
+              --set-env-vars="AUTH_COOKIE_DOMAIN=.run.app" \
               --set-env-vars="TRUSTED_ORIGIN_WEB=https://recall-you-*.web.app" \
             --container db \
               --image=$IMAGE_TAG_DB \

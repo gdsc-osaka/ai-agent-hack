@@ -14,12 +14,14 @@ export const authClient = createAuthClient({
         ctx.headers.set("cookie", `auth.session_token=${sessionToken}`);
       }
     },
-    onResponse: async (ctx) => {
-      const setCookieHeader = ctx.response.headers.get("Set-Cookie");
-      const sessionToken = setCookieHeader?.match(/auth\.session_token=([^;]+)/)?.[1];
-      if (sessionToken) {
-        setCookie("auth.session_token", sessionToken);
-      }
-    }
+    // onResponse: async (ctx) => {
+    //   const setCookieHeader = ctx.response.headers.get("Set-Cookie");
+    //   const sessionToken = setCookieHeader?.match(
+    //     /auth\.session_token=([^;]+)/
+    //   )?.[1];
+    //   if (sessionToken) {
+    //     setCookie("auth.session_token", sessionToken);
+    //   }
+    // },
   },
 });
