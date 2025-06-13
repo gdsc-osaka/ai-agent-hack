@@ -69,8 +69,8 @@ jobs:
           WEB_SERVICE_NAME="recall-you-web-preview-pr-${{ github.event.number }}"
           echo "api_service_name=$API_SERVICE_NAME" >> $GITHUB_OUTPUT
           echo "web_service_name=$WEB_SERVICE_NAME" >> $GITHUB_OUTPUT
-          echo "api_service_url=https://${API_SERVICE_NAME}-${{ env.GCP_PROJECT_NUMBER }}-${{ env.GCP_REGION }}.run.app" >> $GITHUB_OUTPUT
-          echo "web_service_url=https://${WEB_SERVICE_NAME}-${{ env.GCP_PROJECT_NUMBER }}-${{ env.GCP_REGION }}.run.app" >> $GITHUB_OUTPUT
+          echo "api_service_url=https://$API_SERVICE_NAME-${{ env.GCP_PROJECT_NUMBER }}.${{ env.GCP_REGION }}.run.app" >> $GITHUB_OUTPUT
+          echo "web_service_url=https://$WEB_SERVICE_NAME-${{ env.GCP_PROJECT_NUMBER }}.${{ env.GCP_REGION }}.run.app" >> $GITHUB_OUTPUT
   backend:
     needs: setup-env
     runs-on: ubuntu-latest
@@ -82,6 +82,7 @@ jobs:
         working-directory: backend
     timeout-minutes: 10
     outputs:
+      service_url: ${{ steps.deploy.outputs.service_url }}
       service_name: ${{ steps.deploy.outputs.service_name }}
     steps:
       - uses: actions/checkout@v4
@@ -252,6 +253,7 @@ jobs:
           projectId: recall-you
           expires: '3d'
           entryPoint: 'web'
+          disableComment: true
       - name: Comment on PR
         run: |
           COMMENT_TAG="<!-- PREVIEW_URL_COMMENT -->"
