@@ -1,0 +1,16 @@
+# Settings for Cloud Run
+runConfig:
+  minInstances: 0
+  maxInstances: 5
+  concurrency: 80
+  cpu: 0
+  memoryMiB: 512
+
+env:
+  - variable: NEXT_PUBLIC_API_URL
+    value: https://api.recall.mincra.jp
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: AUTH_SECRET
+    secret: projects/recall-you/secrets/AUTH_SECRET
