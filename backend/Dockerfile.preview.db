@@ -1,5 +1,5 @@
 # Dockerfile.db
-FROM postgres:15
+FROM postgres:16
 
 # コンテナ初回起動時に実行される初期化スクリプトをコピー
 COPY sql/ /init-sql/
