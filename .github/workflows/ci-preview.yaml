@@ -208,6 +208,7 @@ jobs:
           cache-to: type=registry,ref=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-web-preview:cache,mode=max
       # Deploy
       - name: Deploy to Cloud Run
+        id: deploy
         run: |
           PR_NUMBER=${{ github.event.number }}
           
