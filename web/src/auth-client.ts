@@ -1,6 +1,6 @@
 import { createAuthClient } from "better-auth/react";
 import { nextCookies } from "better-auth/next-js";
-import { getCookie, setCookie } from "typescript-cookie";
+import { getCookie } from "typescript-cookie";
 
 export const authClient = createAuthClient({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
