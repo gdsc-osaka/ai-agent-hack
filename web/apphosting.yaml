@@ -8,7 +8,7 @@ runConfig:
 
 env:
   - variable: NEXT_PUBLIC_API_URL
-    value: https://api.recall.mincra.jp
+    value: "https://api.recall.mincra.jp"
     availability:
       - BUILD
       - RUNTIME
