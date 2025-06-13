@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile.preview.web
     ports:
-      - "3001:3000"
+      - "3030:3000"
     environment:
       - NODE_ENV=production
       - NEXT_PUBLIC_API_URL=http://localhost:8080
