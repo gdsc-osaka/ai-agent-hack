@@ -185,7 +185,7 @@ jobs:
       - name: Geenrate .env
         run: |
           echo "NODE_ENV=production" > .env.local
-          echo "NEXT_PUBLIC_API_URL=${{ needs.backend.outputs.preview_url }}" >> .env.local
+          echo "API_URL=${{ needs.backend.outputs.preview_url }}" >> .env.local
           echo "AUTH_SECRET=${{ secrets.AUTH_SECRET }}" >> .env.local
       - name: Build and Push Web Image
         uses: docker/build-push-action@v5
@@ -226,3 +226,14 @@ jobs:
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Overwrite rewrites on firebase.json
+        run: |
+          sed -i "s/recall-you-api-preview/${{ needs.backend.outputs.service_name }}/g" firebase.json
+          sed -i "s/recall-you-web-preview/$SERVICE_NAME/g" firebase.json
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_RECALL_YOU }}
+          projectId: recall-you
+          expires: '3d'
+          entryPoint: 'web'
