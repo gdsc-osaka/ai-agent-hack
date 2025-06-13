@@ -15,6 +15,7 @@ concurrency:
   cancel-in-progress: true
 env:
   GCP_PROJECT_ID: 'recall-you'
+  GCP_PROJECT_NUMBER: '966744275445'
   GCP_REGION: 'asia-northeast1'
   GCP_SERVICE_ACCOUNT: 'github-action-994212429@recall-you.iam.gserviceaccount.com'
   GCP_WORKLOAD_IDENTITY_PROVIDER: 'projects/966744275445/locations/global/workloadIdentityPools/gh-pool/providers/gh-repo-provider'
@@ -24,40 +25,59 @@ permissions:
   contents: read
   pull-requests: write
 jobs:
-  check-changes:
+  setup-env:
     runs-on: ubuntu-latest
     permissions:
-      pull-requests: read
+      id-token: 'write' # OIDC認証に必要
     outputs:
-      backend: ${{ steps.filter.outputs.backend }}
-      web: ${{ steps.filter.outputs.web }}
+      hosting_url: ${{ steps.firebase.outputs.hosting_url }}
+      api_service_name: ${{ steps.env.outputs.api_service_name }}
+      web_service_name: ${{ steps.env.outputs.web_service_name }}
+      api_service_url: ${{ steps.env.outputs.api_service_url }}
+      web_service_url: ${{ steps.env.outputs.web_service_url }}
     steps:
       - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
-        id: filter
+      - name: Authenticate to Google Cloud
+        uses: 'google-github-actions/auth@v2'
         with:
-          filters: |
-            backend:
-              - 'backend/**'
-              - '.github/workflows/ci-preview.yaml'
-            web:
-              - 'web/**'
-              - '.github/workflows/ci-preview.yaml'
+          project_id: ${{ env.GCP_PROJECT_ID }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      - name: Get latest firebase deployment
+        working-directory: web
+        id: firebase
+        run: |
+          channel_url=$(firebase hosting:channel:list --json | jq -r '.result.channels[] | select(.name | startswith("projects/recall-you/sites/recall-you/channels/pr39")) | .url' | head -n 1)
+          
+          if [ -z "$channel_url" ]; then
+            echo "No existing channel found. Creating a new channel."
+            result=firebase hosting:channel:create pr39-harineko0-employee-c --expires 1d --json
+            channel_url=$(echo "$result" | jq -r '.result.url')
+          else
+            echo "Existing channel found: $channel_url"
+          fi
+          echo "hosting_url=$channel_url" >> $GITHUB_OUTPUT
+      - name: Create environment variables
+        id: env
+        run: |
+          API_SERVICE_NAME="recall-you-api-preview-pr-${{ github.event.number }}"
+          WEB_SERVICE_NAME="recall-you-web-preview-pr-${{ github.event.number }}"
+          echo "api_service_name=$API_SERVICE_NAME" >> $GITHUB_OUTPUT
+          echo "web_service_name=$WEB_SERVICE_NAME" >> $GITHUB_OUTPUT
+          echo "api_service_url=https://${API_SERVICE_NAME}-${{ env.GCP_PROJECT_NUMBER }}-${{ env.GCP_REGION }}.run.app" >> $GITHUB_OUTPUT
+          echo "web_service_url=https://${WEB_SERVICE_NAME}-${{ env.GCP_PROJECT_NUMBER }}-${{ env.GCP_REGION }}.run.app" >> $GITHUB_OUTPUT
   backend:
-    needs: check-changes
-    if: needs.check-changes.outputs.backend == 'true'
+    needs: setup-env
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
       id-token: 'write' # OIDC認証に必要
-      pull-requests: 'write' # PRへのコメントに必要
-    outputs:
-      preview_url: ${{ steps.comment.outputs.PREVIEW_URL }}
-      service_name: ${{ steps.comment.outputs.SERVICE_NAME }}
     defaults:
       run:
         working-directory: backend
     timeout-minutes: 10
+    outputs:
+      service_name: ${{ steps.deploy.outputs.service_name }}
     steps:
       - uses: actions/checkout@v4
       # Authenticate to Google Cloud
@@ -79,7 +99,6 @@ jobs:
         run: |
           echo "IMAGE_TAG_API=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-api-preview:${{ github.sha }}" >> $GITHUB_ENV
           echo "IMAGE_TAG_DB=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-db-preview:${{ github.sha }}" >> $GITHUB_ENV
-          echo "SERVICE_NAME=recall-you-api-preview-pr-${{ github.event.number }}" >> $GITHUB_ENV
       # Build
       - name: Build and Push API Image
         uses: docker/build-push-action@v5
@@ -101,10 +120,11 @@ jobs:
           cache-to: type=registry,ref=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-db-preview:cache,mode=max
       # Deploy
       - name: Deploy to Cloud Run
+        id: deploy
         run: |
           PR_NUMBER=${{ github.event.number }}
           
-          gcloud run deploy $SERVICE_NAME \
+          gcloud run deploy ${{ needs.setup-env.outputs.api_service_name }} \
             --project=${{ env.GCP_PROJECT_ID }} \
             --region=${{ env.GCP_REGION }} \
             --platform=managed \
@@ -119,7 +139,7 @@ jobs:
               --set-secrets="FIRE_SA=FIRE_SA:latest" \
               --set-env-vars="AUTH_SECRET=${{ secrets.AUTH_SECRET }}" \
               --set-env-vars="AUTH_DATABASE_URL=postgresql://user:password@localhost:5432/auth_db" \
-              --set-env-vars="TRUSTED_ORIGIN_WEB=https://recall-you-*.web.app" \
+              --set-env-vars="TRUSTED_ORIGIN_WEB=${{ needs.setup-env.outputs.hosting_url }}" \
             --container db \
               --image=$IMAGE_TAG_DB \
               --set-env-vars="PULL_REQUEST_NUMBER=$PR_NUMBER" \
@@ -127,38 +147,25 @@ jobs:
               --set-env-vars="POSTGRES_PASSWORD=password" \
               --set-env-vars="POSTGRES_DB=db" \
               --memory=1Gi
-      - name: Get Preview URL and Comment on PR
-        id: comment
-        run: |
+          
           SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --platform managed --region ${{ env.GCP_REGION }} --format 'value(status.url)')
-          echo "PREVIEW_URL=$SERVICE_URL" >> $GITHUB_OUTPUT
-          echo "SERVICE_NAME=$SERVICE_NAME" >> $GITHUB_OUTPUT
-
-          COMMENT_TAG="<!-- PREVIEW_URL_COMMENT -->"
-          COMMENT_BODY="🚀 Preview API Server is ready! URL: $SERVICE_URL $COMMENT_TAG"          
-          EXISTING_COMMENT=$(gh pr view ${{ github.event.number }} --json comments -q '.comments[] | select(.body | contains("<!-- PREVIEW_URL_COMMENT -->"))')
-          # コメントが存在しない場合のみ、新しいコメントを投稿
-          if [ -z "$EXISTING_COMMENT" ]; then
-            gh pr comment ${{ github.event.number }} --body-file - <<< "$COMMENT_BODY"
-          else
-            echo "Preview URL comment already exists."
-          fi
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          echo "service_url=$SERVICE_URL" >> $GITHUB_OUTPUT
+          echo "service_name=${{ needs.setup-env.outputs.api_service_name }}" >> $GITHUB_OUTPUT
   # Deploy to Firebase Hosting
   web:
-    needs: [check-changes, backend]
+    needs: setup-env
     defaults:
       run:
         working-directory: web
-    if: always() && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
       checks: write
       contents: 'read'
       id-token: 'write' # OIDC認証に必要
-      pull-requests: 'write'
     timeout-minutes: 10
+    outputs:
+      service_url: ${{ steps.deploy.outputs.service_url }}
+      service_name: ${{ steps.deploy.outputs.service_name }}
     steps:
       - uses: actions/checkout@v4
       # Authenticate to Google Cloud
@@ -179,12 +186,11 @@ jobs:
       - name: Setting Environment Variables
         run: |
           echo "IMAGE_TAG_WEB=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-web-preview:${{ github.sha }}" >> $GITHUB_ENV
-          echo "SERVICE_NAME=recall-you-web-preview-pr-${{ github.event.number }}" >> $GITHUB_ENV
       # Build
       - name: Geenrate .env
         run: |
           echo "NODE_ENV=production" > .env.local
-          echo "API_URL=${{ needs.backend.outputs.preview_url }}" >> .env.local
+          echo "API_URL=${{ needs.setup-env.outputs.api_service_url }}" >> .env.local
           echo "AUTH_SECRET=${{ secrets.AUTH_SECRET }}" >> .env.local
       - name: Build and Push Web Image
         uses: docker/build-push-action@v5
@@ -200,7 +206,7 @@ jobs:
         run: |
           PR_NUMBER=${{ github.event.number }}
           
-          gcloud run deploy $SERVICE_NAME \
+          gcloud run deploy ${{ needs.setup-env.outputs.web_service_name }} \
             --project=${{ env.GCP_PROJECT_ID }} \
             --region=${{ env.GCP_REGION }} \
             --platform=managed \
@@ -210,29 +216,50 @@ jobs:
               --image=$IMAGE_TAG_WEB \
               --port=3000 \
               --set-env-vars="PULL_REQUEST_NUMBER=$PR_NUMBER"
-      - name: Get Preview URL and Comment on PR
-        run: |
+          
           SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --platform managed --region ${{ env.GCP_REGION }} --format 'value(status.url)')
-
-          COMMENT_TAG="<!-- PREVIEW_API_URL_COMMENT -->"
-          COMMENT_BODY="🚀 Preview Web Server is ready! URL: $SERVICE_URL $COMMENT_TAG"          
-          EXISTING_COMMENT=$(gh pr view ${{ github.event.number }} --json comments -q '.comments[] | select(.body | contains("<!-- PREVIEW_API_URL_COMMENT -->"))')
-          # コメントが存在しない場合のみ、新しいコメントを投稿
-          if [ -z "$EXISTING_COMMENT" ]; then
-            gh pr comment ${{ github.event.number }} --body-file - <<< "$COMMENT_BODY"
-          else
-            echo "Preview API URL comment already exists."
-          fi
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          echo "service_url=$SERVICE_URL" >> $GITHUB_OUTPUT
+          echo "service_name=${{ needs.setup-env.outputs.web_service_name }}" >> $GITHUB_OUTPUT
+  hosting:
+    needs: [backend, web]
+    defaults:
+      run:
+        working-directory: web
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: 'read'
+      id-token: 'write' # OIDC認証に必要
+      pull-requests: 'write'
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
       - name: Overwrite rewrites on firebase.json
         run: |
           sed -i "s/recall-you-api-preview/${{ needs.backend.outputs.service_name }}/g" firebase.json
-          sed -i "s/recall-you-web-preview/$SERVICE_NAME/g" firebase.json
+          sed -i "s/recall-you-web-preview/${{ needs.web.outputs.service_name }}/g" firebase.json
       - uses: FirebaseExtended/action-hosting-deploy@v0
+        id: firebase
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_RECALL_YOU }}
           projectId: recall-you
           expires: '3d'
           entryPoint: 'web'
+      - name: Comment on PR
+        run: |
+          COMMENT_TAG="<!-- PREVIEW_URL_COMMENT -->"
+          echo "$COMMENT_TAG" > tmp
+          echo "🚀 Preview Server is ready!" > tmp
+          echo "* API Server: ${{ needs.backend.outputs.service_url }}" >> tmp
+          echo "* Web Server: ${{ needs.web.outputs.service_url }}" >> tmp
+          echo "* Hosting URL: ${{ steps.firebase.outputs.details_url }}" >> tmp
+          EXISTING_COMMENT=$(gh pr view ${{ github.event.number }} --json comments -q '.comments[] | select(.body | contains("<!-- PREVIEW_URL_COMMENT -->"))')
+          # コメントが存在しない場合のみ、新しいコメントを投稿
+          if [ -z "$EXISTING_COMMENT" ]; then
+            gh pr comment ${{ github.event.number }} --body-file - <<< "$(cat tmp)"
+          else
+            echo "Preview API URL comment already exists."
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
