@@ -168,6 +168,8 @@ jobs:
           node-version: 22
           cache: 'pnpm'
           cache-dependency-path: 'web/pnpm-lock.yaml'
+      - name: Update npm version
+        run: npm install -g npm@latest
       - name: cache-node-modules
         uses: actions/cache@v3
         id: cache-node
