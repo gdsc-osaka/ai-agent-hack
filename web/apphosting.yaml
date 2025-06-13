@@ -1,17 +1,23 @@
-# Settings for Cloud Run
+# Settings for Backend (on Cloud Run).
+# See https://firebase.google.com/docs/app-hosting/configure#cloud-run
 runConfig:
   minInstances: 0
-  maxInstances: 5
-  concurrency: 80
-  cpu: 0
-  memoryMiB: 512
+  # maxInstances: 100
+  # concurrency: 80
+  # cpu: 1
+  # memoryMiB: 512
 
+# Environment variables and secrets.
 env:
-  - variable: NEXT_PUBLIC_API_URL
-    value: "https://api.recall.mincra.jp"
-    availability:
-      - BUILD
-      - RUNTIME
+  # Configure environment variables.
+  # See https://firebase.google.com/docs/app-hosting/configure#user-defined-environment
+   - variable: NEXT_PUBLIC_API_URL
+     value: "https://api.recall.mincra.jp"
+     availability:
+       - BUILD
+       - RUNTIME
 
-  - variable: AUTH_SECRET
-    secret: AUTH_SECRET
+  # Grant access to secrets in Cloud Secret Manager.
+  # See https://firebase.google.com/docs/app-hosting/configure#secret-parameters
+   - variable: AUTH_SECRET
+     secret: AUTH_SECRET
