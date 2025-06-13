@@ -5,8 +5,8 @@ import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
 
 export const getSession = async (requestCookies?: RequestCookies) => {
   const sessionToken =
-    requestCookies?.get("auth.session_token")?.value ??
-    (await headers()).get("cookie")?.match(/auth\.session_token=([^;]+)/)?.[1];
+    requestCookies?.get("__session")?.value ??
+    (await headers()).get("cookie")?.match(/__session=([^;]+)/)?.[1];
 
   console.debug("Session Token:", sessionToken);
 
@@ -18,16 +18,16 @@ export const getSession = async (requestCookies?: RequestCookies) => {
     {
       method: "GET",
       headers: {
-        Cookie: sessionToken ? `auth.session_token=${sessionToken}` : "",
+        Cookie: sessionToken ? `__session=${sessionToken}` : "",
       },
       onResponse: async (ctx) => {
         const setCookie = ctx.response.headers.get("Set-Cookie");
         const sessionToken = setCookie?.match(
-          /auth\.session_token=([^;]+)/
+          /__session=([^;]+)/
         )?.[1];
         if (sessionToken) {
           const cookieStore = await cookies();
-          cookieStore.set("auth.session_token", sessionToken);
+          cookieStore.set("__session", sessionToken);
         }
       },
     }

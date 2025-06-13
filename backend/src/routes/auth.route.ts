@@ -14,7 +14,7 @@ const getSession = describeRoute({
     200: {
       description: "Successful response",
       headers: {
-        "auth.session_token": {
+        "__session": {
           description: "Session token for the authenticated user",
           schema: {
             type: "string",

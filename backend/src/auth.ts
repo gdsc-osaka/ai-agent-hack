@@ -15,7 +15,15 @@ export const auth = betterAuth({
             domain: env.AUTH_COOKIE_DOMAIN,
           }
         : undefined,
-    cookiePrefix: "auth",
+    cookiePrefix: "",
+    cookies: {
+      session_token: {
+        name: "__session",
+        attributes: {
+          // Set custom cookie attributes
+        }
+      },
+    }
   },
   secret: env.AUTH_SECRET,
   basePath: "/api/v1/auth",

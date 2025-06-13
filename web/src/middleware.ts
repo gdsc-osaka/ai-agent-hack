@@ -25,11 +25,5 @@ export async function middleware(request: NextRequest) {
 
   const res = NextResponse.next();
 
-  // CDN のキャッシュを無効化
-  res.headers.set(
-    "Cache-Control",
-    "private, no-cache, no-store, must-revalidate"
-  );
-
   return res;
 }
