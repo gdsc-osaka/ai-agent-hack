@@ -1,13 +1,26 @@
 {
   "hosting": {
-    "source": ".",
+    "public": "public",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
     ],
-    "frameworksBackend": {
-      "region": "asia-east1"
-    }
+    "rewrites": [
+      {
+        "source": "/api/**",
+        "run": {
+          "serviceId": "recall-you-api-preview",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "**",
+        "run": {
+          "serviceId": "recall-you-web-preview",
+          "region": "asia-northeast1"
+        }
+      }
+    ]
   }
 }
