@@ -3,9 +3,12 @@ import { cookies, headers } from "next/headers";
 import type { Session, User } from "better-auth";
 
 export const getSession = async (header?: Headers) => {
-  const headerStore = header ?? await headers();
+  const headerStore = header ?? (await headers());
 
-  console.debug('Cookie:', headerStore.get("Cookie"));
+  console.debug("Header in request:", JSON.stringify(header));
+  console.debug("Header in headers:", JSON.stringify(await headers()));
+  console.debug("NEXT_PUBLIC_API_URL:", process.env.NEXT_PUBLIC_API_URL);
+  console.debug("API_URL:", process.env.API_URL);
 
   return betterFetch<{
     user: User;
