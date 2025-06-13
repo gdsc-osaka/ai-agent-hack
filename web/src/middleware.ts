@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "./session";
-import { cookies } from 'next/headers';
+import { cookies } from "next/headers";
 
 export const config = {
   matcher: ["/dashboard/:path*", "/login", "/signup"],
 };
 
 export async function middleware(request: NextRequest) {
-  console.log('Raw cookie header', request.headers.get('cookie'));
-  console.log('Request.cookies (Parsed by Next.js)', request.cookies.getAll());
-  console.log('cookies().getAll()',(await cookies()).getAll());
-  console.log('Headers', Object.fromEntries(request.headers.entries()))
+  console.log("Raw cookie header", request.headers.get("cookie"));
+  console.log("Request.cookies (Parsed by Next.js)", request.cookies.getAll());
+  console.log("cookies().getAll()", (await cookies()).getAll());
+  console.log("Headers", Object.fromEntries(request.headers.entries()));
 
   const { data: session } = await getSession(request.cookies);
 
@@ -23,5 +23,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  return NextResponse.next();
+  const res = NextResponse.next();
+
+  // CDN のキャッシュを無効化
+  res.headers.set(
+    "Cache-Control",
+    "private, no-cache, no-store, must-revalidate"
+  );
+
+  return res;
 }
