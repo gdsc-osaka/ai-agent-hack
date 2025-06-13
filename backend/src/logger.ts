@@ -150,9 +150,9 @@ const localLogger = (category: string): LoggerBuilder => {
 };
 
 const logger = (category: string) =>
-  env.NODE_ENV === "production"
-    ? gcloudLogger(category)
-    : localLogger(category);
+  env.NODE_ENV === "development"
+    ? localLogger(category)
+    : gcloudLogger(category);
 
 export const infraLogger = logger("INFRA");
 export const accessLogger = logger("ACCESS");

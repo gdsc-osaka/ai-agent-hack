@@ -4,10 +4,5 @@ api.ts
 base.ts
 common.ts
 configuration.ts
-docs/ApiError.md
-docs/ApiErrorCode.md
-docs/Timestamp.md
-docs/User.md
-docs/UsersApi.md
 git_push.sh
 index.ts

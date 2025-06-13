@@ -11,11 +11,18 @@ services:
     command: postgres -c log_destination=stderr -c log_statement=all -c log_connections=on -c log_disconnections=on
     networks:
       - db-network
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d
   cli:
     image: postgres:16.0
     networks:
       - db-network
     command: psql -hpostgres -Uuser db
+  cliauth:
+    image: postgres:16.0
+    networks:
+      - db-network
+    command: psql -hpostgres -Uuser auth_db
 
 networks:
   db-network:

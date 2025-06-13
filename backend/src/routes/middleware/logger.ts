@@ -3,7 +3,10 @@ import { accessLogger } from "../../logger";
 
 export const logger = createMiddleware(async (c, next) => {
   const { method, path } = c.req;
-  accessLogger("<--").info(`${method}#${path}`);
+  const headers = Array.from(c.req.raw.headers.entries())
+    .map(([key, value]) => `${key}: ${value}`)
+    .join(", ");
+  accessLogger("<--").info(`${method}#${path}\n\tHeaders: ${headers}`);
 
   const start = Date.now();
   const res = await next();
