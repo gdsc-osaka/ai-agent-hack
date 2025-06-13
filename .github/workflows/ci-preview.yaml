@@ -258,7 +258,7 @@ jobs:
         run: |
           COMMENT_TAG="<!-- PREVIEW_URL_COMMENT -->"
           echo "$COMMENT_TAG" > tmp
-          echo "🚀 Preview Server is ready!" > tmp
+          echo "🚀 Preview Server is ready!" >> tmp
           echo "* API Server: ${{ needs.backend.outputs.service_url }}" >> tmp
           echo "* Web Server: ${{ needs.web.outputs.service_url }}" >> tmp
           echo "* Hosting URL: ${{ steps.firebase.outputs.details_url }}" >> tmp
