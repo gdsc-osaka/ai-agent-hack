@@ -59,8 +59,7 @@ jobs:
         working-directory: backend
     timeout-minutes: 10
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       # Authenticate to Google Cloud
       - name: Authenticate to Google Cloud
         uses: 'google-github-actions/auth@v2'
@@ -160,56 +159,66 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      # Authenticate to Google Cloud
+      - name: Authenticate to Google Cloud
+        uses: 'google-github-actions/auth@v2'
         with:
-          version: 10.12.1
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'pnpm'
-          cache-dependency-path: 'web/pnpm-lock.yaml'
-      - name: Update npm version
-        run: npm install -g npm@latest
-      - name: cache-node-modules
-        uses: actions/cache@v3
-        id: cache-node
-        env:
-          cache-name: cache-node
-        with:
-          path: '**/node_modules'
-          key: ${{ runner.os }}-cache-web-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-cache-web-
-            ${{ runner.os }}-cache-
-            ${{ runner.os }}-
-      - name: Install node modules
-        if: ${{ steps.cache-node.outputs.cache-hit != 'true' }}
-        run: pnpm i
-      - name: Generate .env
-        env:
-          PREVIEW_URL: ${{ needs.backend.outputs.preview_url }}
+          project_id: ${{ env.GCP_PROJECT_ID }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      - name: Set up Cloud SDK
+        uses: 'google-github-actions/setup-gcloud@v2'
+      - name: Configure Docker
+        run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev
+      # Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      # env
+      - name: Setting Environment Variables
         run: |
-          echo "NODE_ENV=production" > .env
-          if [[ "${{ needs.backend.result }}" == "success" ]]; then
-            echo "NEXT_PUBLIC_API_URL=${{ needs.backend.outputs.preview_url }}" >> .env
-            echo "AUTH_SECRET=${{ secrets.AUTH_SECRET }}" >> .env
-            # Preview 用 Firebase Hosting の rewrites 設定を更新
-            sed -i "s@recall-you-api-prod@${{ needs.backend.outputs.service_name }}@g" firebase.json
+          echo "IMAGE_TAG_WEB=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-web-preview:${{ github.sha }}" >> $GITHUB_ENV
+          echo "SERVICE_NAME=recall-you-web-preview-pr-${{ github.event.number }}" >> $GITHUB_ENV
+      # Build
+      - name: Build and Push Web Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./web
+          file: ./web/Dockerfile.preview.web
+          tags: ${{ env.IMAGE_TAG_WEB }}
+          push: true
+          cache-from: type=registry,ref=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-web-preview:cache
+          cache-to: type=registry,ref=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/recall-you-web-preview:cache,mode=max
+      # Deploy
+      - name: Deploy to Cloud Run
+        run: |
+          PR_NUMBER=${{ github.event.number }}
+          
+          gcloud run deploy $SERVICE_NAME \
+            --project=${{ env.GCP_PROJECT_ID }} \
+            --region=${{ env.GCP_REGION }} \
+            --platform=managed \
+            --allow-unauthenticated \
+            --labels="preview-env=true,created-at=$(date +%s),pr-number=$PR_NUMBER" \
+            --container web \
+              --image=$IMAGE_TAG_WEB \
+              --port=3000 \
+              --set-env-vars="PULL_REQUEST_NUMBER=$PR_NUMBER" \
+              --set-env-vars="NODE_ENV=production" \
+              --set-env-vars="NEXT_PUBLIC_API_URL=${{ needs.backend.outputs.preview_url }}" \
+              --set-secrets="AUTH_SECRET=AUTH_SECRET:latest"
+      - name: Get Preview URL and Comment on PR
+        id: comment
+        run: |
+          SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --platform managed --region ${{ env.GCP_REGION }} --format 'value(status.url)')
+
+          COMMENT_TAG="<!-- PREVIEW_API_URL_COMMENT -->"
+          COMMENT_BODY="🚀 Preview Web Server is ready! URL: $SERVICE_URL $COMMENT_TAG"          
+          EXISTING_COMMENT=$(gh pr view ${{ github.event.number }} --json comments -q '.comments[] | select(.body | contains("<!-- PREVIEW_API_URL_COMMENT -->"))')
+          # コメントが存在しない場合のみ、新しいコメントを投稿
+          if [ -z "$EXISTING_COMMENT" ]; then
+            gh pr comment ${{ github.event.number }} --body-file - <<< "$COMMENT_BODY"
+          else
+            echo "Preview API URL comment already exists."
           fi
-      - uses: FirebaseExtended/action-hosting-deploy@v0
-        id: deploy
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_RECALL_YOU }}
-          projectId: recall-you
-          expires: '3d'
-          entryPoint: 'web'
         env:
-          FIREBASE_CLI_EXPERIMENTS: webframeworks
-      # if previous step fails, upload firebase-debug.log as an artifact
-      - name: Archive firebase-debug.log
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: firebase-debug-log
-          path: firebase-debug.log
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
