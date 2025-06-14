@@ -1,0 +1,97 @@
+---
+description: 
+globs: backend/**
+alwaysApply: false
+---
+# Coding Rules
+* Follow functional programming style coding.
+* Never use `class`, `try-catch`, `for`, `while`, `let`, and `var`.
+* Avoid using `as` as long as possible.
+* Use neverthrow for throwing error, such as `Result<T, E>`, `ok(value)`, `err(error)` and so on.
+* Avoid using `switch` or nested if. Instead, use ts-pattern.
+* Use an utility function `errorBuilder()` in `backend/src/shared/error.ts` for defining error object. Usage:
+```typescript
+import { errorBuilder, InferError } from "../shared/error";
+
+// 1. Define a simple error
+// Definition:
+export const FooError = errorBuilder("FooError");
+export type FooError = InferError<typeof FooError>;
+
+// Usage:
+const error = FooError("Some error messages");
+// or you can handle unknown error
+ResultAsync.fromPromise(promise, (e: unknown) => FooError.handle(e));
+// (you should pass function directly if possible!)
+ResultAsync.fromPromise(promise, FooError.handle);
+// You can determine error type with ts-pattern even in runtime
+match(error)
+  .with(FooError.is, (e) => 'handle error here...')
+  .exhaustive();
+
+// 2. Define an error with extra value using zod
+import z from "zod";
+
+// Definition:
+export const DBUserNotFoundError = errorBuilder(
+  "DBUserNotFoundError",
+  z.union([z.object({ id: z.string() }), z.object({ uid: z.string() })])
+);
+export type DBUserNotFoundError = InferError<typeof DBUserNotFoundError>;
+
+// Usage:
+const error = DBUserNotFoundError("User not found", { extra: { uid } });
+
+// 3. Define an error with extra value without zod
+export const InvalidUserError = errorBuilder<
+  "InvalidUserError",
+  FieldErrors<typeof User>
+>("InvalidUserError");
+export type InvalidUserError = InferError<typeof InvalidUserError>;
+```
+
+* Use appLogger in `backend/src/logger.ts` for logging. Usage:
+```typescript
+import { appLogger } from "../logger";
+
+const logger = appLogger("fetchDBUserByUid");
+logger.debig('foo');
+logger.info('foo');
+logger.warn('foo');
+logger.error('foo');
+
+// You can pass object
+logger.info('User created', { user });
+// This is a nice way to use logger with neverthrow
+ResultAsync(promise, FooError.handle)
+  // ...
+  .orTee(logger.error)
+```
+
+# Directory Structure
+```
+/
+├─ src
+│  ├─ controller // Receive ResultAsync from service, and handle errors using ts-pattern and logging
+│  ├─ db         // Database settings and schema
+│  ├─ domain     // Domain layer (and Domain service layer)
+│  ├─ infra      // Infrastructure layer (e.g., database, external services)
+│  ├─ routes     // API routes (Hono.js)
+│  │  ├─ users.route.ts // OpenAPI spec definition for /v1/users
+│  │  └─ users.ts       // Hono.js handler for /v1/users
+│  ├─ service    // Application services layer
+│  ├─ shared     // Shared utilities and constants
+│  └─ main.ts    // entrypoint
+└─ test
+   └─ unit       // Unit tests
+```
+
+# REST API Structure
+* Every route should start with /v1
+* Follow RESTful. For instance,
+  * GET /v1/users
+  * POST /v1/users
+  * GET /v1/stores/:storeId/staffs
+  * POST /v1/invites/:inviteId/accept
+# Other information
+* You can get session user by getAuthUser(c) (c is Context in Hono.js). Use in src/routes/foo.ts
