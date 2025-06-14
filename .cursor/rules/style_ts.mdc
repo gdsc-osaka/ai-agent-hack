@@ -8,60 +8,10 @@ alwaysApply: false
 * Never use `class`, `try-catch`, `for`, `while`, `let`, and `var`.
 * Avoid using `switch` or nested if. Instead, use ts-pattern.
 & Avoid using `if` if possible, and use ternary operator instead.
+* Avoid using `return` if possible
 * Use neverthrow for throwing error, such as `Result<T, E>`, `ok(value)`, `err(error)` and so on.
-* Use an utility function `errorBuilder()` in `backend/src/shared/error.ts` for defining error object. Usage:
-```typescript
-import { errorBuilder, InferError } from "../shared/error";
-
-// 1. Define a simple error
-// Definition:
-export const FooError = errorBuilder("FooError");
-export type FooError = InferError<typeof FooError>;
-
-// Usage:
-const error = FooError("Some error messages");
-// or you can handle unknown error
-ResultAsync.fromPromise(promise, FooError.handle);
-// You can determine error type with ts-pattern even in runtime
-match(error)
-  .with(FooError.is, (e) => 'handle error here...')
-  .exhaustive();
-
-// 2. Define an error with extra value using zod
-// Definition:
-export const DBUserNotFoundError = errorBuilder(
-  "DBUserNotFoundError",
-  z.union([z.object({ id: z.string() }), z.object({ uid: z.string() })])
-);
-export type DBUserNotFoundError = InferError<typeof DBUserNotFoundError>;
-
-// Usage:
-const error = DBUserNotFoundError("User not found", { extra: { uid } });
-
-// 3. Define an error with extra value without zod
-export const InvalidUserError = errorBuilder<
-  "InvalidUserError",
-  FieldErrors<typeof User>
->("InvalidUserError");
-export type InvalidUserError = InferError<typeof InvalidUserError>;
-```
-
-* Use appLogger in `backend/src/logger.ts` for logging. Usage:
-```typescript
-import { appLogger } from "../logger";
-
-const logger = appLogger("fetchDBUserByUid");
-logger.debig('foo');
-logger.info('foo');
-logger.warn('foo');
-logger.error('foo');
-
-// You can pass object
-logger.info('User created', { user });
-// This is a nice way to use logger with neverthrow
-ResultAsync(promise, FooError.handle)
-  .orTee(logger.error)
-```
+* Use an utility function `errorBuilder()` in `backend/src/shared/error.ts` for defining error object.
+* Use appLogger in `backend/src/logger.ts` for logging.
 
 # Directory Structure
 ```
