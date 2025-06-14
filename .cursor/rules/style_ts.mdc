@@ -9,6 +9,7 @@ alwaysApply: false
 * Avoid using `as` as long as possible.
 * Use neverthrow for throwing error, such as `Result<T, E>`, `ok(value)`, `err(error)` and so on.
 * Avoid using `switch` or nested if. Instead, use ts-pattern.
+& Avoid using statement such as `if` if possible, and use ternary operator instead.
 * Use an utility function `errorBuilder()` in `backend/src/shared/error.ts` for defining error object. Usage:
 ```typescript
 import { errorBuilder, InferError } from "../shared/error";
@@ -72,10 +73,10 @@ ResultAsync(promise, FooError.handle)
 ```
 /
 ├─ src
-│  ├─ controller // Receive ResultAsync from service, and handle errors using ts-pattern and logging
+│  ├─ controller // Receive ResultAsync from service, and handle errors using ts-pattern
 │  ├─ db         // Database settings and schema
 │  ├─ domain     // Domain layer (and Domain service layer)
-│  ├─ infra      // Infrastructure layer (e.g., database, external services)
+│  ├─ infra      // Infrastructure layer (e.g., database, external services). you should output log here
 │  ├─ routes     // API routes (Hono.js)
 │  │  ├─ users.route.ts // OpenAPI spec definition for /v1/users
 │  │  └─ users.ts       // Hono.js handler for /v1/users
@@ -93,5 +94,273 @@ ResultAsync(promise, FooError.handle)
   * POST /v1/users
   * GET /v1/stores/:storeId/staffs
   * POST /v1/invites/:inviteId/accept
+
 # Other information
 * You can get session user by getAuthUser(c) (c is Context in Hono.js). Use in src/routes/foo.ts
+
+# Code Example
+Follow this exmaple code of fetching user when generating another code.
+
+src/db/schema/users.ts:
+```typescript
+import { createId } from "@paralleldrive/cuid2";
+import { index, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
+import { CUID_LENGTH } from "../constants";
+
+const UID_LENGTH = 28;
+
+export const users = pgTable(
+  "users",
+  {
+    id: varchar("id", { length: CUID_LENGTH })
+      .$defaultFn(() => createId())
+      .primaryKey()
+      .notNull(),
+    uid: varchar("uid", { length: UID_LENGTH }).notNull().unique(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (t) => [index("users_uid_idx").using("btree", t.uid)]
+);
+```
+
+src/db/schema.ts:
+```typescript
+import * as users from "./schema/users";
+import * as auth from "./schema/auth";
+
+export const authSchema = auth;
+
+export default {
+  ...users,
+  // Add here when adding tables
+};
+```
+
+src/infra/user-repo.ts;
+```typescript
+import { errAsync, okAsync, ResultAsync } from "neverthrow";
+import { users } from "../db/schema/users";
+import { eq } from "drizzle-orm";
+import type { DBorTx } from "../db/db";
+import { DBUser } from "../domain/user";
+import { infraLogger } from "../logger";
+import { DBUserNotFoundError } from "./user-repo.error";
+import { DBInternalError } from "./shared/db-error";
+
+const fetchDBUserByUidLogger = infraLogger("fetchDBUserByUid");
+
+export type FetchDBUserByUid = (
+  db: DBorTx
+) => (
+  uid: string
+) => ResultAsync<DBUser, DBInternalError | DBUserNotFoundError>;
+
+export const fetchDBUserByUid: FetchDBUserByUid = (db) => (uid) =>
+  ResultAsync.fromPromise(
+    db.select().from(users).where(eq(users.uid, uid)).limit(1).execute(),
+    DBUserNotFoundError.handle
+  )
+    .andThen((records) =>
+      records.length > 0
+        ? okAsync(records[0])
+        : errAsync(DBUserNotFoundError("User not found", { extra: { uid } }))
+    )
+    // When insert, Output log like this:
+    // .andTee((user) => fetchDBUserByUidLogger('User created', {user}))
+    .orTee(fetchDBUserByUidLogger.error);
+```
+
+src/infra/user-repo.error.ts:
+```typescript
+import { errorBuilder, InferError } from "../shared/error";
+import z from "zod";
+
+export const DBUserNotFoundError = errorBuilder(
+  "DBUserNotFoundError",
+  z.union([z.object({ id: z.string() }), z.object({ uid: z.string() })])
+);
+export type DBUserNotFoundError = InferError<typeof DBUserNotFoundError>;
+
+export const DBUserAlreadyExistsError = errorBuilder(
+  "DBUserAlreadyExistsError",
+  z.object({ uid: z.string() })
+);
+export type DBUserAlreadyExistsError = InferError<
+  typeof DBUserAlreadyExistsError
+>;
+```
+
+src/domain/user.ts:
+```typescript
+import { users } from "../db/schema/users";
+import z from "zod";
+import "zod-openapi/extend";
+import { err, ok, Result } from "neverthrow";
+import { Timestamp, toTimestamp } from "./timestamp";
+import { FieldErrors, ForUpdate, OmitBrand } from "./shared/types";
+import { Uid } from "./auth";
+import { errorBuilder, InferError } from "../shared/error";
+
+export const UserId = z.string().min(1).brand<"USER_ID">();
+export type UserId = z.infer<typeof UserId>;
+
+export const User = z
+  .object({
+    id: UserId,
+    uid: Uid,
+    createdAt: Timestamp,
+    updatedAt: Timestamp,
+  })
+  .brand<"USER">()
+  .openapi({ ref: "User" });
+export type User = z.infer<typeof User>;
+
+export type DBUser = typeof users.$inferSelect;
+export type DBUserForCreate = typeof users.$inferInsert;
+export type DBUserForUpdate = ForUpdate<DBUser>;
+
+export const InvalidUserError = errorBuilder<
+  "InvalidUserError",
+  FieldErrors<typeof User>
+>("InvalidUserError");
+export type InvalidUserError = InferError<typeof InvalidUserError>;
+
+export const validateUser = (user: DBUser): Result<User, InvalidUserError> => {
+  const res = User.safeParse({
+    id: user.id as UserId,
+    uid: user.uid as Uid,
+    createdAt: toTimestamp(user.createdAt),
+    updatedAt: toTimestamp(user.updatedAt),
+  } satisfies OmitBrand<User>);
+
+  if (res.success) return ok(res.data);
+
+  return err(
+    InvalidUserError("Invalid user data", {
+      cause: res.error,
+      extra: res.error.flatten().fieldErrors,
+    })
+  );
+};
+```
+
+src/service/user-service.ts:
+```typescript
+import { AuthUser } from "../domain/auth";
+import { ResultAsync } from "neverthrow";
+import { InvalidUserError, User, validateUser } from "../domain/user";
+import { DBInternalError } from "../infra/shared/db-error";
+import { DBUserNotFoundError } from "../infra/user-repo.error";
+import { FetchDBUserByUid } from "../infra/user-repo";
+import db from "../db/db";
+
+export type FetchUser = (
+  authUser: AuthUser
+) => ResultAsync<
+  User,
+  DBInternalError | DBUserNotFoundError | InvalidUserError
+>;
+
+export const fetchUser =
+  (fetchUserByUid: FetchDBUserByUid): FetchUser =>
+  (authUser: AuthUser) =>
+    fetchUserByUid(db)(authUser.uid).andThen(validateUser);
+```
+
+src/controller/user-controller.ts:
+```typescript
+import { FetchUser } from "../service/user-service";
+import { match } from "ts-pattern";
+import { DBInternalError } from "../infra/shared/db-error";
+import { ResultAsync } from "neverthrow";
+import { InvalidUserError, User } from "../domain/user";
+import { HTTPErrorCarrier, StatusCode } from "./error/api-error";
+import { DBUserNotFoundError } from "../infra/user-repo.error";
+
+export const fetchUserController = (
+  fetchUserRes: ReturnType<FetchUser>
+): ResultAsync<User, HTTPErrorCarrier> =>
+  fetchUserRes.mapErr((err) =>
+    match(err)
+      .with(DBInternalError.is, (e) =>
+        HTTPErrorCarrier(StatusCode.InternalServerError, {
+          message: e.message,
+          code: "DATABASE_UNKNOWN_ERROR",
+          details: [e.cause],
+        })
+      )
+      .with(DBUserNotFoundError.is, (e) =>
+        HTTPErrorCarrier(StatusCode.NotFound, {
+          message: e.message,
+          code: "DATABASE_NOT_FOUND",
+          details: [e.cause],
+        })
+      )
+      .with(InvalidUserError.is, (e) =>
+        HTTPErrorCarrier(StatusCode.InternalServerError, {
+          message: e.message,
+          code: "DATABASE_INCONSISTENT_TYPE",
+          details: [e.extra],
+        })
+      )
+      .exhaustive()
+  );
+```
+
+src/routes/users.ts:
+```typescript
+import { Hono } from "hono";
+import { fetchUser } from "../service/user-service";
+import { fetchDBUserByUid } from "../infra/user-repo";
+import { getAuthUser } from "./middleware/authorize";
+import usersRoute from "./users.route";
+import { fetchUserController } from "../controller/user-controller";
+import { toHTTPException } from "./shared/exception";
+
+const app = new Hono();
+
+app.get("/", usersRoute.getUser, async (c) => {
+  const res = await fetchUserController(
+    fetchUser(fetchDBUserByUid)(getAuthUser(c))
+  );
+  if (res.isErr()) {
+    throw toHTTPException(res.error);
+  }
+  return c.json(res.value);
+});
+
+export default app;
+```
+
+src/routes/users.route.ts:
+```typescript
+import { describeRoute } from "hono-openapi";
+import { resolver } from "hono-openapi/zod";
+import { User } from "../domain/user";
+
+const tags = ["Users"];
+
+const getUser = describeRoute({
+  tags,
+  validateResponse: true,
+  operationId: "getUser",
+  description: "Get user information",
+  responses: {
+    200: {
+      description: "Successful response",
+      content: {
+        "application/json": {
+          schema: resolver(User),
+        },
+      },
+    },
+  },
+});
+
+export default {
+  getUser,
+};
+```
