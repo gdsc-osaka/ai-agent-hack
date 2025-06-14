@@ -1,0 +1,52 @@
+import { index, pgTable, primaryKey, text, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { CUID_LENGTH } from "../constants";
+import { createId } from "@paralleldrive/cuid2";
+
+export const stores = pgTable(
+  "stores",
+  {
+    id: varchar("id", { length: CUID_LENGTH })
+      .$defaultFn(() => createId())
+      .primaryKey()
+      .notNull(),
+    publicId: text("public_id").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (t) => [
+    index("stores_public_id_idx").using("btree", t.publicId)
+  ]
+);
+
+export const staffs = pgTable(
+  "staffs",
+  {
+    id: varchar("id", { length: CUID_LENGTH })
+      .$defaultFn(() => createId())
+      .primaryKey()
+      .notNull(),
+    userId: text("user_id").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (t) => [
+    index("staffs_user_id_idx").using("btree", t.userId)
+  ]
+);
+
+export const storesToStaffs = pgTable(
+  "stores_to_staffs",
+  {
+    storeId: varchar("store_id", { length: CUID_LENGTH })
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    staffId: varchar("staff_id", { length: CUID_LENGTH })
+      .notNull()
+      .references(() => staffs.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.storeId, t.staffId] })]
+);
