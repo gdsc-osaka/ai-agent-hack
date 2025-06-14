@@ -21,3 +21,7 @@ env:
   # See https://firebase.google.com/docs/app-hosting/configure#secret-parameters
    - variable: AUTH_SECRET
      secret: AUTH_SECRET
+
+scripts:
+  buildCommand: npm run build
+  runCommand: npm run start
