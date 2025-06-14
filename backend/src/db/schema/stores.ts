@@ -1,4 +1,4 @@
-import { index, pgTable, primaryKey, text, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { index, pgEnum, pgTable, primaryKey, text, timestamp, varchar } from 'drizzle-orm/pg-core';
 import { CUID_LENGTH } from "../constants";
 import { createId } from "@paralleldrive/cuid2";
 
@@ -38,6 +38,11 @@ export const staffs = pgTable(
   ]
 );
 
+export const staffRole = pgEnum('staff_role', [
+  'ADMIN',
+  'STAFF',
+]);
+
 export const storesToStaffs = pgTable(
   "stores_to_staffs",
   {
@@ -47,6 +52,7 @@ export const storesToStaffs = pgTable(
     staffId: varchar("staff_id", { length: CUID_LENGTH })
       .notNull()
       .references(() => staffs.id, { onDelete: "cascade" }),
+    role: staffRole("role").notNull(),
   },
   (t) => [primaryKey({ columns: [t.storeId, t.staffId] })]
 );
