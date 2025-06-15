@@ -22,7 +22,7 @@ app.post("/face-auth", vectorRoute.authenticateFace, async (c) => {
     return c.json({
       message: "Bad Request",
       code: StatusCode.BadRequest,
-      detail: "No image provided"
+      detail: "No image provided",
     });
   }
 
@@ -31,13 +31,11 @@ app.post("/face-auth", vectorRoute.authenticateFace, async (c) => {
   const customerId = await authenticateFace(embedding);
 
   if (!customerId) {
-    return c.json(
-      {
-        message: "Unauthorized",
-        code: StatusCode.Unauthorized,
-        detail: "Authorization failure"
-      },
-    );
+    return c.json({
+      message: "Unauthorized",
+      code: StatusCode.Unauthorized,
+      detail: "Authorization failure",
+    });
   }
 
   const customer = await findCustomerById(customerId);
@@ -56,7 +54,7 @@ app.post("/face", vectorRoute.registerFace, async (c) => {
     return c.json({
       message: "Bad Request",
       code: StatusCode.BadRequest,
-      detail: "No image provided"
+      detail: "No image provided",
     });
   }
 
