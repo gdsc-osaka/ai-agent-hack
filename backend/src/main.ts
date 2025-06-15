@@ -7,12 +7,24 @@ import auth from "./routes/auth";
 import stores from "./routes/stores";
 import authorize from "./routes/middleware/authorize";
 import staffs from "./routes/staffs";
+import { cors } from "hono/cors";
 
 const app = new Hono();
 
 // Production 環境では Firebase Hosting で /api/** のパスをリダクレクトするため、
 // ここでは /api/** のパスを受け取る
 
+app.use(
+  "/*",
+  cors({
+    origin: [env.TRUSTED_ORIGIN_WEB],
+    credentials: true,
+    allowMethods: ["GET", "POST", "OPTIONS"],
+    allowHeaders: ["Content-Type", "Authorization"],
+    exposeHeaders: ["Content-Length"],
+    maxAge: 600,
+  })
+);
 app.use(logger);
 app.get("/api/openapi", openApiSpec(app));
 app.get("/api/ping", (c) => c.text("pong"));
