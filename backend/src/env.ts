@@ -12,6 +12,7 @@ const env = {
   AUTH_DATABASE_URL: process.env.AUTH_DATABASE_URL!,
   AUTH_COOKIE_DOMAIN: process.env.AUTH_COOKIE_DOMAIN, // optional
   TRUSTED_ORIGIN_WEB: process.env.TRUSTED_ORIGIN_WEB!,
+  ML_SERVER_URL: process.env.ML_SERVER_URL!,
 } as const;
 
 export default env;

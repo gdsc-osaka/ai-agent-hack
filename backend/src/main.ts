@@ -5,6 +5,7 @@ import env from "./env";
 import { logger } from "./routes/middleware/logger";
 import auth from "./routes/auth";
 import authorize from "./routes/middleware/authorize";
+import vector from "./routes/vector";
 
 const app = new Hono();
 
@@ -17,6 +18,9 @@ app.get("/api/ping", (c) => c.text("pong"));
 
 // Auth
 app.route("/api/v1/auth", auth);
+
+// Vector API
+app.route("/v1/vector", vector);
 
 app.use("/api/*", authorize);
 
