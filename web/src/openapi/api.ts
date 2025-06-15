@@ -23,4 +23,234 @@ import type { RequestArgs } from './base';
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError, operationServerMap } from './base';
 
+/**
+ * 
+ * @export
+ * @interface AuthenticateFace200Response
+ */
+export interface AuthenticateFace200Response {
+    /**
+     * The ID of the authenticated user
+     * @type {string}
+     * @memberof AuthenticateFace200Response
+     */
+    'userId': string;
+}
+/**
+ * 
+ * @export
+ * @interface AuthenticateFace400Response
+ */
+export interface AuthenticateFace400Response {
+    /**
+     * Error message describing the issue
+     * @type {string}
+     * @memberof AuthenticateFace400Response
+     */
+    'error': string;
+}
+/**
+ * 
+ * @export
+ * @interface RegisterFace201Response
+ */
+export interface RegisterFace201Response {
+    /**
+     * The ID of registered user.
+     * @type {string}
+     * @memberof RegisterFace201Response
+     */
+    'userId': string;
+}
+
+/**
+ * VectorApi - axios parameter creator
+ * @export
+ */
+export const VectorApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Authenticate a user using face recognition
+         * @param {File} image Image for face authentication
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authenticateFace: async (image: File, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'image' is not null or undefined
+            assertParamExists('authenticateFace', 'image', image)
+            const localVarPath = `/v1/vector/face-auth`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+            const localVarFormParams = new ((configuration && configuration.formDataCtor) || FormData)();
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+            if (image !== undefined) { 
+                localVarFormParams.append('image', image as any);
+            }
+    
+    
+            localVarHeaderParameter['Content-Type'] = 'multipart/form-data';
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = localVarFormParams;
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Register a user\'s face for authentication
+         * @param {File} image Image for face registration
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        registerFace: async (image: File, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'image' is not null or undefined
+            assertParamExists('registerFace', 'image', image)
+            const localVarPath = `/v1/vector/face`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+            const localVarFormParams = new ((configuration && configuration.formDataCtor) || FormData)();
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+            if (image !== undefined) { 
+                localVarFormParams.append('image', image as any);
+            }
+    
+    
+            localVarHeaderParameter['Content-Type'] = 'multipart/form-data';
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = localVarFormParams;
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * VectorApi - functional programming interface
+ * @export
+ */
+export const VectorApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = VectorApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Authenticate a user using face recognition
+         * @param {File} image Image for face authentication
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async authenticateFace(image: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthenticateFace200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.authenticateFace(image, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VectorApi.authenticateFace']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Register a user\'s face for authentication
+         * @param {File} image Image for face registration
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async registerFace(image: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RegisterFace201Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.registerFace(image, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VectorApi.registerFace']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * VectorApi - factory interface
+ * @export
+ */
+export const VectorApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = VectorApiFp(configuration)
+    return {
+        /**
+         * Authenticate a user using face recognition
+         * @param {File} image Image for face authentication
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authenticateFace(image: File, options?: RawAxiosRequestConfig): AxiosPromise<AuthenticateFace200Response> {
+            return localVarFp.authenticateFace(image, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Register a user\'s face for authentication
+         * @param {File} image Image for face registration
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        registerFace(image: File, options?: RawAxiosRequestConfig): AxiosPromise<RegisterFace201Response> {
+            return localVarFp.registerFace(image, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * VectorApi - object-oriented interface
+ * @export
+ * @class VectorApi
+ * @extends {BaseAPI}
+ */
+export class VectorApi extends BaseAPI {
+    /**
+     * Authenticate a user using face recognition
+     * @param {File} image Image for face authentication
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof VectorApi
+     */
+    public authenticateFace(image: File, options?: RawAxiosRequestConfig) {
+        return VectorApiFp(this.configuration).authenticateFace(image, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Register a user\'s face for authentication
+     * @param {File} image Image for face registration
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof VectorApi
+     */
+    public registerFace(image: File, options?: RawAxiosRequestConfig) {
+        return VectorApiFp(this.configuration).registerFace(image, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
 

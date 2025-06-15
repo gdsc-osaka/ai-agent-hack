@@ -4,5 +4,9 @@ api.ts
 base.ts
 common.ts
 configuration.ts
+docs/AuthenticateFace200Response.md
+docs/AuthenticateFace400Response.md
+docs/RegisterFace201Response.md
+docs/VectorApi.md
 git_push.sh
 index.ts
