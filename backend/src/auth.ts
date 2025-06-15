@@ -10,7 +10,7 @@ import { insertDBStaff } from "./infra/staff-repo";
 import { match } from "ts-pattern";
 import { DBInternalError } from "./infra/shared/db-error";
 import { DBStaffAlreadyExistsError } from "./infra/staff-repo.error";
-import { CreateNewStaffError, InvalidStaffError } from './domain/staff';
+import { CreateNewStaffError, InvalidStaffError } from "./domain/staff";
 
 export const auth = betterAuth({
   advanced: {
@@ -77,10 +77,12 @@ export const auth = betterAuth({
                     message: `Database schema is inconsistent with domain model. Please report to the developers. ${e.message}`,
                   })
               )
-              .with(CreateNewStaffError.is, (e) =>
-                new APIError("BAD_REQUEST", {
-                  message: `User type is not valid. Please report to the developers. ${e.message}`,
-                })
+              .with(
+                CreateNewStaffError.is,
+                (e) =>
+                  new APIError("BAD_REQUEST", {
+                    message: `User type is not valid. Please report to the developers. ${e.message}`,
+                  })
               )
               .exhaustive();
           }

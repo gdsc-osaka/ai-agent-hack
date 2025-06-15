@@ -9,6 +9,22 @@ const createStore = describeRoute({
   validateResponse: true,
   operationId: "createStore",
   description: "Create a new store",
+  requestBody: {
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+          properties: {
+            id: {
+              type: "string",
+              description: "Unique identifier for the store",
+            },
+          },
+          required: ["id"],
+        },
+      },
+    },
+  },
   responses: {
     200: {
       description: "Successful response",

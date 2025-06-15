@@ -1,11 +1,11 @@
 import { staffs } from "../db/schema/stores";
 import { FieldErrors, ForUpdate } from "./shared/types";
 import z from "zod";
-import { Timestamp, toTimestamp } from './timestamp';
+import { Timestamp, toTimestamp } from "./timestamp";
 import { Uid } from "./auth";
 import { errorBuilder, InferError } from "../shared/error";
 import { err, ok, Result } from "neverthrow";
-import { User } from 'better-auth';
+import { User } from "better-auth";
 
 export type DBStaff = typeof staffs.$inferSelect;
 export type DBStaffForCreate = typeof staffs.$inferInsert;
@@ -79,9 +79,12 @@ export const createNewStaff: CreateNewStaff = (
 ): Result<DBStaffForCreate, CreateNewStaffError> => {
   if (typeof user.id !== "string" || user.id.length === 0) {
     return err(
-      CreateNewStaffError(`User id must be string type and not empty, but got ${user.id}`, {
-        extra: { user },
-      })
+      CreateNewStaffError(
+        `User id must be string type and not empty, but got ${user.id}`,
+        {
+          extra: { user },
+        }
+      )
     );
   }
 

@@ -1,7 +1,7 @@
 import { FieldErrors, ForUpdate } from "./shared/types";
 import { stores } from "../db/schema/stores";
 import z from "zod";
-import { Timestamp, toTimestamp } from './timestamp';
+import { Timestamp, toTimestamp } from "./timestamp";
 import { errorBuilder, InferError } from "../shared/error";
 import { err, ok, Result } from "neverthrow";
 
@@ -35,7 +35,7 @@ export const validateStore: ValidateStore = (
   store: DBStore
 ): Result<Store, InvalidStoreError> => {
   const res = Store.safeParse({
-    id: store.id as StoreId,
+    id: store.publicId as StoreId,
     createdAt: toTimestamp(store.createdAt),
     updatedAt: toTimestamp(store.updatedAt),
   });
