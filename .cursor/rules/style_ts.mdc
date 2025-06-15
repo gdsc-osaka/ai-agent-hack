@@ -1,0 +1,42 @@
+---
+description: 
+globs: backend/**
+alwaysApply: false
+---
+# Coding Rules
+* Follow functional programming style coding.
+* Never use `class`, `try-catch`, `for`, `while`, `let`, and `var`.
+* Avoid using `switch` or nested if. Instead, use ts-pattern.
+& Avoid using `if` if possible, and use ternary operator instead.
+* Avoid using `return` if possible
+* Use neverthrow for throwing error, such as `Result<T, E>`, `ok(value)`, `err(error)` and so on.
+* Use an utility function `errorBuilder()` in `backend/src/shared/error.ts` for defining error object.
+* Use appLogger in `backend/src/logger.ts` for logging.
+
+# Directory Structure
+```
+/
+├─ src
+│  ├─ controller // Receive ResultAsync from service, and handle errors using ts-pattern
+│  ├─ db         // Database settings and schema
+│  ├─ domain     // Domain layer (and Domain service layer)
+│  ├─ infra      // Infrastructure layer (e.g., database, external services). you should output log here
+│  ├─ routes     // API routes (Hono.js)
+│  │  ├─ users.route.ts // OpenAPI spec definition for /v1/users
+│  │  └─ users.ts       // Hono.js handler for /v1/users
+│  ├─ service    // Application services layer
+│  ├─ shared     // Shared utilities and constants
+│  └─ main.ts    // entrypoint
+└─ test
+   └─ unit       // Unit tests
+```
+
+# REST API Rules
+* Every route should start with /v1
+* Follow RESTful. For instance,
+  * GET /v1/users
+  * POST /v1/users
+  * GET /v1/stores/:storeId/staffs
+  * POST /v1/invites/:inviteId/accept
+* You can get session user by getAuthUser(c) (c is Context in Hono.js). Use in src/routes/foo.ts
+

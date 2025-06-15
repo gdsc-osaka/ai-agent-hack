@@ -1,22 +1,8 @@
 import { Hono } from "hono";
-import { cors } from "hono/cors";
-import env from "../env";
 import { auth } from "../auth";
 import { createMiddleware } from "hono/factory";
 
 const app = new Hono();
-
-app.use(
-  "/*",
-  cors({
-    origin: [env.TRUSTED_ORIGIN_WEB],
-    credentials: true,
-    allowMethods: ["GET", "POST", "OPTIONS"],
-    allowHeaders: ["Content-Type", "Authorization"],
-    exposeHeaders: ["Content-Length"],
-    maxAge: 600,
-  })
-);
 
 const authHandler = createMiddleware(async (c) => {
   return auth.handler(c.req.raw);

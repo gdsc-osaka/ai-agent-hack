@@ -53,5 +53,17 @@ export const openApiSpec = <
           },
         },
       },
+      POST: {
+        responses: {
+          400: {
+            description: "Bad Request",
+            content: {
+              "application/json": {
+                schema: resolver(ApiError),
+              },
+            },
+          },
+        },
+      },
     },
   });

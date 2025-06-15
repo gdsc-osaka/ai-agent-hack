@@ -22,13 +22,13 @@ function getAuthDBUrl(): string {
 
 export const authDB = drizzle(postgres(getAuthDBUrl()), { schema: authSchema });
 
-type TransactionClient = PgTransaction<
+export type Transaction = PgTransaction<
   PostgresJsQueryResultHKT,
   typeof schema,
   ExtractTablesWithRelations<typeof schema>
 >;
 
 export type DB = typeof db;
-export type DBorTx = DB | TransactionClient;
+export type DBorTx = DB | Transaction;
 
 export default db;

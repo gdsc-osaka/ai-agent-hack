@@ -156,4 +156,4 @@ const logger = (category: string) =>
 
 export const infraLogger = logger("INFRA");
 export const accessLogger = logger("ACCESS");
-export const serviceLogger = logger("SERVICE");
+export const appLogger = logger("SERVICE");

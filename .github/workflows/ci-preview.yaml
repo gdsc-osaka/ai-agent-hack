@@ -52,11 +52,11 @@ jobs:
         working-directory: web
         id: firebase
         run: |
-          channel_url=$(firebase hosting:channel:list --json | jq -r '.result.channels[] | select(.name | startswith("projects/recall-you/sites/recall-you/channels/pr39")) | .url' | head -n 1)
+          channel_url=$(firebase hosting:channel:list --json | jq -r '.result.channels[] | select(.name | startswith("projects/recall-you/sites/recall-you/channels/pr${{ github.event.number }}")) | .url' | head -n 1)
           
           if [ -z "$channel_url" ]; then
             echo "No existing channel found. Creating a new channel."
-            result=firebase hosting:channel:create pr39-harineko0-employee-c --expires 1d --json
+            result=$(firebase hosting:channel:create pr39-harineko0-employee-c --expires 1d --json)
             channel_url=$(echo "$result" | jq -r '.result.url')
           else
             echo "Existing channel found: $channel_url"
