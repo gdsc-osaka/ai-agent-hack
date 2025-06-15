@@ -5,7 +5,9 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**userId** | **string** | The ID of registered user. | [default to undefined]
+**customerId** | **string** | The ID of registered user. | [default to undefined]
+**createdAt** | **string** | Timestamp of when the user was created | [default to undefined]
+**updatedAt** | **string** | Timestamp of when the user was last updated | [default to undefined]
 
 ## Example
 
@@ -13,7 +15,9 @@ Name | Type | Description | Notes
 import { RegisterFace201Response } from './api';
 
 const instance: RegisterFace201Response = {
-    userId,
+    customerId,
+    createdAt,
+    updatedAt,
 };
 ```
 

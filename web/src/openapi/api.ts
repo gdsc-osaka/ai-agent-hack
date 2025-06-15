@@ -34,7 +34,19 @@ export interface AuthenticateFace200Response {
      * @type {string}
      * @memberof AuthenticateFace200Response
      */
-    'userId': string;
+    'customerId': string;
+    /**
+     * Timestamp of when the user was created
+     * @type {string}
+     * @memberof AuthenticateFace200Response
+     */
+    'createdAt': string;
+    /**
+     * Timestamp of when the user was last updated
+     * @type {string}
+     * @memberof AuthenticateFace200Response
+     */
+    'updatedAt': string;
 }
 /**
  * 
@@ -60,7 +72,19 @@ export interface RegisterFace201Response {
      * @type {string}
      * @memberof RegisterFace201Response
      */
-    'userId': string;
+    'customerId': string;
+    /**
+     * Timestamp of when the user was created
+     * @type {string}
+     * @memberof RegisterFace201Response
+     */
+    'createdAt': string;
+    /**
+     * Timestamp of when the user was last updated
+     * @type {string}
+     * @memberof RegisterFace201Response
+     */
+    'updatedAt': string;
 }
 
 /**
