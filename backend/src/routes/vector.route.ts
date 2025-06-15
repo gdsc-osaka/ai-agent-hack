@@ -11,17 +11,17 @@ const authenticateFace = describeRoute({
   description: "Authenticate a user using face recognition",
   requestBody: {
     content: {
-        "multipart/form-data": {
+      "multipart/form-data": {
         schema: {
-            type: "object",
-            properties: {
+          type: "object",
+          properties: {
             image: {
-                type: "string",
-                format: "binary",
-                description: "Image for face authentication",
+              type: "string",
+              format: "binary",
+              description: "Image for face authentication",
             },
-            },
-            required: ["image"],
+          },
+          required: ["image"],
         },
       },
     },
@@ -33,27 +33,31 @@ const authenticateFace = describeRoute({
         "application/json": {
           schema: resolver(
             z.object({
-              userId: z.string().openapi({ description: "The ID of the authenticated user" }),
+              userId: z
+                .string()
+                .openapi({ description: "The ID of the authenticated user" }),
             })
           ),
         },
       },
     },
     403: {
-        description: "Forbidden - User not authenticated",
+      description: "Forbidden - User not authenticated",
     },
     400: {
-        description: "Bad Request - Invalid input or missing image",
-        content: {
-            "application/json": {
-                schema: resolver(
-                z.object({
-                    error: z.string().openapi({ description: "Error message describing the issue" }),
-                })
-                ),
-            },
-        }
-    }
+      description: "Bad Request - Invalid input or missing image",
+      content: {
+        "application/json": {
+          schema: resolver(
+            z.object({
+              error: z
+                .string()
+                .openapi({ description: "Error message describing the issue" }),
+            })
+          ),
+        },
+      },
+    },
   },
 });
 
@@ -64,17 +68,17 @@ const registerFace = describeRoute({
   description: "Register a user's face for authentication",
   requestBody: {
     content: {
-        "multipart/form-data": {
+      "multipart/form-data": {
         schema: {
-            type: "object",
-            properties: {
+          type: "object",
+          properties: {
             image: {
-                type: "string",
-                format: "binary",
-                description: "Image for face registration",
+              type: "string",
+              format: "binary",
+              description: "Image for face registration",
             },
-            },
-            required: ["image"],
+          },
+          required: ["image"],
         },
       },
     },
@@ -86,28 +90,32 @@ const registerFace = describeRoute({
         "application/json": {
           schema: resolver(
             z.object({
-              userId: z.string().openapi({ description: "The ID of registered user." }),
+              userId: z
+                .string()
+                .openapi({ description: "The ID of registered user." }),
             })
           ),
         },
       },
     },
     400: {
-        description: "Bad Request - Invalid input or missing image",
-        content: {
-            "application/json": {
-                schema: resolver(
-                z.object({
-                    error: z.string().openapi({ description: "Error message describing the issue" }),
-                })
-                ),
-            },
-        }
-    }
+      description: "Bad Request - Invalid input or missing image",
+      content: {
+        "application/json": {
+          schema: resolver(
+            z.object({
+              error: z
+                .string()
+                .openapi({ description: "Error message describing the issue" }),
+            })
+          ),
+        },
+      },
+    },
   },
 });
 
-export default { 
-    authenticateFace,
-    registerFace,
-}
+export default {
+  authenticateFace,
+  registerFace,
+};
