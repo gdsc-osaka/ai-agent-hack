@@ -26,6 +26,48 @@ import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError, operationServerM
 /**
  * 
  * @export
+ * @interface ApiError
+ */
+export interface ApiError {
+    /**
+     * 
+     * @type {string}
+     * @memberof ApiError
+     */
+    'message': string;
+    /**
+     * 
+     * @type {ApiErrorCode}
+     * @memberof ApiError
+     */
+    'code': ApiErrorCode;
+    /**
+     * 
+     * @type {Array<any>}
+     * @memberof ApiError
+     */
+    'details': Array<any>;
+}
+
+
+/**
+ * 
+ * @export
+ * @enum {string}
+ */
+
+export const ApiErrorCode = {
+    DatabaseUnknownError: 'DATABASE_UNKNOWN_ERROR',
+    DatabaseNotFound: 'DATABASE_NOT_FOUND',
+    DatabaseInconsistentType: 'DATABASE_INCONSISTENT_TYPE'
+} as const;
+
+export type ApiErrorCode = typeof ApiErrorCode[keyof typeof ApiErrorCode];
+
+
+/**
+ * 
+ * @export
  * @interface AuthenticateFace200Response
  */
 export interface AuthenticateFace200Response {
@@ -47,19 +89,6 @@ export interface AuthenticateFace200Response {
      * @memberof AuthenticateFace200Response
      */
     'updatedAt': string;
-}
-/**
- * 
- * @export
- * @interface AuthenticateFace400Response
- */
-export interface AuthenticateFace400Response {
-    /**
-     * Error message describing the issue
-     * @type {string}
-     * @memberof AuthenticateFace400Response
-     */
-    'error': string;
 }
 /**
  * 

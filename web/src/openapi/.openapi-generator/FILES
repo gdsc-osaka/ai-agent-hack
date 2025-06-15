@@ -4,8 +4,9 @@ api.ts
 base.ts
 common.ts
 configuration.ts
+docs/ApiError.md
+docs/ApiErrorCode.md
 docs/AuthenticateFace200Response.md
-docs/AuthenticateFace400Response.md
 docs/RegisterFace201Response.md
 docs/VectorApi.md
 git_push.sh
