@@ -1,6 +1,6 @@
 import { DBorTx } from "../db/db";
 import { errAsync, okAsync, ResultAsync } from "neverthrow";
-import { DBStaff } from "../domain/staff";
+import { DBStaff, DBStaffForCreate } from "../domain/staff";
 import { DBInternalError } from "./shared/db-error";
 import {
   DBStaffAlreadyExistsError,
@@ -29,7 +29,7 @@ export const fetchDBStaffByUserId: FetchDBStaffByUserId = (db) => (userId) =>
 export type InsertDBStaff = (
   db: DBorTx
 ) => (
-  staff: DBStaff
+  staff: DBStaffForCreate
 ) => ResultAsync<DBStaff, DBInternalError | DBStaffAlreadyExistsError>;
 
 export const insertDBStaff: InsertDBStaff = (db) => (staff) =>
