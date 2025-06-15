@@ -1,14 +1,13 @@
 import { Hono } from "hono";
 import { FieldValue } from "firebase-admin/firestore";
-import { v4 as uuidv4 } from "uuid";
+import { createId } from "@paralleldrive/cuid2";
 import vectorRoute from "./vector.route";
 import createFirebaseApp from "../firebase"
 import env from "../env";
-import { register } from "module";
 
 const app = new Hono();
 
-type ResponseType = {
+type EmbeddingResponse = {
     embedding: number[][];
 };
 
@@ -19,17 +18,9 @@ app.post("/face-auth", vectorRoute.authenticateFace, async (c) => {
     return c.json({ error: "No image provided" }, 400);
   }
 
-  const forwardForm = new FormData();
-  forwardForm.append("file", image, image.name);
+  const embedding = await getFeceEmbedding(image);
 
-  const response = await fetch("http://localhost:8000/face-embedding", {
-    method: "POST",
-    body: forwardForm,
-  });
-
-  const result: ResponseType = await response.json();
-
-  const userId = await authenticateFace(result.embedding[0])
+  const userId = await authenticateFace(embedding)
 
   if (!userId) {
     return c.json({
@@ -43,14 +34,32 @@ app.post("/face-auth", vectorRoute.authenticateFace, async (c) => {
   });
 });
 
-const registerEmbedding = async (embedding: number[]): Promise<void> => {
+app.post("/face", vectorRoute.registerFace, async (c) => {
+    const formData = await c.req.formData();
+    const image = formData.get("image") as File | null;
+    if (!image) {
+        return c.json({ error: "No image provided" }, 400);
+    }
+
+    const embedding = await getFeceEmbedding(image);
+
+    const userId = await registerEmbedding(embedding);
+
+    //TODO: RDBにもuserIdを登録する
+    return c.json({ userId: userId }, 201);
+})
+
+const registerEmbedding = async (embedding: number[]): Promise<string> => {
     const app = createFirebaseApp(env.FIRE_SA);
     const firestore = app.firestore();
     
-    await firestore.collection("embeddings").doc(uuidv4()).set({
+    const userId = createId();
+    await firestore.collection("embeddings").doc(userId).set({
         value: FieldValue.vector(embedding),
-        timestamp: new Date().toISOString(),
+        created_at: new Date().toISOString(),
     });
+
+    return userId;
 }
 
 const authenticateFace = async (embedding: number[]): Promise<string | null> => {
@@ -70,6 +79,20 @@ const authenticateFace = async (embedding: number[]): Promise<string | null> => 
         return null;
     }
     return snapshot.docs[0].id;
+}
+
+const getFeceEmbedding = async (image: File): Promise<number[]> => {
+    const forwardForm = new FormData();
+    forwardForm.append("file", image, image.name);
+    const response = await fetch(`${env.ML_SERVER_URL}/face-embedding`, {
+        method: "POST",
+        body: forwardForm,
+    });
+    if (!response.ok) {
+        throw new Error("Failed to get face embedding");
+    }
+    const result: EmbeddingResponse = await response.json();
+    return result.embedding[0];
 }
 
 export default app;
