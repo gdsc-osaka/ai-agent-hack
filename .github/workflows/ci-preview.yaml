@@ -56,7 +56,7 @@ jobs:
           
           if [ -z "$channel_url" ]; then
             echo "No existing channel found. Creating a new channel."
-            result=firebase hosting:channel:create pr39-harineko0-employee-c --expires 1d --json
+            result=$(firebase hosting:channel:create pr39-harineko0-employee-c --expires 1d --json)
             channel_url=$(echo "$result" | jq -r '.result.url')
           else
             echo "Existing channel found: $channel_url"
