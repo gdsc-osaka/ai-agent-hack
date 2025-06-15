@@ -1,11 +1,11 @@
-import { staffs } from '../db/schema/stores';
-import { FieldErrors, ForUpdate } from './shared/types';
-import z from 'zod';
-import { Timestamp } from './timestamp';
-import { Uid } from './auth';
-import { errorBuilder, InferError } from '../shared/error';
-import { User } from './user';
-import { err, ok, Result } from 'neverthrow';
+import { staffs } from "../db/schema/stores";
+import { FieldErrors, ForUpdate } from "./shared/types";
+import z from "zod";
+import { Timestamp } from "./timestamp";
+import { Uid } from "./auth";
+import { errorBuilder, InferError } from "../shared/error";
+import { User } from "./user";
+import { err, ok, Result } from "neverthrow";
 
 export type DBStaff = typeof staffs.$inferSelect;
 export type DBStaffForCreate = typeof staffs.$inferInsert;
@@ -31,7 +31,9 @@ export const InvalidStaffError = errorBuilder<
 >("InvalidStaffError");
 export type InvalidStaffError = InferError<typeof InvalidStaffError>;
 
-export const validateStaff = (staff: DBStaff): Result<Staff, InvalidStaffError> => {
+export const validateStaff = (
+  staff: DBStaff
+): Result<Staff, InvalidStaffError> => {
   const res = Staff.safeParse({
     id: staff.id as StaffId,
     userId: staff.userId as Uid,
@@ -47,4 +49,4 @@ export const validateStaff = (staff: DBStaff): Result<Staff, InvalidStaffError> 
       extra: res.error.flatten().fieldErrors,
     })
   );
-}
+};

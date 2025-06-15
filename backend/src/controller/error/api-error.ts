@@ -5,6 +5,7 @@ export const ApiErrorCode = z
   .enum([
     "DATABASE_UNKNOWN_ERROR",
     "DATABASE_NOT_FOUND",
+    "DATABASE_ALREADY_EXISTS",
     "DATABASE_INCONSISTENT_TYPE",
   ])
   .openapi({ ref: "ApiErrorCode" });
@@ -24,6 +25,7 @@ export enum StatusCode {
   Unauthorized = 401,
   Forbidden = 403,
   NotFound = 404,
+  Conflict = 409,
   TooManyRequests = 429,
   InternalServerError = 500,
   NotImplemented = 501,

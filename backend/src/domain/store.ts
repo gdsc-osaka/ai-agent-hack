@@ -1,10 +1,10 @@
-import { FieldErrors, ForUpdate } from './shared/types';
-import { stores } from '../db/schema/stores';
-import z from 'zod';
-import { Timestamp } from './timestamp';
-import { errorBuilder, InferError } from '../shared/error';
-import { User } from './user';
-import { err, ok, Result } from 'neverthrow';
+import { FieldErrors, ForUpdate } from "./shared/types";
+import { stores } from "../db/schema/stores";
+import z from "zod";
+import { Timestamp } from "./timestamp";
+import { errorBuilder, InferError } from "../shared/error";
+import { User } from "./user";
+import { err, ok, Result } from "neverthrow";
 
 export type DBStore = typeof stores.$inferSelect;
 export type DBStoreForCreate = typeof stores.$inferInsert;
@@ -29,7 +29,12 @@ export const InvalidStoreError = errorBuilder<
 >("InvalidStoreError");
 export type InvalidStoreError = InferError<typeof InvalidStoreError>;
 
-export const validateStore = (store: DBStore): Result<Store, InvalidStoreError> => {
+export type ValidateStore = (
+  store: DBStore
+) => Result<Store, InvalidStoreError>;
+export const validateStore: ValidateStore = (
+  store: DBStore
+): Result<Store, InvalidStoreError> => {
   const res = Store.safeParse({
     id: store.id as StoreId,
     createdAt: Timestamp.parse(store.createdAt),
@@ -44,4 +49,15 @@ export const validateStore = (store: DBStore): Result<Store, InvalidStoreError> 
       extra: res.error.flatten().fieldErrors,
     })
   );
-}
+};
+
+export type CreateNewStore = (
+  publicId: string
+) => Result<DBStoreForCreate, never>;
+export const createNewStore: CreateNewStore = (
+  publicId: string
+): Result<DBStoreForCreate, never> => {
+  return ok({
+    publicId,
+  });
+};
