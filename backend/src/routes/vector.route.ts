@@ -36,16 +36,12 @@ const authenticateFace = describeRoute({
               customerId: z
                 .string()
                 .openapi({ description: "The ID of the authenticated user" }),
-              createdAt: z
-                .string()
-                .openapi({
-                  description: "Timestamp of when the user was created",
-                }),
-              updatedAt: z
-                .string()
-                .openapi({
-                  description: "Timestamp of when the user was last updated",
-                }),
+              createdAt: z.string().openapi({
+                description: "Timestamp of when the user was created",
+              }),
+              updatedAt: z.string().openapi({
+                description: "Timestamp of when the user was last updated",
+              }),
             })
           ),
         },
@@ -103,16 +99,12 @@ const registerFace = describeRoute({
               customerId: z
                 .string()
                 .openapi({ description: "The ID of registered user." }),
-              createdAt: z
-                .string()
-                .openapi({
-                  description: "Timestamp of when the user was created",
-                }),
-              updatedAt: z
-                .string()
-                .openapi({
-                  description: "Timestamp of when the user was last updated",
-                }),
+              createdAt: z.string().openapi({
+                description: "Timestamp of when the user was created",
+              }),
+              updatedAt: z.string().openapi({
+                description: "Timestamp of when the user was last updated",
+              }),
             })
           ),
         },
