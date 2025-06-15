@@ -1,6 +1,7 @@
 import { describeRoute } from "hono-openapi";
 import { resolver } from "hono-openapi/zod";
 import z from "zod";
+import { ApiError } from "../controller/error/api-error";
 
 const tags = ["Vector"];
 
@@ -49,18 +50,17 @@ const authenticateFace = describeRoute({
     },
     403: {
       description: "Forbidden - User not authenticated",
+      content: {
+        "application/json": {
+          schema: resolver(ApiError),
+        },
+      },
     },
     400: {
       description: "Bad Request - Invalid input or missing image",
       content: {
         "application/json": {
-          schema: resolver(
-            z.object({
-              error: z
-                .string()
-                .openapi({ description: "Error message describing the issue" }),
-            })
-          ),
+          schema: resolver(ApiError),
         },
       },
     },
@@ -114,13 +114,7 @@ const registerFace = describeRoute({
       description: "Bad Request - Invalid input or missing image",
       content: {
         "application/json": {
-          schema: resolver(
-            z.object({
-              error: z
-                .string()
-                .openapi({ description: "Error message describing the issue" }),
-            })
-          ),
+          schema: resolver(ApiError),
         },
       },
     },

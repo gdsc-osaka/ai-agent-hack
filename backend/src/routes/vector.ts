@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import vectorRoute from "./vector.route";
 import createFirebaseApp from "../firebase";
 import env from "../env";
+import { StatusCode } from "../controller/error/api-error";
 
 const app = new Hono();
 
@@ -18,7 +19,11 @@ app.post("/face-auth", vectorRoute.authenticateFace, async (c) => {
   const formData = await c.req.formData();
   const image = formData.get("image") as File | null;
   if (!image) {
-    return c.json({ error: "No image provided" }, 400);
+    return c.json({
+      message: "Bad Request",
+      code: StatusCode.BadRequest,
+      detail: "No image provided"
+    });
   }
 
   const embedding = await getFeceEmbedding(image);
@@ -28,9 +33,10 @@ app.post("/face-auth", vectorRoute.authenticateFace, async (c) => {
   if (!customerId) {
     return c.json(
       {
-        error: "Unauthorized Face",
+        message: "Unauthorized",
+        code: StatusCode.Unauthorized,
+        detail: "Authorization failure"
       },
-      403
     );
   }
 
@@ -47,7 +53,11 @@ app.post("/face", vectorRoute.registerFace, async (c) => {
   const formData = await c.req.formData();
   const image = formData.get("image") as File | null;
   if (!image) {
-    return c.json({ error: "No image provided" }, 400);
+    return c.json({
+      message: "Bad Request",
+      code: StatusCode.BadRequest,
+      detail: "No image provided"
+    });
   }
 
   const embedding = await getFeceEmbedding(image);
