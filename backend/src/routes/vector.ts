@@ -102,7 +102,8 @@ const getFeceEmbedding = async (image: File): Promise<number[]> => {
   if (!response.ok) {
     throw new Error("Failed to get face embedding");
   }
-  const result: EmbeddingResponse = await response.json();
+  const result: EmbeddingResponse =
+    (await response.json()) as EmbeddingResponse;
   return result.embedding[0];
 };
 

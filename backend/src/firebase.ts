@@ -8,7 +8,9 @@ export default function (FIRE_SA: string): app.App {
   }
 
   const firebaseApp = admin.initializeApp({
-    credential: admin.credential.cert(JSON.parse(FIRE_SA)),
+    credential: admin.credential.cert(
+      JSON.parse(FIRE_SA) as admin.ServiceAccount
+    ),
   });
 
   if (env.NODE_ENV === "development") {
