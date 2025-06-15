@@ -1,5 +1,5 @@
 import { ResultAsync } from "neverthrow";
-import { createNewStaff, InvalidStaffError, Staff } from "../domain/staff";
+import { createNewStaff, CreateNewStaffError, InvalidStaffError, Staff } from '../domain/staff';
 import { DBStaffAlreadyExistsError } from "../infra/staff-repo.error";
 import { DBInternalError } from "../infra/shared/db-error";
 import { InsertDBStaff } from "../infra/staff-repo";
@@ -11,12 +11,12 @@ export type CreateStaff = (
   user: User
 ) => ResultAsync<
   Staff,
-  DBInternalError | DBStaffAlreadyExistsError | InvalidStaffError
+  DBInternalError | DBStaffAlreadyExistsError | InvalidStaffError | CreateNewStaffError
 >;
 
 export const createStaff =
   (insertDBStaff: InsertDBStaff): CreateStaff =>
   (user: User) =>
-    createNewStaff(user.id)
+    createNewStaff(user)
       .asyncAndThen(insertDBStaff(db))
       .andThen(validateStaff);

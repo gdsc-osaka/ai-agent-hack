@@ -1,10 +1,11 @@
 import { staffs } from "../db/schema/stores";
 import { FieldErrors, ForUpdate } from "./shared/types";
 import z from "zod";
-import { Timestamp } from "./timestamp";
+import { Timestamp, toTimestamp } from './timestamp';
 import { Uid } from "./auth";
 import { errorBuilder, InferError } from "../shared/error";
 import { err, ok, Result } from "neverthrow";
+import { User } from 'better-auth';
 
 export type DBStaff = typeof staffs.$inferSelect;
 export type DBStaffForCreate = typeof staffs.$inferInsert;
@@ -39,8 +40,8 @@ export const validateStaff: ValidateStaff = (
   const res = Staff.safeParse({
     id: staff.id as StaffId,
     userId: staff.userId as Uid,
-    createdAt: Timestamp.parse(staff.createdAt),
-    updatedAt: Timestamp.parse(staff.updatedAt),
+    createdAt: toTimestamp(staff.createdAt),
+    updatedAt: toTimestamp(staff.updatedAt),
   });
 
   if (res.success) return ok(res.data);
@@ -61,14 +62,30 @@ export const validateStaffs: ValidateStaffs = (
 ): Result<Staff[], InvalidStaffError> =>
   Result.combine(staffs.map(validateStaff));
 
+export const CreateNewStaffError = errorBuilder(
+  "CreateNewStaffError",
+  z.object({
+    user: z.custom<User>(),
+  })
+);
+export type CreateNewStaffError = InferError<typeof CreateNewStaffError>;
+
 export type CreateNewStaff = (
-  userId: string
-) => Result<DBStaffForCreate, never>;
+  user: User
+) => Result<DBStaffForCreate, CreateNewStaffError>;
 
 export const createNewStaff: CreateNewStaff = (
-  userId: string
-): Result<DBStaffForCreate, never> => {
+  user: User
+): Result<DBStaffForCreate, CreateNewStaffError> => {
+  if (typeof user.id !== "string" || user.id.length === 0) {
+    return err(
+      CreateNewStaffError(`User id must be string type and not empty, but got ${user.id}`, {
+        extra: { user },
+      })
+    );
+  }
+
   return ok({
-    userId,
+    userId: user.id,
   });
 };

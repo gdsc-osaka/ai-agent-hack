@@ -1,4 +1,5 @@
-import { APIError, betterAuth } from "better-auth";
+import { betterAuth } from "better-auth";
+import { APIError } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { authDB } from "./db/db";
 import { authSchema } from "./db/schema";
@@ -9,7 +10,7 @@ import { insertDBStaff } from "./infra/staff-repo";
 import { match } from "ts-pattern";
 import { DBInternalError } from "./infra/shared/db-error";
 import { DBStaffAlreadyExistsError } from "./infra/staff-repo.error";
-import { InvalidStaffError } from "./domain/staff";
+import { CreateNewStaffError, InvalidStaffError } from './domain/staff';
 
 export const auth = betterAuth({
   advanced: {
@@ -50,7 +51,7 @@ export const auth = betterAuth({
   databaseHooks: {
     user: {
       create: {
-        before: async (user) => {
+        after: async (user) => {
           const res = await createStaff(insertDBStaff)(user);
 
           if (res.isErr()) {
@@ -76,12 +77,13 @@ export const auth = betterAuth({
                     message: `Database schema is inconsistent with domain model. Please report to the developers. ${e.message}`,
                   })
               )
+              .with(CreateNewStaffError.is, (e) =>
+                new APIError("BAD_REQUEST", {
+                  message: `User type is not valid. Please report to the developers. ${e.message}`,
+                })
+              )
               .exhaustive();
           }
-
-          return {
-            data: user,
-          };
         },
       },
     },
