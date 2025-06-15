@@ -3,7 +3,6 @@ import { stores } from "../db/schema/stores";
 import z from "zod";
 import { Timestamp } from "./timestamp";
 import { errorBuilder, InferError } from "../shared/error";
-import { User } from "./user";
 import { err, ok, Result } from "neverthrow";
 
 export type DBStore = typeof stores.$inferSelect;
@@ -25,7 +24,7 @@ export type Store = z.infer<typeof Store>;
 
 export const InvalidStoreError = errorBuilder<
   "InvalidStoreError",
-  FieldErrors<typeof User>
+  FieldErrors<typeof Store>
 >("InvalidStoreError");
 export type InvalidStoreError = InferError<typeof InvalidStoreError>;
 

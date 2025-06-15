@@ -4,7 +4,6 @@ import z from "zod";
 import { Timestamp } from "./timestamp";
 import { Uid } from "./auth";
 import { errorBuilder, InferError } from "../shared/error";
-import { User } from "./user";
 import { err, ok, Result } from "neverthrow";
 
 export type DBStaff = typeof staffs.$inferSelect;
@@ -27,7 +26,7 @@ export type Staff = z.infer<typeof Staff>;
 
 export const InvalidStaffError = errorBuilder<
   "InvalidStaffError",
-  FieldErrors<typeof User>
+  FieldErrors<typeof Staff>
 >("InvalidStaffError");
 export type InvalidStaffError = InferError<typeof InvalidStaffError>;
 
@@ -61,3 +60,15 @@ export const validateStaffs: ValidateStaffs = (
   staffs: DBStaff[]
 ): Result<Staff[], InvalidStaffError> =>
   Result.combine(staffs.map(validateStaff));
+
+export type CreateNewStaff = (
+  userId: string
+) => Result<DBStaffForCreate, never>;
+
+export const createNewStaff: CreateNewStaff = (
+  userId: string
+): Result<DBStaffForCreate, never> => {
+  return ok({
+    userId,
+  });
+};
