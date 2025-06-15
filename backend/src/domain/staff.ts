@@ -31,7 +31,10 @@ export const InvalidStaffError = errorBuilder<
 >("InvalidStaffError");
 export type InvalidStaffError = InferError<typeof InvalidStaffError>;
 
-export const validateStaff = (
+export type ValidateStaff = (
+  staff: DBStaff
+) => Result<Staff, InvalidStaffError>;
+export const validateStaff: ValidateStaff = (
   staff: DBStaff
 ): Result<Staff, InvalidStaffError> => {
   const res = Staff.safeParse({
@@ -50,3 +53,11 @@ export const validateStaff = (
     })
   );
 };
+
+export type ValidateStaffs = (
+  staffs: DBStaff[]
+) => Result<Staff[], InvalidStaffError>;
+export const validateStaffs: ValidateStaffs = (
+  staffs: DBStaff[]
+): Result<Staff[], InvalidStaffError> =>
+  Result.combine(staffs.map(validateStaff));

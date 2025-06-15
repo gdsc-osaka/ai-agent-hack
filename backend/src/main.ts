@@ -6,6 +6,7 @@ import { logger } from "./routes/middleware/logger";
 import auth from "./routes/auth";
 import stores from "./routes/stores";
 import authorize from "./routes/middleware/authorize";
+import staffs from "./routes/staffs";
 
 const app = new Hono();
 
@@ -23,6 +24,7 @@ app.use("/api/*", authorize);
 
 // endpoint
 app.route("/api/v1/stores", stores);
+app.route("/api/v1/staffs", staffs);
 
 serve({
   fetch: app.fetch,

@@ -5,10 +5,11 @@ import {
   InvalidStoreError,
   Store,
   validateStore,
+  validateStores,
 } from "../domain/store";
 import { DBInternalError } from "../infra/shared/db-error";
 import { DBStoreAlreadyExistsError } from "../infra/store-repo.error";
-import { InsertDBStore } from "../infra/store-repo";
+import { InsertDBStore, FetchDBStoresForStaff } from "../infra/store-repo";
 import db from "../db/db";
 import { FetchDBStaffByUserId } from "../infra/staff-repo";
 import { RunTransaction } from "../infra/transaction";
@@ -53,3 +54,22 @@ export const createStore =
             )
         )
       );
+
+export type FetchStoresForStaff = (
+  authUser: AuthUser
+) => ResultAsync<
+  Store[],
+  DBInternalError | DBStaffNotFoundError | InvalidStoreError | InvalidStaffError
+>;
+
+export const fetchStoresForStaff =
+  (
+    fetchDBStaffByUserId: FetchDBStaffByUserId,
+    selectDBStoresForStaff: FetchDBStoresForStaff
+  ): FetchStoresForStaff =>
+  (authUser: AuthUser) =>
+    fetchDBStaffByUserId(db)(authUser.uid)
+      .andThen(validateStaff)
+      .map((staff) => staff.id)
+      .andThen(selectDBStoresForStaff(db))
+      .andThen(validateStores);

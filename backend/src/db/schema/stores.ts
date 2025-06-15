@@ -9,6 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { CUID_LENGTH } from "../constants";
 import { createId } from "@paralleldrive/cuid2";
+import { relations } from "drizzle-orm";
 
 export const stores = pgTable(
   "stores",
@@ -57,3 +58,22 @@ export const storesToStaffs = pgTable(
   },
   (t) => [primaryKey({ columns: [t.storeId, t.staffId] })]
 );
+
+export const storesRelations = relations(stores, ({ many }) => ({
+  storesToStaffs: many(storesToStaffs),
+}));
+
+export const staffsRelations = relations(staffs, ({ many }) => ({
+  storesToStaffs: many(storesToStaffs),
+}));
+
+export const storesToStaffsRelations = relations(storesToStaffs, ({ one }) => ({
+  store: one(stores, {
+    fields: [storesToStaffs.storeId],
+    references: [stores.id],
+  }),
+  staff: one(staffs, {
+    fields: [storesToStaffs.staffId],
+    references: [staffs.id],
+  }),
+}));

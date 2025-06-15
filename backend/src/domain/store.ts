@@ -51,6 +51,15 @@ export const validateStore: ValidateStore = (
   );
 };
 
+export type ValidateStores = (
+  stores: DBStore[]
+) => Result<Store[], InvalidStoreError>;
+
+export const validateStores: ValidateStores = (
+  stores: DBStore[]
+): Result<Store[], InvalidStoreError> =>
+  Result.combine(stores.map(validateStore));
+
 export type CreateNewStore = (
   publicId: string
 ) => Result<DBStoreForCreate, never>;
