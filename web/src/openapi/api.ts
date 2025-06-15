@@ -150,6 +150,39 @@ export const StoresApiAxiosParamCreator = function (configuration?: Configuratio
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * Fetch stores for staff
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        fetchStoresForStaff: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/v1/staffs/me/stores`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -171,6 +204,17 @@ export const StoresApiFp = function(configuration?: Configuration) {
             const localVarOperationServerBasePath = operationServerMap['StoresApi.createStore']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
+        /**
+         * Fetch stores for staff
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async fetchStoresForStaff(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Store>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.fetchStoresForStaff(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['StoresApi.fetchStoresForStaff']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
     }
 };
 
@@ -188,6 +232,14 @@ export const StoresApiFactory = function (configuration?: Configuration, basePat
          */
         createStore(options?: RawAxiosRequestConfig): AxiosPromise<Store> {
             return localVarFp.createStore(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Fetch stores for staff
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        fetchStoresForStaff(options?: RawAxiosRequestConfig): AxiosPromise<Array<Store>> {
+            return localVarFp.fetchStoresForStaff(options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -207,6 +259,16 @@ export class StoresApi extends BaseAPI {
      */
     public createStore(options?: RawAxiosRequestConfig) {
         return StoresApiFp(this.configuration).createStore(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Fetch stores for staff
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof StoresApi
+     */
+    public fetchStoresForStaff(options?: RawAxiosRequestConfig) {
+        return StoresApiFp(this.configuration).fetchStoresForStaff(options).then((request) => request(this.axios, this.basePath));
     }
 }
 
