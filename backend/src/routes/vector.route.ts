@@ -33,7 +33,7 @@ const authenticateFace = describeRoute({
         "application/json": {
           schema: resolver(
             z.object({
-                embedding: z.array(z.number()).openapi({ description: "Face embedding vector" }),
+              userId: z.string().openapi({ description: "The ID of the authenticated user" }),
             })
           ),
         },
