@@ -1,3 +1,5 @@
+name: recall-you-backend
+
 services:
   postgres:
     image: postgres:16.0
@@ -7,6 +9,7 @@ services:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
       POSTGRES_DB: db
+    container_name: postgres
     restart: always
     command: postgres -c log_destination=stderr -c log_statement=all -c log_connections=on -c log_disconnections=on
     networks:
@@ -17,11 +20,15 @@ services:
     image: postgres:16.0
     networks:
       - db-network
+    profiles:
+      - tools
     command: psql -hpostgres -Uuser db
   cliauth:
     image: postgres:16.0
     networks:
       - db-network
+    profiles:
+      - tools
     command: psql -hpostgres -Uuser auth_db
 
 networks:
