@@ -16,7 +16,7 @@ export default function (FIRE_SA: string): app.App {
   if (env.NODE_ENV === "development") {
     const firestore = admin.firestore(firebaseApp);
     firestore.settings({
-      host: "localhost:8000",
+      host: process.env.FIRESTORE_EMULATOR_HOST,
       ssl: false,
     });
   } else {
