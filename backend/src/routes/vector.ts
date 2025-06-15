@@ -1,6 +1,9 @@
 import { Hono } from "hono";
 import { FieldValue } from "firebase-admin/firestore";
 import { createId } from "@paralleldrive/cuid2";
+import conn from "../db/db";
+import { customers } from "../db/schema/customers";
+import { eq } from "drizzle-orm";
 import vectorRoute from "./vector.route";
 import createFirebaseApp from "../firebase";
 import env from "../env";
@@ -20,9 +23,9 @@ app.post("/face-auth", vectorRoute.authenticateFace, async (c) => {
 
   const embedding = await getFeceEmbedding(image);
 
-  const userId = await authenticateFace(embedding);
+  const customerId = await authenticateFace(embedding);
 
-  if (!userId) {
+  if (!customerId) {
     return c.json(
       {
         error: "Unauthorized Face",
@@ -31,9 +34,12 @@ app.post("/face-auth", vectorRoute.authenticateFace, async (c) => {
     );
   }
 
-  // TODO: RDBにクエリして客の情報を取得する
+  const customer = await findCustomerById(customerId);
+
   return c.json({
-    userId: userId,
+    customerId: customer.id,
+    createdAt: customer.createdAt,
+    updatedAt: customer.updatedAt,
   });
 });
 
@@ -46,26 +52,34 @@ app.post("/face", vectorRoute.registerFace, async (c) => {
 
   const embedding = await getFeceEmbedding(image);
 
-  const userId = await registerEmbedding(embedding);
+  const customerId = await registerEmbedding(embedding);
 
-  //TODO: RDBにもuserIdを登録する
-  return c.json({ userId: userId }, 201);
+  const customer = await createCustomer(customerId);
+
+  return c.json(
+    {
+      customerId: customer.id,
+      createdAt: customer.createdAt,
+      updatedAt: customer.updatedAt,
+    },
+    201
+  );
 });
 
 const registerEmbedding = async (embedding: number[]): Promise<string> => {
   const app = createFirebaseApp(env.FIRE_SA);
   const firestore = app.firestore();
 
-  const userId = createId();
+  const customerId = createId();
   await firestore
     .collection("embeddings")
-    .doc(userId)
+    .doc(customerId)
     .set({
       value: FieldValue.vector(embedding),
       created_at: new Date().toISOString(),
     });
 
-  return userId;
+  return customerId;
 };
 
 const authenticateFace = async (
@@ -105,6 +119,19 @@ const getFeceEmbedding = async (image: File): Promise<number[]> => {
   const result: EmbeddingResponse =
     (await response.json()) as EmbeddingResponse;
   return result.embedding[0];
+};
+
+export const findCustomerById = async (id: string) => {
+  const result = await conn
+    .select()
+    .from(customers)
+    .where(eq(customers.id, id));
+  return result[0] ?? null;
+};
+
+export const createCustomer = async (id: string) => {
+  const [customer] = await conn.insert(customers).values({ id }).returning();
+  return customer;
 };
 
 export default app;
