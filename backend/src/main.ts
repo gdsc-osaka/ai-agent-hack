@@ -6,6 +6,7 @@ import { logger } from "./routes/middleware/logger";
 import auth from "./routes/auth";
 import authorize from "./routes/middleware/authorize";
 import vector from "./routes/vector";
+import initializeFirebase from "./firebase";
 
 const app = new Hono();
 
@@ -26,6 +27,8 @@ app.use("/api/*", authorize);
 
 // endpoint
 // app.route("/api/v1/users", users);
+
+initializeFirebase(env.FIRE_SA);
 
 serve({
   fetch: app.fetch,
