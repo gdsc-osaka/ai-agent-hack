@@ -8,12 +8,12 @@ curl -o tmp.openapi.json "http://localhost:8080/api/openapi"
 openapi-typescript --version || npm install -g openapi-typescript
 
 # Generate TypeScript Client
-openapi-typescript tmp.openapi.json --output web/src/tmp-openapi.ts
+openapi-typescript tmp.openapi.json --output web/src/openapi/tmp-types.ts
 
 # Clean up temporary files
 rm tmp.openapi.json
-rm web/src/openapi.ts
-mv web/src/tmp-openapi.ts web/src/openapi.ts
+rm web/src/openapi/types.ts
+mv web/src/openapi/tmp-types.ts web/src/openapi/types.ts
 
 echo "Adding generated files to git..."
-git add -A web/src/openapi.ts
+git add -A web/src/openapi
