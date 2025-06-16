@@ -19,11 +19,7 @@ app.post("/face-auth", vectorRoute.authenticateFace, async (c) => {
   const formData = await c.req.formData();
   const image = formData.get("image") as File | null;
   if (!image) {
-    return c.json({
-      message: "Bad Request",
-      code: StatusCode.BadRequest,
-      detail: "No image provided",
-    });
+    throw new Error("No image provided");
   }
 
   const embedding = await getFeceEmbedding(image);
@@ -31,11 +27,7 @@ app.post("/face-auth", vectorRoute.authenticateFace, async (c) => {
   const customerId = await authenticateFace(embedding);
 
   if (!customerId) {
-    return c.json({
-      message: "Unauthorized",
-      code: StatusCode.Unauthorized,
-      detail: "Authorization failure",
-    });
+    throw new Error("Authorization failed");
   }
 
   const customer = await findCustomerById(customerId);
@@ -51,11 +43,7 @@ app.post("/face", vectorRoute.registerFace, async (c) => {
   const formData = await c.req.formData();
   const image = formData.get("image") as File | null;
   if (!image) {
-    return c.json({
-      message: "Bad Request",
-      code: StatusCode.BadRequest,
-      detail: "No image provided",
-    });
+    throw new Error("No image provided");
   }
 
   const embedding = await getFeceEmbedding(image);
