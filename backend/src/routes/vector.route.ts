@@ -1,5 +1,6 @@
 import { describeRoute } from "hono-openapi";
 import { resolver } from "hono-openapi/zod";
+import "zod-openapi/extend";
 import z from "zod";
 import { ApiError } from "../controller/error/api-error";
 
@@ -43,7 +44,7 @@ const authenticateFace = describeRoute({
               updatedAt: z.string().openapi({
                 description: "Timestamp of when the user was last updated",
               }),
-            })
+            }).openapi({ ref: "Customer"})
           ),
         },
       },
@@ -105,7 +106,7 @@ const registerFace = describeRoute({
               updatedAt: z.string().openapi({
                 description: "Timestamp of when the user was last updated",
               }),
-            })
+            }).openapi({ ref: "Customer"})
           ),
         },
       },
