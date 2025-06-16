@@ -10,20 +10,21 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input';
 import { toast, Toaster } from 'sonner';
 import api from '@/api';
-import { authClient } from '@/auth-client';
 
 const createStoreFormSchema = z.object({
   storeName: z
     .string()
     .min(1, { message: '店舗名は必須です。' })
-    .max(50, { message: '店舗名は50文字以内で入力してください。' }),
+    .max(50, { message: '店舗名は50文字以内で入力してください。' })
+    .regex(/^[a-zA-Z0-9_]+$/, {
+      message: '店舗名は英数字とアンダースコア(_)のみ使用できます。',
+    })
 });
 type CreateStoreFormValues = z.infer<typeof createStoreFormSchema>;
 
 export default function() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [apiError, setApiError] = useState<string | null>(null);
-  const { data: session } = authClient.useSession();
 
   const form = useForm<CreateStoreFormValues>({
     resolver: zodResolver(createStoreFormSchema),
@@ -36,14 +37,7 @@ export default function() {
     setIsLoading(true);
     setApiError(null);
 
-    if (!session) {
-      const message = 'ログインセッションがありません。再度ログインしてください。';
-      setApiError(message);
-      toast.error(message);
-      return;
-    }
-
-      const { data: store, error } = await api(session.session).POST('/api/v1/stores', {
+      const { data: store, error } = await api().POST('/api/v1/stores', {
         body: {
           id: data.storeName
         }
