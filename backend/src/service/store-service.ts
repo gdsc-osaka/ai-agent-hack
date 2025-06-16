@@ -46,11 +46,10 @@ export const createStore =
         runTransaction(db)((tx) =>
           createNewStore(publicId)
             .asyncAndThen(insertDBStore(tx))
-            .andThen(validateStore)
-            .andThen((store: Store) =>
+            .andThen((store) =>
               assignAdminStaffToStore(store, staff)
                 .asyncAndThen(insertDBStoreToStaff(tx))
-                .map(() => store)
+                .andThen(() => validateStore(store))
             )
         )
       );
