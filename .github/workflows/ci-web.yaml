@@ -52,7 +52,7 @@ jobs:
           path: '**/node_modules'
           key: ${{ runner.os }}-cache-web-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-cache-node-
+            ${{ runner.os }}-cache-web-
             ${{ runner.os }}-cache-
             ${{ runner.os }}-
       - name: Install node modules

@@ -7,7 +7,7 @@ const runClient = new ServicesClient();
 const PROJECT_ID =
   process.env.GCLOUD_PROJECT || "YOUR_PROJECT_ID";
 const REGION = "asia-northeast1"; // e.g., "us-central1", "asia-northeast1"
-const SERVICE_NAME_PREFIX = "recall-you-api-preview-";
+const SERVICE_NAME_PREFIX = ["recall-you-api-preview-", "recall-you-web-preview-"];
 const DAYS_THRESHOLD = 3; // 削除対象とする経過日数 (3日)
 
 exports.previewCleanup = onSchedule(
@@ -63,7 +63,7 @@ exports.previewCleanup = onSchedule(
 
         // サービス名がプレフィックスに一致し、かつ最終更新日時が閾値より古いかチェック
         if (
-          serviceId.startsWith(SERVICE_NAME_PREFIX) &&
+          SERVICE_NAME_PREFIX.every(serviceId.startsWith) &&
           updateTime < thresholdDate
         ) {
           logger.info(
@@ -86,7 +86,7 @@ exports.previewCleanup = onSchedule(
 
           deletionPromises.push(deletePromise);
         } else if (
-          serviceId.startsWith(SERVICE_NAME_PREFIX)
+          SERVICE_NAME_PREFIX.every(serviceId.startsWith)
         ) {
           logger.info(
             `[SKIP] Service is not old enough: ${serviceId} (Last updated: ${updateTime.toISOString()})`
