@@ -5,7 +5,7 @@ import conn from "../db/db";
 import { customers } from "../db/schema/customers";
 import { eq } from "drizzle-orm";
 import vectorRoute from "./vector.route";
-import createFirebaseApp from "../firebase";
+import { getFirestore } from "../firebase";
 import env from "../env";
 
 const app = new Hono();
@@ -62,8 +62,7 @@ app.post("/face", vectorRoute.registerFace, async (c) => {
 });
 
 const registerEmbedding = async (embedding: number[]): Promise<string> => {
-  const app = createFirebaseApp(env.FIRE_SA);
-  const firestore = app.firestore();
+  const firestore = getFirestore();
 
   const customerId = createId();
   await firestore
@@ -80,8 +79,7 @@ const registerEmbedding = async (embedding: number[]): Promise<string> => {
 const authenticateFace = async (
   embedding: number[]
 ): Promise<string | null> => {
-  const app = createFirebaseApp(env.FIRE_SA);
-  const firestore = app.firestore();
+  const firestore = getFirestore();
 
   const snapshot = await firestore
     .collection("embeddings")
