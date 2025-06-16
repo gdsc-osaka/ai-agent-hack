@@ -8,24 +8,37 @@ import { fetchDBStaffByUserId } from "../infra/staff-repo";
 import { insertDBStoreToStaff } from "../infra/store-to-staff-repo";
 import { runTransaction } from "../infra/transaction";
 import storesRoute from "./stores.route";
+import { zValidator } from "@hono/zod-validator";
+import z from "zod";
+import { zValidatorErrorHandler } from "./shared/validator-error-handler";
 
 const app = new Hono();
 
-app.post("/", storesRoute.createStore, async (c) => {
-  const json = await c.req.json();
-  console.log("json", json);
-  const res = await createStoreController(
-    createStore(
-      insertDBStore,
-      fetchDBStaffByUserId,
-      insertDBStoreToStaff,
-      runTransaction
-    )(getAuthUser(c), json.id)
-  );
-  if (res.isErr()) {
-    throw toHTTPException(res.error);
+app.post(
+  "/",
+  storesRoute.createStore,
+  zValidator(
+    "json",
+    z.object({
+      id: z.string(),
+    }),
+    zValidatorErrorHandler
+  ),
+  async (c) => {
+    const { id } = c.req.valid("json");
+    const res = await createStoreController(
+      createStore(
+        insertDBStore,
+        fetchDBStaffByUserId,
+        insertDBStoreToStaff,
+        runTransaction
+      )(getAuthUser(c), id)
+    );
+    if (res.isErr()) {
+      throw toHTTPException(res.error);
+    }
+    return c.json(res.value);
   }
-  return c.json(res.value);
-});
+);
 
 export default app;
