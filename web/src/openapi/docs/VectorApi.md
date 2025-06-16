@@ -4,11 +4,11 @@ All URIs are relative to *https://recall-you.web.app*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**authenticateFace**](#authenticateface) | **POST** /v1/vector/face-auth | |
-|[**registerFace**](#registerface) | **POST** /v1/vector/face | |
+|[**authenticateFace**](#authenticateface) | **POST** /api/v1/vector/face-auth | |
+|[**registerFace**](#registerface) | **POST** /api/v1/vector/face | |
 
 # **authenticateFace**
-> AuthenticateFace200Response authenticateFace()
+> Customer authenticateFace()
 
 Authenticate a user using face recognition
 
@@ -39,7 +39,7 @@ const { status, data } = await apiInstance.authenticateFace(
 
 ### Return type
 
-**AuthenticateFace200Response**
+**Customer**
 
 ### Authorization
 
@@ -61,7 +61,7 @@ const { status, data } = await apiInstance.authenticateFace(
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **registerFace**
-> RegisterFace201Response registerFace()
+> Customer registerFace()
 
 Register a user\'s face for authentication
 
@@ -92,7 +92,7 @@ const { status, data } = await apiInstance.registerFace(
 
 ### Return type
 
-**RegisterFace201Response**
+**Customer**
 
 ### Authorization
 

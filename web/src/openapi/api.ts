@@ -68,50 +68,25 @@ export type ApiErrorCode = typeof ApiErrorCode[keyof typeof ApiErrorCode];
 /**
  * 
  * @export
- * @interface AuthenticateFace200Response
+ * @interface Customer
  */
-export interface AuthenticateFace200Response {
-    /**
-     * The ID of the authenticated user
-     * @type {string}
-     * @memberof AuthenticateFace200Response
-     */
-    'customerId': string;
-    /**
-     * Timestamp of when the user was created
-     * @type {string}
-     * @memberof AuthenticateFace200Response
-     */
-    'createdAt': string;
-    /**
-     * Timestamp of when the user was last updated
-     * @type {string}
-     * @memberof AuthenticateFace200Response
-     */
-    'updatedAt': string;
-}
-/**
- * 
- * @export
- * @interface RegisterFace201Response
- */
-export interface RegisterFace201Response {
+export interface Customer {
     /**
      * The ID of registered user.
      * @type {string}
-     * @memberof RegisterFace201Response
+     * @memberof Customer
      */
     'customerId': string;
     /**
      * Timestamp of when the user was created
      * @type {string}
-     * @memberof RegisterFace201Response
+     * @memberof Customer
      */
     'createdAt': string;
     /**
      * Timestamp of when the user was last updated
      * @type {string}
-     * @memberof RegisterFace201Response
+     * @memberof Customer
      */
     'updatedAt': string;
 }
@@ -131,7 +106,7 @@ export const VectorApiAxiosParamCreator = function (configuration?: Configuratio
         authenticateFace: async (image: File, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'image' is not null or undefined
             assertParamExists('authenticateFace', 'image', image)
-            const localVarPath = `/v1/vector/face-auth`;
+            const localVarPath = `/api/v1/vector/face-auth`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -175,7 +150,7 @@ export const VectorApiAxiosParamCreator = function (configuration?: Configuratio
         registerFace: async (image: File, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'image' is not null or undefined
             assertParamExists('registerFace', 'image', image)
-            const localVarPath = `/v1/vector/face`;
+            const localVarPath = `/api/v1/vector/face`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -226,7 +201,7 @@ export const VectorApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async authenticateFace(image: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthenticateFace200Response>> {
+        async authenticateFace(image: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Customer>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.authenticateFace(image, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['VectorApi.authenticateFace']?.[localVarOperationServerIndex]?.url;
@@ -238,7 +213,7 @@ export const VectorApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async registerFace(image: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RegisterFace201Response>> {
+        async registerFace(image: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Customer>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.registerFace(image, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['VectorApi.registerFace']?.[localVarOperationServerIndex]?.url;
@@ -260,7 +235,7 @@ export const VectorApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        authenticateFace(image: File, options?: RawAxiosRequestConfig): AxiosPromise<AuthenticateFace200Response> {
+        authenticateFace(image: File, options?: RawAxiosRequestConfig): AxiosPromise<Customer> {
             return localVarFp.authenticateFace(image, options).then((request) => request(axios, basePath));
         },
         /**
@@ -269,7 +244,7 @@ export const VectorApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        registerFace(image: File, options?: RawAxiosRequestConfig): AxiosPromise<RegisterFace201Response> {
+        registerFace(image: File, options?: RawAxiosRequestConfig): AxiosPromise<Customer> {
             return localVarFp.registerFace(image, options).then((request) => request(axios, basePath));
         },
     };
