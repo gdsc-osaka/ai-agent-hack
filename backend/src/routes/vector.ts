@@ -21,7 +21,7 @@ app.post("/face-auth", vectorRoute.authenticateFace, async (c) => {
     throw new Error("No image provided");
   }
 
-  const embedding = await getFeceEmbedding(image);
+  const embedding = await getFaceEmbedding(image);
 
   const customerId = await authenticateFace(embedding);
 
@@ -45,7 +45,7 @@ app.post("/face", vectorRoute.registerFace, async (c) => {
     throw new Error("No image provided");
   }
 
-  const embedding = await getFeceEmbedding(image);
+  const embedding = await getFaceEmbedding(image);
 
   const customerId = await registerEmbedding(embedding);
 
@@ -99,7 +99,7 @@ const authenticateFace = async (
   return snapshot.docs[0].id;
 };
 
-const getFeceEmbedding = async (image: File): Promise<number[]> => {
+const getFaceEmbedding = async (image: File): Promise<number[]> => {
   const forwardForm = new FormData();
   forwardForm.append("file", image, image.name);
   const response = await fetch(`${env.ML_SERVER_URL}/face-embedding`, {
