@@ -34,17 +34,19 @@ const authenticateFace = describeRoute({
       content: {
         "application/json": {
           schema: resolver(
-            z.object({
-              customerId: z
-                .string()
-                .openapi({ description: "The ID of the authenticated user" }),
-              createdAt: z.string().openapi({
-                description: "Timestamp of when the user was created",
-              }),
-              updatedAt: z.string().openapi({
-                description: "Timestamp of when the user was last updated",
-              }),
-            }).openapi({ ref: "Customer"})
+            z
+              .object({
+                customerId: z
+                  .string()
+                  .openapi({ description: "The ID of the authenticated user" }),
+                createdAt: z.string().openapi({
+                  description: "Timestamp of when the user was created",
+                }),
+                updatedAt: z.string().openapi({
+                  description: "Timestamp of when the user was last updated",
+                }),
+              })
+              .openapi({ ref: "Customer" })
           ),
         },
       },
@@ -96,17 +98,19 @@ const registerFace = describeRoute({
       content: {
         "application/json": {
           schema: resolver(
-            z.object({
-              customerId: z
-                .string()
-                .openapi({ description: "The ID of registered user." }),
-              createdAt: z.string().openapi({
-                description: "Timestamp of when the user was created",
-              }),
-              updatedAt: z.string().openapi({
-                description: "Timestamp of when the user was last updated",
-              }),
-            }).openapi({ ref: "Customer"})
+            z
+              .object({
+                customerId: z
+                  .string()
+                  .openapi({ description: "The ID of registered user." }),
+                createdAt: z.string().openapi({
+                  description: "Timestamp of when the user was created",
+                }),
+                updatedAt: z.string().openapi({
+                  description: "Timestamp of when the user was last updated",
+                }),
+              })
+              .openapi({ ref: "Customer" })
           ),
         },
       },
