@@ -4,5 +4,9 @@ api.ts
 base.ts
 common.ts
 configuration.ts
+docs/ApiError.md
+docs/ApiErrorCode.md
+docs/Customer.md
+docs/VectorApi.md
 git_push.sh
 index.ts
