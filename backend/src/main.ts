@@ -20,7 +20,7 @@ app.get("/api/ping", (c) => c.text("pong"));
 app.route("/api/v1/auth", auth);
 
 // Vector API
-app.route("/v1/vector", vector);
+app.route("/api/v1/vector", vector);
 
 app.use("/api/*", authorize);
 
