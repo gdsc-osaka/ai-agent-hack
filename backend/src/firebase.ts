@@ -13,15 +13,5 @@ export default function (FIRE_SA: string): app.App {
     ),
   });
 
-  if (env.NODE_ENV === "development") {
-    const firestore = admin.firestore(firebaseApp);
-    firestore.settings({
-      host: process.env.FIRESTORE_EMULATOR_HOST,
-      ssl: false,
-    });
-  } else {
-    // for production
-  }
-
   return firebaseApp;
 }
