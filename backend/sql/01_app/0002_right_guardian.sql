@@ -1,0 +1,1 @@
+ALTER TABLE "stores" ADD CONSTRAINT "stores_public_id_unique" UNIQUE("public_id");

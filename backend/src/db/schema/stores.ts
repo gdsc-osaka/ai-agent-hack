@@ -18,7 +18,7 @@ export const stores = pgTable(
       .$defaultFn(() => createId())
       .primaryKey()
       .notNull(),
-    publicId: text("public_id").notNull(),
+    publicId: text("public_id").notNull().unique(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .$onUpdate(() => new Date())
