@@ -1,6 +1,5 @@
 import * as admin from "firebase-admin";
 import { app } from "firebase-admin";
-import env from "./env";
 
 export default function (FIRE_SA: string): app.App {
   if (admin.apps.length > 0 && admin.apps[0]) {

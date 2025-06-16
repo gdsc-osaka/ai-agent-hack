@@ -7,7 +7,6 @@ import { eq } from "drizzle-orm";
 import vectorRoute from "./vector.route";
 import createFirebaseApp from "../firebase";
 import env from "../env";
-import { StatusCode } from "../controller/error/api-error";
 
 const app = new Hono();
 
