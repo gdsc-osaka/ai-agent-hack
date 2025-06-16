@@ -7,6 +7,7 @@ export const ApiErrorCode = z
     "DATABASE_NOT_FOUND",
     "DATABASE_ALREADY_EXISTS",
     "DATABASE_INCONSISTENT_TYPE",
+    "INVALID_REQUEST_BODY",
   ])
   .openapi({ ref: "ApiErrorCode" });
 export type ApiErrorCode = z.infer<typeof ApiErrorCode>;

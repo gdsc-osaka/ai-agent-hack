@@ -9,7 +9,12 @@ export type DBStore = typeof stores.$inferSelect;
 export type DBStoreForCreate = typeof stores.$inferInsert;
 export type DBStoreForUpdate = ForUpdate<DBStore>;
 
-export const StoreId = z.string().min(1).brand<"STORE_ID">();
+export const StoreId = z
+  .string()
+  .min(1)
+  .max(50)
+  .regex(/^[a-zA-Z0-9_]+$/)
+  .brand<"STORE_ID">();
 export type StoreId = z.infer<typeof StoreId>;
 
 export const Store = z
@@ -59,13 +64,28 @@ export const validateStores: ValidateStores = (
 ): Result<Store[], InvalidStoreError> =>
   Result.combine(stores.map(validateStore));
 
+export const CreateNewStoreError = errorBuilder<
+  "CreateNewStoreError",
+  FieldErrors<typeof StoreId>
+>("CreateNewStoreError");
+export type CreateNewStoreError = InferError<typeof CreateNewStoreError>;
+
 export type CreateNewStore = (
   publicId: string
-) => Result<DBStoreForCreate, never>;
+) => Result<DBStoreForCreate, CreateNewStoreError>;
 export const createNewStore: CreateNewStore = (
   publicId: string
-): Result<DBStoreForCreate, never> => {
+): Result<DBStoreForCreate, CreateNewStoreError> => {
+  const res = StoreId.safeParse(publicId);
+  if (!res.success) {
+    return err(
+      CreateNewStoreError("Invalid store ID", {
+        cause: res.error,
+        extra: res.error.flatten().fieldErrors,
+      })
+    );
+  }
   return ok({
-    publicId,
+    publicId: res.data,
   });
 };

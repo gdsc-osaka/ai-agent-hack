@@ -8,7 +8,7 @@ import {
   DBStaffNotFoundError,
 } from "../../infra/staff-repo.error";
 import { DBStoreToStaffAlreadyExistsError } from "../../infra/store-to-staff-repo.error";
-import { InvalidStoreError } from "../../domain/store";
+import { CreateNewStoreError, InvalidStoreError } from "../../domain/store";
 import { InvalidStaffError } from "../../domain/staff";
 
 export type AllError =
@@ -18,7 +18,8 @@ export type AllError =
   | DBStaffAlreadyExistsError
   | DBStoreToStaffAlreadyExistsError
   | InvalidStoreError
-  | InvalidStaffError;
+  | InvalidStaffError
+  | CreateNewStoreError;
 
 export const globalController = <T>(result: ResultAsync<T, AllError>) =>
   result.mapErr((err) =>
@@ -54,6 +55,13 @@ export const globalController = <T>(result: ResultAsync<T, AllError>) =>
         HTTPErrorCarrier(StatusCode.InternalServerError, {
           message: e.message,
           code: "DATABASE_INCONSISTENT_TYPE",
+          details: [e.cause, e.extra],
+        })
+      )
+      .with(P.union(CreateNewStoreError.is), (e) =>
+        HTTPErrorCarrier(StatusCode.BadRequest, {
+          message: e.message,
+          code: "INVALID_REQUEST_BODY",
           details: [e.cause, e.extra],
         })
       )

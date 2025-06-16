@@ -2,6 +2,7 @@ import { AuthUser } from "../domain/auth";
 import { ResultAsync } from "neverthrow";
 import {
   createNewStore,
+  CreateNewStoreError,
   InvalidStoreError,
   Store,
   validateStore,
@@ -30,6 +31,7 @@ export type CreateStore = (
   | DBStoreToStaffAlreadyExistsError
   | InvalidStoreError
   | InvalidStaffError
+  | CreateNewStoreError
 >;
 
 export const createStore =
