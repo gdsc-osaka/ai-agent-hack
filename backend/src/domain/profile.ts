@@ -13,7 +13,12 @@ export const Profile = z
   .object({
     id: ProfileId,
     gender: z.string().optional(),
-    birthday: z.string().optional(),
+    birthday: z.preprocess((arg) => {
+      if (arg instanceof Date) {
+        return arg.toISOString();
+      }
+      return typeof arg === "string" ? arg : "";
+    }, z.string().optional()),
     birthplace: z.string().optional(),
     business: z.string().optional(),
     partner: z.string().optional(),

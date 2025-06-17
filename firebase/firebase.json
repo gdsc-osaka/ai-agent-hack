@@ -52,7 +52,7 @@
     },
     {
       "source": "functions/generate_profile",
-      "codebase": "default",
+      "codebase": "generate_profile",
       "ignore": [
         "node_modules",
         ".git",
