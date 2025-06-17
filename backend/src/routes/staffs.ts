@@ -20,7 +20,7 @@ app.get("/me/stores", storesRoute.fetchStoresForStaff, async (c) => {
     throw toHTTPException(res.error);
   }
   return c.json({
-    stores: res.value
+    stores: res.value,
   });
 });
 
