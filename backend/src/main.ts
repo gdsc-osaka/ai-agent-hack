@@ -3,9 +3,10 @@ import { serve } from "@hono/node-server";
 import { openApiSpec } from "./openapi-spec";
 import env from "./env";
 import { logger } from "./routes/middleware/logger";
+import authorize from "./routes/middleware/authorize";
 import auth from "./routes/auth";
 import stores from "./routes/stores";
-import authorize from "./routes/middleware/authorize";
+import vector from "./routes/vector";
 import staffs from "./routes/staffs";
 import { cors } from "hono/cors";
 
@@ -35,6 +36,7 @@ app.route("/api/v1/auth", auth);
 app.use("/api/*", authorize);
 
 // endpoint
+app.route("/api/v1/vector", vector);
 app.route("/api/v1/stores", stores);
 app.route("/api/v1/staffs", staffs);
 

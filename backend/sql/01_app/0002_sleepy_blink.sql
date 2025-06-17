@@ -10,7 +10,8 @@ CREATE TABLE "stores" (
 	"id" varchar(25) PRIMARY KEY NOT NULL,
 	"public_id" text NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp NOT NULL
+	"updated_at" timestamp NOT NULL,
+	CONSTRAINT "stores_public_id_unique" UNIQUE("public_id")
 );
 --> statement-breakpoint
 CREATE TABLE "stores_to_staffs" (
