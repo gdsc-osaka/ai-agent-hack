@@ -19,7 +19,7 @@ importers:
         version: 1.14.4(hono@4.7.11)
       '@hono/zod-validator':
         specifier: ^0.7.0
-        version: 0.7.0(hono@4.7.11)(zod@3.25.56)
+        version: 0.7.0(hono@4.7.11)(zod@3.25.64)
       '@paralleldrive/cuid2':
         specifier: ^2.2.2
         version: 2.2.2
@@ -37,7 +37,7 @@ importers:
         version: 4.7.11
       hono-openapi:
         specifier: ^0.4.8
-        version: 0.4.8(@hono/zod-validator@0.7.0(hono@4.7.11)(zod@3.25.56))(hono@4.7.11)(openapi-types@12.1.3)(zod-openapi@4.2.4(zod@3.25.56))(zod@3.25.56)
+        version: 0.4.8(@hono/zod-validator@0.7.0(hono@4.7.11)(zod@3.25.64))(hono@4.7.11)(openapi-types@12.1.3)(zod-openapi@4.2.4(zod@3.25.64))(zod@3.25.64)
       log4js:
         specifier: ^6.9.1
         version: 6.9.1
@@ -51,11 +51,11 @@ importers:
         specifier: ^5.7.0
         version: 5.7.1
       zod:
-        specifier: ^3.25.56
-        version: 3.25.56
+        specifier: ^3.25.64
+        version: 3.25.64
       zod-openapi:
         specifier: ^4.2.4
-        version: 4.2.4(zod@3.25.56)
+        version: 4.2.4(zod@3.25.64)
     devDependencies:
       '@dotenvx/dotenvx':
         specifier: ^1.42.2
@@ -937,6 +937,9 @@ packages:
   '@types/node@22.15.30':
     resolution: {integrity: sha512-6Q7lr06bEHdlfplU6YRbgG1SFBdlsfNC4/lX+SkhiTs0cpJkOElmWls8PxDFv4yY/xKb8Y6SO0OmSX4wgqTZbA==}
 
+  '@types/node@22.15.32':
+    resolution: {integrity: sha512-3jigKqgSjsH6gYZv2nEsqdXfZqIFGAV36XYYjf9KGZ3PSG+IhLecqPnI310RvjutyMwifE2hhhNEklOUrvx/wA==}
+
   '@types/qs@6.14.0':
     resolution: {integrity: sha512-eOunJqu0K1923aExK6y8p6fsihYEn/BYuQ4g0CxAAgFc4b/ZLN4CrsRZ55srTdqoiLzU2B2evC+apEIxprEzkQ==}
 
@@ -1535,6 +1538,9 @@ packages:
 
   end-of-stream@1.4.4:
     resolution: {integrity: sha512-+uw1inIHVPQoaVuHzRyXd21icM+cnt4CzD5rW+NC1wjOUSTOs+Te7FOv7AhN7vS9x/oIyhLP5PR1H+phQAHu5Q==}
+
+  end-of-stream@1.4.5:
+    resolution: {integrity: sha512-ooEGc6HP26xXq/N+GCGOT0JKCLDGrq2bQUZrQ7gyrJiZANJ/8YDTxTpQBXGMn+WbIQXNVpyWymm7KYVICQnyOg==}
 
   es-define-property@1.0.1:
     resolution: {integrity: sha512-e3nRfgfUZ4rNGL232gUgX06QNyyez04KdjFrF+LTRoOXmrOgFKDg4BCdsjW8EnT69eqdYGmRpJwiPVYNrCaW3g==}
@@ -2517,8 +2523,8 @@ packages:
   pstree.remy@1.1.8:
     resolution: {integrity: sha512-77DZwxQmxKnu3aR542U+X8FypNzbfJ+C5XQDk3uWjWxn6151aIMGthWYRXTqT1E5oJvg+ljaa2OJi+VfvCOQ8w==}
 
-  pump@3.0.2:
-    resolution: {integrity: sha512-tUPXtzlGM8FE3P0ZL6DVs/3P58k9nk8/jZeQCurTJylQA8qFYzHFfhBJkuqyE0FifOsQ0uKWekiZ5g8wtr28cw==}
+  pump@3.0.3:
+    resolution: {integrity: sha512-todwxLMY7/heScKmntwQG8CXVkWUOdYxIvY2s0VWAAMh/nd8SoYiRaKjlr7+iCs984f2P8zvrfWcDDYVb73NfA==}
 
   punycode@2.3.1:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
@@ -3115,8 +3121,8 @@ packages:
     peerDependencies:
       zod: ^3.24.1
 
-  zod@3.25.56:
-    resolution: {integrity: sha512-rd6eEF3BTNvQnR2e2wwolfTmUTnp70aUTqr0oaGbHifzC3BKJsoV+Gat8vxUMR1hwOKBs6El+qWehrHbCpW6SQ==}
+  zod@3.25.64:
+    resolution: {integrity: sha512-hbP9FpSZf7pkS7hRVUrOjhwKJNyampPgtXKc3AN6DsWtoHsg2Sb4SQaS4Tcay380zSwd2VPo9G9180emBACp5g==}
 
 snapshots:
 
@@ -3462,8 +3468,8 @@ snapshots:
       '@modelcontextprotocol/sdk': 1.12.1
       google-auth-library: 9.15.1
       ws: 8.18.2
-      zod: 3.25.56
-      zod-to-json-schema: 3.24.5(zod@3.25.56)
+      zod: 3.25.64
+      zod-to-json-schema: 3.24.5(zod@3.25.64)
     transitivePeerDependencies:
       - bufferutil
       - encoding
@@ -3496,10 +3502,10 @@ snapshots:
     dependencies:
       hono: 4.7.11
 
-  '@hono/zod-validator@0.7.0(hono@4.7.11)(zod@3.25.56)':
+  '@hono/zod-validator@0.7.0(hono@4.7.11)(zod@3.25.64)':
     dependencies:
       hono: 4.7.11
-      zod: 3.25.56
+      zod: 3.25.64
 
   '@humanfs/core@0.19.1': {}
 
@@ -3565,8 +3571,8 @@ snapshots:
       express-rate-limit: 7.5.0(express@5.1.0)
       pkce-challenge: 5.0.0
       raw-body: 3.0.0
-      zod: 3.25.56
-      zod-to-json-schema: 3.24.5(zod@3.25.56)
+      zod: 3.25.64
+      zod-to-json-schema: 3.24.5(zod@3.25.64)
     transitivePeerDependencies:
       - supports-color
 
@@ -3791,7 +3797,7 @@ snapshots:
 
   '@types/better-sqlite3@7.6.13':
     dependencies:
-      '@types/node': 22.15.30
+      '@types/node': 22.15.32
     optional: true
 
   '@types/body-parser@1.19.5':
@@ -3846,6 +3852,11 @@ snapshots:
   '@types/node@22.15.30':
     dependencies:
       undici-types: 6.21.0
+
+  '@types/node@22.15.32':
+    dependencies:
+      undici-types: 6.21.0
+    optional: true
 
   '@types/qs@6.14.0': {}
 
@@ -4215,7 +4226,7 @@ snapshots:
       jose: 5.10.0
       kysely: 0.28.2
       nanostores: 0.11.4
-      zod: 3.25.56
+      zod: 3.25.64
 
   better-call@1.0.9:
     dependencies:
@@ -4472,6 +4483,11 @@ snapshots:
   end-of-stream@1.4.4:
     dependencies:
       once: 1.4.0
+
+  end-of-stream@1.4.5:
+    dependencies:
+      once: 1.4.0
+    optional: true
 
   es-define-property@1.0.1: {}
 
@@ -5004,15 +5020,15 @@ snapshots:
     dependencies:
       function-bind: 1.1.2
 
-  hono-openapi@0.4.8(@hono/zod-validator@0.7.0(hono@4.7.11)(zod@3.25.56))(hono@4.7.11)(openapi-types@12.1.3)(zod-openapi@4.2.4(zod@3.25.56))(zod@3.25.56):
+  hono-openapi@0.4.8(@hono/zod-validator@0.7.0(hono@4.7.11)(zod@3.25.64))(hono@4.7.11)(openapi-types@12.1.3)(zod-openapi@4.2.4(zod@3.25.64))(zod@3.25.64):
     dependencies:
       json-schema-walker: 2.0.0
       openapi-types: 12.1.3
     optionalDependencies:
-      '@hono/zod-validator': 0.7.0(hono@4.7.11)(zod@3.25.56)
+      '@hono/zod-validator': 0.7.0(hono@4.7.11)(zod@3.25.64)
       hono: 4.7.11
-      zod: 3.25.56
-      zod-openapi: 4.2.4(zod@3.25.56)
+      zod: 3.25.64
+      zod-openapi: 4.2.4(zod@3.25.64)
 
   hono@4.7.11: {}
 
@@ -5511,7 +5527,7 @@ snapshots:
       mkdirp-classic: 0.5.3
       napi-build-utils: 2.0.0
       node-abi: 3.75.0
-      pump: 3.0.2
+      pump: 3.0.3
       rc: 1.2.8
       simple-get: 4.0.1
       tar-fs: 2.1.3
@@ -5559,9 +5575,9 @@ snapshots:
 
   pstree.remy@1.1.8: {}
 
-  pump@3.0.2:
+  pump@3.0.3:
     dependencies:
-      end-of-stream: 1.4.4
+      end-of-stream: 1.4.5
       once: 1.4.0
     optional: true
 
@@ -5856,14 +5872,14 @@ snapshots:
     dependencies:
       chownr: 1.1.4
       mkdirp-classic: 0.5.3
-      pump: 3.0.2
+      pump: 3.0.3
       tar-stream: 2.2.0
     optional: true
 
   tar-stream@2.2.0:
     dependencies:
       bl: 4.1.0
-      end-of-stream: 1.4.4
+      end-of-stream: 1.4.5
       fs-constants: 1.0.0
       inherits: 2.0.4
       readable-stream: 3.6.2
@@ -6180,12 +6196,12 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zod-openapi@4.2.4(zod@3.25.56):
+  zod-openapi@4.2.4(zod@3.25.64):
     dependencies:
-      zod: 3.25.56
+      zod: 3.25.64
 
-  zod-to-json-schema@3.24.5(zod@3.25.56):
+  zod-to-json-schema@3.24.5(zod@3.25.64):
     dependencies:
-      zod: 3.25.56
+      zod: 3.25.64
 
-  zod@3.25.56: {}
+  zod@3.25.64: {}
