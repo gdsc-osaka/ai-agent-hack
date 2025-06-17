@@ -1,5 +1,5 @@
 import createClient from "openapi-fetch";
-import { components, paths } from './openapi/types';
+import { components, paths } from "./openapi/types";
 import type { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL;
