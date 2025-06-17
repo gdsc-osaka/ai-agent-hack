@@ -4,6 +4,40 @@
  */
 
 export interface paths {
+    "/api/v1/vector/face-auth": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Authenticate a user using face recognition */
+        post: operations["authenticateFace"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/vector/face": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Register a user's face for authentication */
+        post: operations["registerFace"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/stores": {
         parameters: {
             query?: never;
@@ -42,14 +76,13 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        Store: {
-            id: string;
-            createdAt: components["schemas"]["Timestamp"];
-            updatedAt: components["schemas"]["Timestamp"];
-        };
-        Timestamp: {
-            seconds: number;
-            nanoseconds: number;
+        Customer: {
+            /** @description The ID of registered user. */
+            customerId: string;
+            /** @description Timestamp of when the user was created */
+            createdAt: string;
+            /** @description Timestamp of when the user was last updated */
+            updatedAt: string;
         };
         ApiError: {
             message: string;
@@ -59,6 +92,15 @@ export interface components {
         };
         /** @enum {string} */
         ApiErrorCode: "DATABASE_UNKNOWN_ERROR" | "DATABASE_NOT_FOUND" | "DATABASE_ALREADY_EXISTS" | "DATABASE_INCONSISTENT_TYPE" | "INVALID_REQUEST_BODY";
+        Store: {
+            id: string;
+            createdAt: components["schemas"]["Timestamp"];
+            updatedAt: components["schemas"]["Timestamp"];
+        };
+        Timestamp: {
+            seconds: number;
+            nanoseconds: number;
+        };
     };
     responses: never;
     parameters: never;
@@ -68,6 +110,93 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    authenticateFace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * Format: binary
+                     * @description Image for face authentication
+                     */
+                    image: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful authenticated response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Customer"];
+                };
+            };
+            /** @description Bad Request - Invalid input or missing image */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Forbidden - User not authenticated */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    registerFace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * Format: binary
+                     * @description Image for face registration
+                     */
+                    image: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Customer"];
+                };
+            };
+            /** @description Bad Request - Invalid input or missing image */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
     createStore: {
         parameters: {
             query?: never;
