@@ -1,9 +1,14 @@
+'use client';
+
 import { User } from 'better-auth';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { usePathname } from 'next/navigation';
 
-export default function({ user, pathname }: {user: User, pathname: string}) {
+export default function DashboardNavigations({ user }: {user: User}) {
+  const pathname = usePathname();
+
   return (
     <div className={'flex flex-col gap-2'}>
       <div className={'flex flex-col gap-1 items-start'}>
