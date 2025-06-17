@@ -44,7 +44,7 @@
     "zod-openapi": "^4.2.4"
   },
   "devDependencies": {
-    "@dotenvx/dotenvx": "^1.42.2",
+    "@dotenvx/dotenvx": "^1.44.2",
     "@eslint/js": "^9.26.0",
     "@types/node": "^22.15.30",
     "@typescript-eslint/eslint-plugin": "^8.33.1",
