@@ -4,6 +4,7 @@ import z from "zod";
 import { Timestamp, toTimestamp } from "./timestamp";
 import { errorBuilder, InferError } from "../shared/error";
 import { err, ok, Result } from "neverthrow";
+import "zod-openapi/extend";
 
 export type DBStore = typeof stores.$inferSelect;
 export type DBStoreForCreate = typeof stores.$inferInsert;

@@ -6,6 +6,7 @@ import { Uid } from "./auth";
 import { errorBuilder, InferError } from "../shared/error";
 import { err, ok, Result } from "neverthrow";
 import { User } from "better-auth";
+import "zod-openapi/extend";
 
 export type DBStaff = typeof staffs.$inferSelect;
 export type DBStaffForCreate = typeof staffs.$inferInsert;
