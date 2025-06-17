@@ -5,13 +5,17 @@ import type { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapte
 const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL;
 
 // サーバーサイドから呼び出す際は headers を渡す
-export default (headersOrSession?: () => Promise<ReadonlyHeaders>) =>
+export default (
+  headersOrSession?: Headers | (() => Promise<ReadonlyHeaders>)
+) =>
   createClient<paths>({
     baseUrl,
     fetch: async (req) => {
       return fetch(req, {
         headers:
-          headersOrSession !== undefined ? await headersOrSession() : undefined,
+          typeof headersOrSession === "function"
+            ? await headersOrSession()
+            : headersOrSession,
         method: req.method,
         credentials: "include",
       });
