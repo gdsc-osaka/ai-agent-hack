@@ -8,6 +8,20 @@
       "when": 1749714352382,
       "tag": "0000_easy_logan",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1750002333346,
+      "tag": "0001_gorgeous_bloodstrike",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1750141498866,
+      "tag": "0002_sleepy_blink",
+      "breakpoints": true
     }
   ]
 }
