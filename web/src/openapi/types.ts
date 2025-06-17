@@ -248,7 +248,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Store"][];
+                    "application/json": {
+                        stores: components["schemas"]["Store"][];
+                    };
                 };
             };
             /** @description Bad Request */

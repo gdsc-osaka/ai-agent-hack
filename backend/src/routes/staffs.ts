@@ -19,7 +19,9 @@ app.get("/me/stores", storesRoute.fetchStoresForStaff, async (c) => {
   if (res.isErr()) {
     throw toHTTPException(res.error);
   }
-  return c.json(res.value);
+  return c.json({
+    stores: res.value
+  });
 });
 
 export default app;

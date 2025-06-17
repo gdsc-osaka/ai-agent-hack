@@ -1,6 +1,7 @@
 import { describeRoute } from "hono-openapi";
 import { resolver } from "hono-openapi/zod";
 import { Store } from "../domain/store";
+import { z } from 'zod';
 
 const tags = ["Stores"];
 
@@ -47,7 +48,9 @@ const fetchStoresForStaff = describeRoute({
       description: "Successful response",
       content: {
         "application/json": {
-          schema: resolver(Store.array()),
+          schema: resolver(z.object({
+            stores: Store.array()
+          })),
         },
       },
     },
