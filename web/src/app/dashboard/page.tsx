@@ -1,37 +1,28 @@
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../../components/ui/card';
-import { Label } from '../../components/ui/label';
-import { getSession } from '../../session';
 import SignOutForm from './_components/signout-form';
+import api from '../../api';
+import { headers } from 'next/headers';
+import StoreItem from '@/app/dashboard/_components/store-item';
 
 export default async function Dashboard() {
-  const { data } = await getSession();
+  const { data, error } = await api(headers).GET('/api/v1/staffs/me/stores');
 
-  if (!data) {
+  if (error) {
     return (
       <main>
-        <h1>ログインが必要なページ</h1>
+        <h1>${error.code}: ${error.message}</h1>
+        <p>${JSON.stringify(error.details)}</p>
       </main>
     );
   }
 
   return (
-    <div className={'h-full flex'}>
-      <Card className="w-full max-w-sm m-auto">
-        <CardHeader>
-          <CardTitle>Dashboard</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className={'flex flex-col gap-2'}>
-            <Label>セッション情報</Label>
-            <div>
-              {JSON.stringify(data, null, 2)}
-            </div>
-          </div>
-        </CardContent>
-        <CardFooter className="flex-col gap-2">
-          <SignOutForm/>
-        </CardFooter>
-      </Card>
+    <div className={'flex flex-col gap-4'}>
+      <h1 className={'text-2xl font-semibold'}>Dashboard</h1>
+      <h2 className={'text-xl text-outline font-semibold'}>Stores</h2>
+      <div className={'flex flex-col gap-3'}>
+        {data.map((store) => <StoreItem store={store} key={store.id} />)}
+      </div>
+      <SignOutForm />
     </div>
   );
 }

@@ -5,15 +5,15 @@ curl -o tmp.openapi.json "http://localhost:8080/api/openapi"
 
 # Install OpenAPI Generator if not already installed
 #openapi-generator --version || brew install openapi-generator # GitHub Actions では brew が使えないため、npm を使用
-openapi-generator-cli version || npm install -g @openapitools/openapi-generator-cli
-
-openapi-generator-cli version-manager set 7.13.0
+openapi-typescript --version || npm install -g openapi-typescript
 
 # Generate TypeScript Client
-openapi-generator-cli generate -i tmp.openapi.json -g typescript-axios -o web/src/openapi
+openapi-typescript tmp.openapi.json --output web/src/openapi/tmp-types.ts
 
 # Clean up temporary files
 rm tmp.openapi.json
+rm web/src/openapi/types.ts
+mv web/src/openapi/tmp-types.ts web/src/openapi/types.ts
 
 echo "Adding generated files to git..."
 git add -A web/src/openapi
