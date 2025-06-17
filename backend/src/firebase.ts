@@ -14,3 +14,5 @@ export default function (FIRE_SA: string): app.App {
 
   return firebaseApp;
 }
+
+export type FirebaseApp = app.App;
