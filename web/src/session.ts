@@ -1,11 +1,10 @@
 import { betterFetch } from "@better-fetch/fetch";
 import { cookies, headers } from "next/headers";
 import type { Session, User } from "better-auth";
-import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
 
-export const getSession = async (requestCookies?: RequestCookies) => {
+export const getSession = async (sessionCookie?: string) => {
   const sessionToken =
-    requestCookies?.get("__session")?.value ??
+    sessionCookie ??
     (await headers()).get("cookie")?.match(/__session=([^;]+)/)?.[1];
 
   return betterFetch<{

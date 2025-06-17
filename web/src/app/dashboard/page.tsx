@@ -20,7 +20,7 @@ export default async function Dashboard() {
       <h1 className={'text-2xl font-semibold'}>Dashboard</h1>
       <h2 className={'text-xl text-outline font-semibold'}>Stores</h2>
       <div className={'flex flex-col gap-3'}>
-        {data.map((store) => <StoreItem store={store} key={store.id} />)}
+        {data.stores.map((store) => <StoreItem store={store} key={store.id} />)}
       </div>
       <SignOutForm />
     </div>
