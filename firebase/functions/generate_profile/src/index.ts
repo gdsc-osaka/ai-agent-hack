@@ -12,6 +12,8 @@ import {
   Request as TasksRequest,
 } from "firebase-functions/v2/tasks";
 import { v4 as uuidv4 } from "uuid";
+import db from "../../../../backend/src/db/db";
+import { profile } from "../../../../backend/src/db/schema/profile";
 
 const tasksClient = new CloudTasksClient();
 const projectId = process.env.GCP_PROJECT_ID || "recall-you";
@@ -92,9 +94,7 @@ function parseAudio(
       resolve({ buffer: Buffer.concat(chunks), audioMime });
     });
 
-    const raw = req.rawBody;
-    if (!raw) return reject(new Error("Request rawBody is empty"));
-    busboy.end(raw);
+    req.pipe(busboy);
   });
 }
 
@@ -157,8 +157,12 @@ export const generateProfile = onTaskDispatched(
       };
 
       const response = await ai.models.generateContent(request);
-      const profile = await response.text;
-      console.log(profile);
+      const profileData = await response.text;
+      if (!profileData) {
+        throw new Error("No profile data returned from Gemini API");
+      }
+      const profileList = JSON.parse(profileData);
+      await db.insert(profile).values(profileList);
       return;
     } catch (error) {
       console.error("Error occurred during audio file processing:", error);
