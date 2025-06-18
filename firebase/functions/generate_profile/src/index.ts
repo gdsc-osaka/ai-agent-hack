@@ -129,7 +129,9 @@ export const generateProfile = onTaskDispatched(
                 },
               },
               {
-                text: "Generate profile data from the attached audio file.",
+                text:
+                  "Generate profile data from the attached audio file. " +
+                  "Please return the birthday in ISO 8601 format (YYYY-MM-DD).",
               },
             ],
           },
@@ -161,8 +163,22 @@ export const generateProfile = onTaskDispatched(
       if (!profileData) {
         throw new Error("No profile data returned from Gemini API");
       }
-      const profileList = JSON.parse(profileData);
-      await db.insert(profile).values(profileList);
+      const profileList: Array<{
+        gender: string;
+        birthday: string;
+        birthplace: string;
+        business: string;
+        partner: string;
+        hobby: string;
+        news: string;
+        worry: string;
+        store: string;
+      }> = JSON.parse(profileData);
+      const normalizedProfiles = profileList.map((p) => ({
+        ...p,
+        birthday: new Date(p.birthday),
+      }));
+      await db.insert(profile).values(normalizedProfiles);
       return;
     } catch (error) {
       console.error("Error occurred during audio file processing:", error);

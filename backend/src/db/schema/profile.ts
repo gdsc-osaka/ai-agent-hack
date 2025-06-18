@@ -10,7 +10,7 @@ export const profile = pgTable(
       .primaryKey()
       .notNull(),
     gender: text("gender"),
-    birthday: date("birthday"),
+    birthday: date("birthday", { mode: "date" }),
     birthplace: text("birthplace"),
     business: text("business"),
     partner: text("partner"),

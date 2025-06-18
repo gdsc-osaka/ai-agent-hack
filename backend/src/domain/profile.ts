@@ -13,12 +13,7 @@ export const Profile = z
   .object({
     id: ProfileId,
     gender: z.string().optional(),
-    birthday: z.preprocess((arg) => {
-      if (arg instanceof Date) {
-        return arg.toISOString();
-      }
-      return typeof arg === "string" ? arg : "";
-    }, z.string().optional()),
+    birthday: z.coerce.date().optional(),
     birthplace: z.string().optional(),
     business: z.string().optional(),
     partner: z.string().optional(),
@@ -45,7 +40,7 @@ export const validateProfile = (profile: DBProfile): Result<Profile, InvalidProf
   const res = Profile.safeParse({
     id: profile.id as ProfileId,
     gender: profile.gender ?? "",
-    birthday: profile.birthday ?? "",
+    birthday: profile.birthday ?? undefined,
     birthplace: profile.birthplace ?? "",
     business: profile.business ?? "",
     partner: profile.partner ?? "",
