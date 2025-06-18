@@ -9,21 +9,20 @@ import { errorBuilder, InferError } from "../shared/error";
 export const ProfileId = z.string().min(1).brand<"PROFILE_ID">();
 export type ProfileId = z.infer<typeof ProfileId>;
 
-export const Profile = z
-  .object({
-    id: ProfileId,
-    gender: z.string().optional(),
-    birthday: z.coerce.date().optional(),
-    birthplace: z.string().optional(),
-    business: z.string().optional(),
-    partner: z.string().optional(),
-    hobby: z.string().optional(),
-    news: z.string().optional(),
-    worry: z.string().optional(),
-    store: z.string().optional(),
-    createdAt: Timestamp,
-    updatedAt: Timestamp,
-  });
+export const Profile = z.object({
+  id: ProfileId,
+  gender: z.string().optional(),
+  birthday: z.coerce.date().optional(),
+  birthplace: z.string().optional(),
+  business: z.string().optional(),
+  partner: z.string().optional(),
+  hobby: z.string().optional(),
+  news: z.string().optional(),
+  worry: z.string().optional(),
+  store: z.string().optional(),
+  createdAt: Timestamp,
+  updatedAt: Timestamp,
+});
 export type Profile = z.infer<typeof Profile>;
 
 export type DBProfile = typeof profile.$inferSelect;
@@ -36,7 +35,9 @@ export const InvalidProfileError = errorBuilder<
 >("InvalidProfileError");
 export type InvalidProfileError = InferError<typeof InvalidProfileError>;
 
-export const validateProfile = (profile: DBProfile): Result<Profile, InvalidProfileError> => {
+export const validateProfile = (
+  profile: DBProfile
+): Result<Profile, InvalidProfileError> => {
   const res = Profile.safeParse({
     id: profile.id as ProfileId,
     gender: profile.gender ?? "",
