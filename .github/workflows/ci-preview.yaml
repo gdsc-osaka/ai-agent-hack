@@ -58,7 +58,8 @@ jobs:
           if [ -z "$channel_url" ]; then
             echo "No existing channel found. Creating a new channel."
             # Read firebase.json, remove hosting.rewrites, and save to a firebase.json file
-            cat firebase.json | jq 'del(.hosting.rewrites)' > firebase.json
+            cat firebase.json | jq 'del(.hosting.rewrites)' > firebase.tmp.json
+            mv firebase.tmp.json firebase.json
           else
             echo "Existing channel found: $channel_url"
           fi
