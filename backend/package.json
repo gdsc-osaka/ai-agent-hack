@@ -29,19 +29,18 @@
     "@google-cloud/storage": "^7.16.0",
     "@google/genai": "^1.5.1",
     "@hono/node-server": "^1.14.4",
+    "@hono/zod-openapi": "^0.19.8",
     "@hono/zod-validator": "^0.7.0",
     "@paralleldrive/cuid2": "^2.2.2",
     "better-auth": "^1.2.9",
     "drizzle-orm": "^0.44.2",
     "firebase-admin": "^13.4.0",
     "hono": "^4.7.8",
-    "hono-openapi": "^0.4.8",
     "log4js": "^6.9.1",
     "neverthrow": "^8.2.0",
     "postgres": "^3.4.5",
     "ts-pattern": "^5.7.0",
-    "zod": "^3.25.64",
-    "zod-openapi": "^4.2.4"
+    "zod": "^3.25.64"
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.44.2",

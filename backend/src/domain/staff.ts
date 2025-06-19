@@ -1,12 +1,11 @@
 import { staffs } from "../db/schema/stores";
 import { FieldErrors, ForUpdate } from "./shared/types";
-import z from "zod";
+import { z } from "@hono/zod-openapi";
 import { Timestamp, toTimestamp } from "./timestamp";
 import { Uid } from "./auth";
 import { errorBuilder, InferError } from "../shared/error";
 import { err, ok, Result } from "neverthrow";
 import { User } from "better-auth";
-import "zod-openapi/extend";
 
 export type DBStaff = typeof staffs.$inferSelect;
 export type DBStaffForCreate = typeof staffs.$inferInsert;
@@ -23,7 +22,7 @@ export const Staff = z
     updatedAt: Timestamp,
   })
   .brand<"STAFF">()
-  .openapi({ ref: "Staff" });
+  .openapi("Staff");
 export type Staff = z.infer<typeof Staff>;
 
 export const InvalidStaffError = errorBuilder<

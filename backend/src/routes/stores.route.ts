@@ -1,44 +1,55 @@
-import { describeRoute } from "hono-openapi";
-import { resolver } from "hono-openapi/zod";
 import { Store } from "../domain/store";
 import { z } from "zod";
+import { ApiError } from "../controller/error/api-error";
+import { createDefaultRoute } from "./shared/default-route";
 
 const tags = ["Stores"];
 
-const createStore = describeRoute({
+const createStore = createDefaultRoute({
+  method: "post",
+  path: "/",
   tags,
-  validateResponse: true,
   operationId: "createStore",
   description: "Create a new store",
-  requestBody: {
-    content: {
-      "application/json": {
-        schema: {
-          type: "object",
-          properties: {
-            id: {
-              type: "string",
-              description: "Unique identifier for the store",
-            },
-          },
-          required: ["id"],
+  security: [
+    {
+      session: [],
+    },
+  ],
+  request: {
+    body: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            id: z.string().describe("Unique identifier for the store"),
+          }),
         },
       },
     },
   },
   responses: {
     200: {
-      description: "Successful response",
       content: {
         "application/json": {
-          schema: resolver(Store),
+          schema: Store,
+        },
+      },
+      description: "Create store response",
+    },
+    400: {
+      description: "Bad Request - Invalid input or missing image",
+      content: {
+        "application/json": {
+          schema: ApiError,
         },
       },
     },
   },
 });
 
-const fetchStoresForStaff = describeRoute({
+const fetchStoresForStaff = createDefaultRoute({
+  method: "get",
+  path: "/me/stores",
   tags,
   validateResponse: true,
   operationId: "fetchStoresForStaff",
@@ -48,11 +59,9 @@ const fetchStoresForStaff = describeRoute({
       description: "Successful response",
       content: {
         "application/json": {
-          schema: resolver(
-            z.object({
-              stores: Store.array(),
-            })
-          ),
+          schema: z.object({
+            stores: Store.array(),
+          }),
         },
       },
     },
