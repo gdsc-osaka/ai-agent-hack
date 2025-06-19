@@ -1,4 +1,3 @@
-import { Hono } from "hono";
 import { FieldValue } from "firebase-admin/firestore";
 import { createId } from "@paralleldrive/cuid2";
 import conn from "../db/db";
@@ -7,14 +6,15 @@ import { eq } from "drizzle-orm";
 import vectorRoute from "./vector.route";
 import getFirebaseApp from "../firebase";
 import env from "../env";
+import { OpenAPIHono } from "@hono/zod-openapi";
 
-const app = new Hono();
+const app = new OpenAPIHono();
 
 type EmbeddingResponse = {
   embedding: number[][];
 };
 
-app.post("/face-auth", vectorRoute.authenticateFace, async (c) => {
+app.openapi(vectorRoute.authenticateFace, async (c) => {
   const formData = await c.req.formData();
   const image = formData.get("image") as File | null;
   if (!image) {
@@ -31,14 +31,17 @@ app.post("/face-auth", vectorRoute.authenticateFace, async (c) => {
 
   const customer = await findCustomerById(customerId);
 
-  return c.json({
-    customerId: customer.id,
-    createdAt: customer.createdAt,
-    updatedAt: customer.updatedAt,
-  });
+  return c.json(
+    {
+      customerId: customer.id,
+      createdAt: customer.createdAt.toISOString(),
+      updatedAt: customer.updatedAt.toISOString(),
+    },
+    200
+  );
 });
 
-app.post("/face", vectorRoute.registerFace, async (c) => {
+app.openapi(vectorRoute.registerFace, async (c) => {
   const formData = await c.req.formData();
   const image = formData.get("image") as File | null;
   if (!image) {
