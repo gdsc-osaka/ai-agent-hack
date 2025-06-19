@@ -1,10 +1,9 @@
 import { FieldErrors, ForUpdate } from "./shared/types";
 import { stores } from "../db/schema/stores";
-import z from "zod";
+import { z } from "@hono/zod-openapi";
 import { Timestamp, toTimestamp } from "./timestamp";
 import { errorBuilder, InferError } from "../shared/error";
 import { err, ok, Result } from "neverthrow";
-import "zod-openapi/extend";
 
 export type DBStore = typeof stores.$inferSelect;
 export type DBStoreForCreate = typeof stores.$inferInsert;
@@ -25,7 +24,7 @@ export const Store = z
     updatedAt: Timestamp,
   })
   .brand<"STORE">()
-  .openapi({ ref: "Store" });
+  .openapi("Store");
 export type Store = z.infer<typeof Store>;
 
 export const InvalidStoreError = errorBuilder<
