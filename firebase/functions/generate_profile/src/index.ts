@@ -13,7 +13,7 @@ import {
 } from "firebase-functions/v2/tasks";
 import { v4 as uuidv4 } from "uuid";
 import db from "../../../../backend/src/db/db";
-import { profile } from "../../../../backend/src/db/schema/profile";
+import { profiles } from "../../../../backend/src/db/schema/profiles";
 
 const tasksClient = new CloudTasksClient();
 const projectId = process.env.GCP_PROJECT_ID || "recall-you";
@@ -53,7 +53,9 @@ export const uploadAudio = onRequest(
       res.status(200).send(`Task queued (id=${id})`);
     } catch (error) {
       console.error("uploadAudio error:", error);
-      res.status(500).send((error as Error).message);
+      res.status(500).send(
+        error instanceof Error ? error.message : String(error)
+      );
     }
   }
 );
@@ -178,7 +180,7 @@ export const generateProfile = onTaskDispatched(
         ...p,
         birthday: new Date(p.birthday),
       }));
-      await db.insert(profile).values(normalizedProfiles);
+      await db.insert(profiles).values(normalizedProfiles);
       return;
     } catch (error) {
       console.error("Error occurred during audio file processing:", error);

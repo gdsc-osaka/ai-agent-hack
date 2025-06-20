@@ -1,4 +1,4 @@
-import { profile } from "../db/schema/profile";
+import { profiles } from "../db/schema/profiles";
 import z from "zod";
 import "zod-openapi/extend";
 import { err, ok, Result } from "neverthrow";
@@ -25,8 +25,8 @@ export const Profile = z.object({
 });
 export type Profile = z.infer<typeof Profile>;
 
-export type DBProfile = typeof profile.$inferSelect;
-export type DBProfileForCreate = typeof profile.$inferInsert;
+export type DBProfile = typeof profiles.$inferSelect;
+export type DBProfileForCreate = typeof profiles.$inferInsert;
 export type DBProfileForUpdate = ForUpdate<DBProfile>;
 
 export const InvalidProfileError = errorBuilder<
@@ -40,15 +40,15 @@ export const validateProfile = (
 ): Result<Profile, InvalidProfileError> => {
   const res = Profile.safeParse({
     id: profile.id as ProfileId,
-    gender: profile.gender ?? "",
+    gender: profile.gender ?? undefined,
     birthday: profile.birthday ?? undefined,
-    birthplace: profile.birthplace ?? "",
-    business: profile.business ?? "",
-    partner: profile.partner ?? "",
-    hobby: profile.hobby ?? "",
-    news: profile.news ?? "",
-    worry: profile.worry ?? "",
-    store: profile.store ?? "",
+    birthplace: profile.birthplace ?? undefined,
+    business: profile.business ?? undefined,
+    partner: profile.partner ?? undefined,
+    hobby: profile.hobby ?? undefined,
+    news: profile.news ?? undefined,
+    worry: profile.worry ?? undefined,
+    store: profile.store ?? undefined,
     createdAt: toTimestamp(profile.createdAt),
     updatedAt: toTimestamp(profile.updatedAt),
   } satisfies OmitBrand<Profile>);
