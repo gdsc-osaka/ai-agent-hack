@@ -19,6 +19,9 @@ jobs:
     permissions:
       contents: "read"
       id-token: "write" # OIDC認証に必要
+    defaults:
+      run:
+        working-directory: backend
 
     steps:
       - name: Checkout repository
