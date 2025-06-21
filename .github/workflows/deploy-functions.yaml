@@ -45,6 +45,9 @@ jobs:
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
+      - name: Install backend dependencies
+        run: npm --prefix "../backend" install
+
       - name: Install all Function dependencies
         run: |
           for dir in functions/*; do
