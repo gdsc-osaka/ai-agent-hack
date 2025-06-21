@@ -7,6 +7,7 @@ on:
     paths:
       - "firebase/functions/**"
       - ".github/workflows/deploy-functions.yaml"
+  pull_request:
 
 env:
   GCP_PROJECT_ID: "recall-you"
