@@ -21,7 +21,7 @@ jobs:
       id-token: "write" # OIDC認証に必要
     defaults:
       run:
-        working-directory: backend
+        working-directory: firebase
 
     steps:
       - name: Checkout repository
