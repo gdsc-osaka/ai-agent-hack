@@ -14,10 +14,7 @@ module.exports = {
   ],
   parser: "@typescript-eslint/parser",
   parserOptions: {
-    project: [
-      "firebase/functions/generate_profile/tsconfig.json",
-      "firebase/functions/generate_profile/tsconfig.dev.json",
-    ],
+    project: ["tsconfig.json", "tsconfig.dev.json"],
     sourceType: "module",
   },
   ignorePatterns: [
