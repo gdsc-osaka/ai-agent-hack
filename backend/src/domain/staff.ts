@@ -6,10 +6,13 @@ import { Uid } from "./auth";
 import { errorBuilder, InferError } from "../shared/error";
 import { err, ok, Result } from "neverthrow";
 import { User } from "better-auth";
+import { DBStoreToStaff, StaffRole } from "./store-staff";
 
 export type DBStaff = typeof staffs.$inferSelect;
 export type DBStaffForCreate = typeof staffs.$inferInsert;
 export type DBStaffForUpdate = ForUpdate<DBStaff>;
+
+export type DBStaffForStore = DBStaff & Pick<DBStoreToStaff, "role">;
 
 export const StaffId = z.string().min(1).brand<"STAFF_ID">();
 export type StaffId = z.infer<typeof StaffId>;
@@ -24,6 +27,13 @@ export const Staff = z
   .brand<"STAFF">()
   .openapi("Staff");
 export type Staff = z.infer<typeof Staff>;
+
+export const StaffForStore = Staff.and(
+  z.object({
+    role: StaffRole,
+  })
+);
+export type StaffForStore = z.infer<typeof StaffForStore>;
 
 export const InvalidStaffError = errorBuilder<
   "InvalidStaffError",
@@ -62,6 +72,40 @@ export const validateStaffs: ValidateStaffs = (
 ): Result<Staff[], InvalidStaffError> =>
   Result.combine(staffs.map(validateStaff));
 
+// validate StaffForStore
+export const InvalidStaffForStoreError = errorBuilder<
+  "InvalidStaffForStoreError",
+  FieldErrors<typeof StaffForStore>
+>("InvalidStaffForStoreError");
+export type InvalidStaffForStoreError = InferError<
+  typeof InvalidStaffForStoreError
+>;
+
+export type ValidateStaffForStore = (
+  staff: DBStaffForStore
+) => Result<StaffForStore, InvalidStaffForStoreError>;
+
+export const validateStaffForStore: ValidateStaffForStore = (
+  staff: DBStaffForStore
+): Result<StaffForStore, InvalidStaffForStoreError> => {
+  const res = StaffForStore.safeParse({
+    id: staff.id as StaffId,
+    userId: staff.userId as Uid,
+    createdAt: toTimestamp(staff.createdAt),
+    updatedAt: toTimestamp(staff.updatedAt),
+    role: staff.role,
+  });
+
+  if (res.success) return ok(res.data);
+
+  return err(
+    InvalidStaffForStoreError("Invalid staff data for store", {
+      cause: res.error,
+      extra: res.error.flatten().fieldErrors,
+    })
+  );
+};
+
 export const CreateNewStaffError = errorBuilder(
   "CreateNewStaffError",
   z.object({
@@ -90,5 +134,6 @@ export const createNewStaff: CreateNewStaff = (
 
   return ok({
     userId: user.id,
+    email: user.email,
   });
 };
