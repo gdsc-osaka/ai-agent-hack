@@ -9,19 +9,19 @@ import {
   CustomerNotFoundError,
 } from "./customer-repo.error";
 
-export type InsertCustomer = (
+export type CreatetDBCustomer = (
   db: DBorTx
 ) => (
   id: string
 ) => ResultAsync<DBCustomer, DBInternalError | CustomerAlreadyExistsError>;
 
-export type FindCustomerById = (
+export type FindDBCustomerById = (
   db: DBorTx
 ) => (
   id: string
 ) => ResultAsync<DBCustomer, DBInternalError | CustomerNotFoundError>;
 
-export const findDBCustomerById: FindCustomerById = (db) => (id) =>
+export const findDBCustomerById: FindDBCustomerById = (db) => (id) =>
   ResultAsync.fromPromise(
     db.select().from(customers).where(eq(customers.id, id)).limit(1),
     DBInternalError.handle
@@ -31,7 +31,7 @@ export const findDBCustomerById: FindCustomerById = (db) => (id) =>
       : err(CustomerNotFoundError("Customer not found"))
   );
 
-export const createDBCustomer: InsertCustomer = (db) => (id) =>
+export const createDBCustomer: CreatetDBCustomer = (db) => (id) =>
   ResultAsync.fromPromise(
     db.insert(customers).values({ id }).returning(),
     DBInternalError.handle
