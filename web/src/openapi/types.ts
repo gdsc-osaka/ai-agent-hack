@@ -55,6 +55,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stores/:storeId/invite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Invite a staff member to a store */
+        post: operations["inviteStaffToStore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/staffs/me/stores": {
         parameters: {
             query?: never;
@@ -91,7 +108,7 @@ export interface components {
             updatedAt: string;
         };
         /** @enum {string} */
-        ApiErrorCode: "DATABASE_UNKNOWN_ERROR" | "DATABASE_NOT_FOUND" | "DATABASE_ALREADY_EXISTS" | "DATABASE_INCONSISTENT_TYPE" | "INVALID_REQUEST_BODY";
+        ApiErrorCode: "DATABASE_UNKNOWN_ERROR" | "DATABASE_NOT_FOUND" | "DATABASE_ALREADY_EXISTS" | "DATABASE_INCONSISTENT_TYPE" | "PERMISSION_DENIED" | "INVALID_REQUEST_BODY";
         ApiError: {
             message: string;
             code: components["schemas"]["ApiErrorCode"];
@@ -104,6 +121,26 @@ export interface components {
         };
         Store: {
             id: string;
+            createdAt: components["schemas"]["Timestamp"];
+            updatedAt: components["schemas"]["Timestamp"];
+        };
+        /** @enum {string} */
+        StaffInvitationStatus: "PENDING" | "ACCEPTED" | "DECLINED" | "EXPIRED";
+        /** @enum {string} */
+        StaffRole: "ADMIN" | "STAFF";
+        StaffInvitation: {
+            status: components["schemas"]["StaffInvitationStatus"];
+            role: components["schemas"]["StaffRole"];
+            storeId: string;
+            /**
+             * Format: email
+             * @description Email of the staff member to invite
+             */
+            targetEmail: string;
+            invitedBy: string;
+            /** @description Unique token for the invitation */
+            token: string;
+            expiredAt: components["schemas"]["Timestamp"];
             createdAt: components["schemas"]["Timestamp"];
             updatedAt: components["schemas"]["Timestamp"];
         };
@@ -233,6 +270,49 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Store"];
+                };
+            };
+            /** @description Bad Request - Invalid input or missing image */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    inviteStaffToStore: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description ID of the store to invite staff to */
+                storeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: email
+                     * @description Email of the staff member to invite
+                     */
+                    email: string;
+                    role: components["schemas"]["StaffRole"];
+                };
+            };
+        };
+        responses: {
+            /** @description Staff invitation sent successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffInvitation"];
                 };
             };
             /** @description Bad Request - Invalid input or missing image */
