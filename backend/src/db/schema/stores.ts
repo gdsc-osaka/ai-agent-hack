@@ -35,6 +35,7 @@ export const staffs = pgTable(
       .primaryKey()
       .notNull(),
     userId: text("user_id").notNull(),
+    email: text("email").notNull().unique(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .$onUpdate(() => new Date())

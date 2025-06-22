@@ -90,5 +90,6 @@ export const createNewStaff: CreateNewStaff = (
 
   return ok({
     userId: user.id,
+    email: user.email,
   });
 };
