@@ -28,6 +28,8 @@ jobs:
   setup-env:
     runs-on: ubuntu-latest
     permissions:
+      checks: write
+      contents: 'read'
       id-token: 'write' # OIDC認証に必要
     outputs:
       hosting_url: ${{ steps.firebase.outputs.hosting_url }}
@@ -50,18 +52,37 @@ jobs:
         run: npm install -g firebase-tools
       - name: Get latest firebase deployment
         working-directory: web
-        id: firebase
         run: |
           channel_url=$(firebase hosting:channel:list --json | jq -r '.result.channels[] | select(.name | startswith("projects/recall-you/sites/recall-you/channels/pr${{ github.event.number }}")) | .url' | head -n 1)
           
           if [ -z "$channel_url" ]; then
             echo "No existing channel found. Creating a new channel."
-            result=$(firebase hosting:channel:create pr39-harineko0-employee-c --expires 1d --json)
-            channel_url=$(echo "$result" | jq -r '.result.url')
+            # Read firebase.json, remove hosting.rewrites, and save to a firebase.json file
+            cat firebase.json | jq 'del(.hosting.rewrites)' > firebase.tmp.json
+            mv firebase.tmp.json firebase.json
           else
             echo "Existing channel found: $channel_url"
           fi
-          echo "hosting_url=$channel_url" >> $GITHUB_OUTPUT
+          echo "hosting_url=$channel_url" >> $GITHUB_ENV
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        id: firebase-deploy
+        if: ${{ env.hosting_url == '' }}
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_RECALL_YOU }}
+          projectId: recall-you
+          expires: 3d
+          entryPoint: web
+      - name: Output Firebase Hosting URL
+        id: firebase
+        run: |
+          if [ -z "$hosting_url" ]; then
+            echo "No Firebase Hosting URL found. Using the channel URL."
+            hosting_url="${{ steps.firebase-deploy.outputs.details_url }}"
+          else
+            echo "hosting_url=${{ env.hosting_url }}" >> $GITHUB_OUTPUT
+          fi
+          echo "hosting_url=$hosting_url" >> $GITHUB_OUTPUT
       - name: Create environment variables
         id: env
         run: |
@@ -253,7 +274,6 @@ jobs:
           projectId: recall-you
           expires: '3d'
           entryPoint: 'web'
-          disableComment: true
       - name: Comment on PR
         run: |
           COMMENT_TAG="<!-- PREVIEW_URL_COMMENT -->"
