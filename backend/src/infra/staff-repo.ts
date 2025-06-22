@@ -1,13 +1,13 @@
 import { DBorTx } from "../db/db";
 import { errAsync, okAsync, ResultAsync } from "neverthrow";
-import { DBStaff, DBStaffForCreate } from "../domain/staff";
+import { DBStaff, DBStaffForCreate, DBStaffForStore } from "../domain/staff";
 import { DBInternalError } from "./shared/db-error";
 import {
   DBStaffAlreadyExistsError,
   DBStaffNotFoundError,
 } from "./staff-repo.error";
-import { staffs } from "../db/schema/stores";
-import { eq } from "drizzle-orm";
+import { staffs, storesToStaffs } from "../db/schema/stores";
+import { and, eq } from "drizzle-orm";
 import { Uid } from "../domain/auth";
 
 export type FetchDBStaffByUserId = (
@@ -25,6 +25,69 @@ export const fetchDBStaffByUserId: FetchDBStaffByUserId = (db) => (userId) =>
       ? okAsync(records[0])
       : errAsync(DBStaffNotFoundError("Staff not found", { extra: { userId } }))
   );
+
+export type FetchDBStaffByStoreIdAndEmail = (
+  db: DBorTx
+) => (
+  storeId: string,
+  email: string
+) => ResultAsync<DBStaff, DBInternalError | DBStaffNotFoundError>;
+
+export const fetchDBStaffByStoreIdAndEmail: FetchDBStaffByStoreIdAndEmail =
+  (db) => (storeId, email) =>
+    ResultAsync.fromPromise(
+      db
+        .select({
+          staff: staffs,
+        })
+        .from(staffs)
+        .innerJoin(storesToStaffs, eq(staffs.id, storesToStaffs.staffId))
+        .where(
+          and(eq(staffs.email, email), eq(storesToStaffs.storeId, storeId))
+        )
+        .limit(1),
+      DBInternalError.handle
+    ).andThen((records) =>
+      records.length > 0
+        ? okAsync(records[0].staff)
+        : errAsync(
+            DBStaffNotFoundError("Staff not found", {
+              extra: { storeId, email },
+            })
+          )
+    );
+
+export type FetchStaffForStoreById = (
+  db: DBorTx
+) => (
+  userId: Uid
+) => ResultAsync<DBStaffForStore, DBInternalError | DBStaffNotFoundError>;
+
+export const fetchDBStaffForStoreRoleById: FetchStaffForStoreById =
+  (db) => (userId) =>
+    ResultAsync.fromPromise(
+      db
+        .select({
+          role: storesToStaffs.role,
+          staff: staffs,
+        })
+        .from(storesToStaffs)
+        .innerJoin(staffs, eq(storesToStaffs.staffId, staffs.id))
+        .where(eq(staffs.userId, userId))
+        .limit(1),
+      DBInternalError.handle
+    ).andThen((records) =>
+      records.length > 0
+        ? okAsync({
+            ...records[0].staff,
+            role: records[0].role,
+          })
+        : errAsync(
+            DBStaffNotFoundError("Staff not found", {
+              extra: { userId: userId },
+            })
+          )
+    );
 
 export type InsertDBStaff = (
   db: DBorTx
