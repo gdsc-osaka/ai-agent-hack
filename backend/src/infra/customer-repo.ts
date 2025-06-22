@@ -21,7 +21,7 @@ export type FindCustomerById = (
   id: string
 ) => ResultAsync<DBCustomer, DBInternalError | CustomerNotFoundError>;
 
-export const findCustomerById: FindCustomerById = (db) => (id) =>
+export const findDBCustomerById: FindCustomerById = (db) => (id) =>
   ResultAsync.fromPromise(
     db.select().from(customers).where(eq(customers.id, id)).limit(1),
     DBInternalError.handle
@@ -31,7 +31,7 @@ export const findCustomerById: FindCustomerById = (db) => (id) =>
       : err(CustomerNotFoundError("Customer not found"))
   );
 
-export const createCustomer: InsertCustomer = (db) => (id) =>
+export const createDBCustomer: InsertCustomer = (db) => (id) =>
   ResultAsync.fromPromise(
     db.insert(customers).values({ id }).returning(),
     DBInternalError.handle
