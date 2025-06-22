@@ -6,6 +6,7 @@ export const ApiErrorCode = z
     "DATABASE_NOT_FOUND",
     "DATABASE_ALREADY_EXISTS",
     "DATABASE_INCONSISTENT_TYPE",
+    "PERMISSION_DENIED",
     "INVALID_REQUEST_BODY",
   ])
   .openapi("ApiErrorCode");
