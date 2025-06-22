@@ -78,11 +78,11 @@ jobs:
         run: |
           if [ -z "$hosting_url" ]; then
             echo "No Firebase Hosting URL found. Using the channel URL."
-            hosting_url="${{ steps.firebase-deploy.outputs.urls }}"
+            hosting_url="${{ steps.firebase-deploy.outputs.details_url }}"
           else
             echo "hosting_url=${{ env.hosting_url }}" >> $GITHUB_OUTPUT
           fi
-          echo "$hosting_url" >> $GITHUB_OUTPUT
+          echo "hosting_url=$hosting_url" >> $GITHUB_OUTPUT
       - name: Create environment variables
         id: env
         run: |
