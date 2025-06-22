@@ -77,29 +77,35 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         Customer: {
-            /** @description The ID of registered user. */
+            /** @description The ID of the authenticated user */
             customerId: string;
-            /** @description Timestamp of when the user was created */
+            /**
+             * Format: date-time
+             * @description Timestamp of when the user was created
+             */
             createdAt: string;
-            /** @description Timestamp of when the user was last updated */
+            /**
+             * Format: date-time
+             * @description Timestamp of when the user was last updated
+             */
             updatedAt: string;
         };
+        /** @enum {string} */
+        ApiErrorCode: "DATABASE_UNKNOWN_ERROR" | "DATABASE_NOT_FOUND" | "DATABASE_ALREADY_EXISTS" | "DATABASE_INCONSISTENT_TYPE" | "INVALID_REQUEST_BODY";
         ApiError: {
             message: string;
             code: components["schemas"]["ApiErrorCode"];
             /** @default [] */
             details: unknown[];
         };
-        /** @enum {string} */
-        ApiErrorCode: "DATABASE_UNKNOWN_ERROR" | "DATABASE_NOT_FOUND" | "DATABASE_ALREADY_EXISTS" | "DATABASE_INCONSISTENT_TYPE" | "INVALID_REQUEST_BODY";
+        Timestamp: {
+            seconds: number;
+            nanoseconds: number;
+        };
         Store: {
             id: string;
             createdAt: components["schemas"]["Timestamp"];
             updatedAt: components["schemas"]["Timestamp"];
-        };
-        Timestamp: {
-            seconds: number;
-            nanoseconds: number;
         };
     };
     responses: never;
@@ -183,7 +189,14 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Customer"];
+                    "application/json": components["schemas"]["Customer"] & {
+                        /** @description The ID of registered user. */
+                        customerId?: string;
+                        /** @description Timestamp of when the user was created */
+                        createdAt?: string;
+                        /** @description Timestamp of when the user was last updated */
+                        updatedAt?: string;
+                    };
                 };
             };
             /** @description Bad Request - Invalid input or missing image */
@@ -213,7 +226,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Successful response */
+            /** @description Create store response */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -222,7 +235,7 @@ export interface operations {
                     "application/json": components["schemas"]["Store"];
                 };
             };
-            /** @description Bad Request */
+            /** @description Bad Request - Invalid input or missing image */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -253,7 +266,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Bad Request */
+            /** @description Bad Request - Invalid input or missing image */
             400: {
                 headers: {
                     [name: string]: unknown;

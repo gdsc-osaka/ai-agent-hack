@@ -1,12 +1,12 @@
-import { describeRoute } from "hono-openapi";
-import { resolver } from "hono-openapi/zod";
-import "zod-openapi/extend";
-import z from "zod";
+import { z } from "@hono/zod-openapi";
 import { ApiError } from "../controller/error/api-error";
+import { createDefaultRoute } from "./shared/default-route";
 
 const tags = ["Vector"];
 
-const authenticateFace = describeRoute({
+const authenticateFace = createDefaultRoute({
+  method: "post",
+  path: "/face-auth",
   tags,
   validateResponse: true,
   operationId: "authenticateFace",
@@ -33,21 +33,21 @@ const authenticateFace = describeRoute({
       description: "Successful authenticated response",
       content: {
         "application/json": {
-          schema: resolver(
-            z
-              .object({
-                customerId: z
-                  .string()
-                  .openapi({ description: "The ID of the authenticated user" }),
-                createdAt: z.string().openapi({
-                  description: "Timestamp of when the user was created",
-                }),
-                updatedAt: z.string().openapi({
-                  description: "Timestamp of when the user was last updated",
-                }),
-              })
-              .openapi({ ref: "Customer" })
-          ),
+          schema: z
+            .object({
+              customerId: z
+                .string()
+                .openapi({ description: "The ID of the authenticated user" }),
+              createdAt: z.date().openapi({
+                description: "Timestamp of when the user was created",
+                format: "date-time",
+              }),
+              updatedAt: z.date().openapi({
+                description: "Timestamp of when the user was last updated",
+                format: "date-time",
+              }),
+            })
+            .openapi("Customer"),
         },
       },
     },
@@ -55,7 +55,7 @@ const authenticateFace = describeRoute({
       description: "Forbidden - User not authenticated",
       content: {
         "application/json": {
-          schema: resolver(ApiError),
+          schema: ApiError,
         },
       },
     },
@@ -63,16 +63,17 @@ const authenticateFace = describeRoute({
       description: "Bad Request - Invalid input or missing image",
       content: {
         "application/json": {
-          schema: resolver(ApiError),
+          schema: ApiError,
         },
       },
     },
   },
 });
 
-const registerFace = describeRoute({
+const registerFace = createDefaultRoute({
+  method: "post",
+  path: "/face",
   tags,
-  validateResponse: true,
   operationId: "registerFace",
   description: "Register a user's face for authentication",
   requestBody: {
@@ -97,21 +98,19 @@ const registerFace = describeRoute({
       description: "Successful response",
       content: {
         "application/json": {
-          schema: resolver(
-            z
-              .object({
-                customerId: z
-                  .string()
-                  .openapi({ description: "The ID of registered user." }),
-                createdAt: z.string().openapi({
-                  description: "Timestamp of when the user was created",
-                }),
-                updatedAt: z.string().openapi({
-                  description: "Timestamp of when the user was last updated",
-                }),
-              })
-              .openapi({ ref: "Customer" })
-          ),
+          schema: z
+            .object({
+              customerId: z
+                .string()
+                .openapi({ description: "The ID of registered user." }),
+              createdAt: z.string().openapi({
+                description: "Timestamp of when the user was created",
+              }),
+              updatedAt: z.string().openapi({
+                description: "Timestamp of when the user was last updated",
+              }),
+            })
+            .openapi("Customer"),
         },
       },
     },
@@ -119,7 +118,7 @@ const registerFace = describeRoute({
       description: "Bad Request - Invalid input or missing image",
       content: {
         "application/json": {
-          schema: resolver(ApiError),
+          schema: ApiError,
         },
       },
     },
