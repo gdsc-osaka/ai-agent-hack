@@ -58,7 +58,12 @@ export const inviteStaffToStore =
     fetchDBStaffInvitationByEmailAndPending: FetchDBStaffInvitationByEmailAndPending,
     insertDBStaffInvitation: InsertDBStaffInvitation
   ): InviteStaffToStore =>
-  (authUser: AuthUser, storeId: string, targetEmail: string, targetRole: string) =>
+  (
+    authUser: AuthUser,
+    storeId: string,
+    targetEmail: string,
+    targetRole: string
+  ) =>
     runTransaction(db)((tx) =>
       ResultAsync.combine([
         fetchDBStaffForStoreById(tx)(authUser.uid),
