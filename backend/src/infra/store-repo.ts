@@ -2,7 +2,10 @@ import { DBorTx } from "../db/db";
 import { err, ok, ResultAsync } from "neverthrow";
 import { DBStore, DBStoreForCreate } from "../domain/store";
 import { DBInternalError } from "./shared/db-error";
-import { DBStoreAlreadyExistsError } from "./store-repo.error";
+import {
+  DBStoreAlreadyExistsError,
+  DBStoreNotFoundError,
+} from "./store-repo.error";
 import { staffs, stores } from "../db/schema/stores";
 import { StaffId } from "../domain/staff";
 import { eq } from "drizzle-orm";
@@ -54,4 +57,27 @@ export const fetchDBStoresForStaff: FetchDBStoresForStaff =
           record.storesToStaffs.map((storeToStaff) => storeToStaff.store)
         )
         .flat()
+    );
+
+export type FetchDBStoreByPublicId = (
+  db: DBorTx
+) => (
+  publicId: string
+) => ResultAsync<DBStore, DBInternalError | DBStoreNotFoundError>;
+
+export const fetchDBStoreByPublicId: FetchDBStoreByPublicId =
+  (db: DBorTx) => (publicId: string) =>
+    ResultAsync.fromPromise(
+      db.query.stores.findFirst({
+        where: eq(stores.publicId, publicId),
+      }),
+      DBInternalError.handle
+    ).andThen((record) =>
+      record
+        ? ok(record)
+        : err(
+            DBStoreNotFoundError("Store not found", {
+              extra: { publicId },
+            })
+          )
     );

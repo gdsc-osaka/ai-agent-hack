@@ -8,3 +8,9 @@ export const DBStoreAlreadyExistsError = errorBuilder(
 export type DBStoreAlreadyExistsError = InferError<
   typeof DBStoreAlreadyExistsError
 >;
+
+export const DBStoreNotFoundError = errorBuilder(
+  "DBStoreNotFoundError",
+  z.object({ publicId: z.string() })
+);
+export type DBStoreNotFoundError = InferError<typeof DBStoreNotFoundError>;
