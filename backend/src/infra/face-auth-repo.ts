@@ -4,6 +4,7 @@ import { createId } from "@paralleldrive/cuid2";
 import { FaceAuthError } from "./face-auth-repo.error";
 import type { FirebaseApp } from "../firebase";
 import { FirestoreInternalError } from "./shared/firestore-error";
+import { CustomerId } from "../domain/customer";
 
 export type RegisterEmbedding = (
   firebase: FirebaseApp
@@ -29,7 +30,7 @@ export const registerEmbedding: RegisterEmbedding = (firebase) => (embedding) =>
           created_at: new Date().toISOString(),
         });
 
-      return customerId;
+      return customerId as CustomerId;
     })(),
     FirestoreInternalError.handle
   ).andThen((customerId) => ok(customerId));
