@@ -1,6 +1,6 @@
 import { ResultAsync } from "neverthrow";
 import { HTTPErrorCarrier, StatusCode } from "../error/api-error";
-import { match, P } from "ts-pattern";
+import { match } from "ts-pattern";
 import { FaceEmbeddingError } from "../../infra/face-embedding-repo.error";
 import { FaceAuthError } from "../../infra/face-auth-repo.error";
 import { FirestoreInternalError } from "../../infra/shared/firestore-error";
@@ -44,7 +44,7 @@ export const faceAuthGlobalController = <T>(
       )
       .with(CustomerNotFoundError.is, (e) =>
         HTTPErrorCarrier(StatusCode.NotFound, {
-          message: e.message, 
+          message: e.message,
           code: "DATABASE_NOT_FOUND",
           details: [e.cause],
         })

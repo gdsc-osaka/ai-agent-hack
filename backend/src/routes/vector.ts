@@ -25,9 +25,9 @@ app.openapi(vectorRoute.authenticateFace, async (c) => {
       getFaceEmbedding,
       authenticateFace,
       findDBCustomerById,
-      validateCustomer,
+      validateCustomer
     )(firebase, image)
-  )
+  );
 
   if (res.isErr()) {
     throw toHTTPException(res.error);
@@ -46,7 +46,7 @@ app.openapi(vectorRoute.registerFace, async (c) => {
       getFaceEmbedding,
       registerEmbedding,
       createDBCustomer,
-      validateCustomer,
+      validateCustomer
     )(firebase, image)
   );
 

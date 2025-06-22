@@ -19,11 +19,11 @@ export const Customer = z
   })
   .brand<"CUSTOMER">()
   .openapi("Customer");
-  export type Customer = z.infer<typeof Customer>;
+export type Customer = z.infer<typeof Customer>;
 
 export const InvalidCustomerError = errorBuilder<
-    "InvalidCustomerError",
-    FieldErrors<typeof Customer>
+  "InvalidCustomerError",
+  FieldErrors<typeof Customer>
 >("InvalidCustomerError");
 export type InvalidCustomerError = InferError<typeof InvalidCustomerError>;
 
@@ -48,4 +48,3 @@ export const validateCustomer: ValidateCustomer = (
     })
   );
 };
-

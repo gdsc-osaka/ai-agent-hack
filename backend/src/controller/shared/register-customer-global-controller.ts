@@ -1,6 +1,6 @@
 import { ResultAsync } from "neverthrow";
 import { HTTPErrorCarrier, StatusCode } from "../error/api-error";
-import { match, P } from "ts-pattern";
+import { match } from "ts-pattern";
 import { FaceEmbeddingError } from "../../infra/face-embedding-repo.error";
 import { FirestoreInternalError } from "../../infra/shared/firestore-error";
 import { CustomerAlreadyExistsError } from "../../infra/customer-repo.error";

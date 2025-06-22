@@ -7,7 +7,11 @@ import type { FirebaseApp } from "../firebase";
 import type { FaceEmbeddingError } from "../infra/face-embedding-repo.error";
 import type { FaceAuthError } from "../infra/face-auth-repo.error";
 import type { FirestoreInternalError } from "../infra/shared/firestore-error";
-import type { Customer, DBCustomer, InvalidCustomerError, ValidateCustomer } from "../domain/customer";
+import type {
+  Customer,
+  InvalidCustomerError,
+  ValidateCustomer,
+} from "../domain/customer";
 import type { CustomerNotFoundError } from "../infra/customer-repo.error";
 import type { DBInternalError } from "../infra/shared/db-error";
 export type FaceAuthResult = ResultAsync<
@@ -20,21 +24,17 @@ export type FaceAuthResult = ResultAsync<
   | InvalidCustomerError
 >;
 
-export type FaceAuth = (
-  firebase: FirebaseApp,
-  image: File
-) => FaceAuthResult;
+export type FaceAuth = (firebase: FirebaseApp, image: File) => FaceAuthResult;
 
-export const authFace = (
-  getFaceEmbedding: GetFaceEmbedding,
-  authenticateFace: AuthenticateFace,
-  findDBCustomerById: FindDBCustomerById,
-  validateCustomer: ValidateCustomer,
-): FaceAuth => (
-  firebase: FirebaseApp,
-  image: File
-) => 
-  getFaceEmbedding(image)
-    .andThen((embedding) => authenticateFace(firebase)(embedding))
-    .andThen((customerId) => findDBCustomerById(db)(customerId))
-    .andThen((customer) => validateCustomer(customer))
+export const authFace =
+  (
+    getFaceEmbedding: GetFaceEmbedding,
+    authenticateFace: AuthenticateFace,
+    findDBCustomerById: FindDBCustomerById,
+    validateCustomer: ValidateCustomer
+  ): FaceAuth =>
+  (firebase: FirebaseApp, image: File) =>
+    getFaceEmbedding(image)
+      .andThen((embedding) => authenticateFace(firebase)(embedding))
+      .andThen((customerId) => findDBCustomerById(db)(customerId))
+      .andThen((customer) => validateCustomer(customer));
