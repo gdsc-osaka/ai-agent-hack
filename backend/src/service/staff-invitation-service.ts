@@ -7,7 +7,7 @@ import {
   validateStaffRole,
   InvalidStaffRoleError,
 } from "../domain/store-staff";
-import { FetchStaffForStoreById } from "../infra/staff-repo";
+import { FetchDBStaffForStoreById } from "../infra/staff-repo";
 import {
   validateStaffForStore,
   InvalidStaffForStoreError,
@@ -53,7 +53,7 @@ export type InviteStaffToStore = (
 export const inviteStaffToStore =
   (
     runTransaction: RunTransaction,
-    fetchStaffForStoreById: FetchStaffForStoreById,
+    fetchDBStaffForStoreById: FetchDBStaffForStoreById,
     fetchDBStoreByPublicId: FetchDBStoreByPublicId,
     fetchDBStaffInvitationByEmailAndPending: FetchDBStaffInvitationByEmailAndPending,
     insertDBStaffInvitation: InsertDBStaffInvitation
@@ -61,7 +61,7 @@ export const inviteStaffToStore =
   (authUser: AuthUser, storeId: string, targetEmail: string, targetRole: string) =>
     runTransaction(db)((tx) =>
       ResultAsync.combine([
-        fetchStaffForStoreById(tx)(authUser.uid),
+        fetchDBStaffForStoreById(tx)(authUser.uid),
         fetchDBStoreByPublicId(tx)(storeId),
         checkDuplicateStaffInvitation(
           fetchDBStaffInvitationByEmailAndPending(tx)(storeId, targetEmail)

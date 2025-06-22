@@ -57,13 +57,13 @@ export const fetchDBStaffByStoreIdAndEmail: FetchDBStaffByStoreIdAndEmail =
           )
     );
 
-export type FetchStaffForStoreById = (
+export type FetchDBStaffForStoreById = (
   db: DBorTx
 ) => (
   userId: Uid
 ) => ResultAsync<DBStaffForStore, DBInternalError | DBStaffNotFoundError>;
 
-export const fetchDBStaffForStoreRoleById: FetchStaffForStoreById =
+export const fetchDBStaffForStoreRoleById: FetchDBStaffForStoreById =
   (db) => (userId) =>
     ResultAsync.fromPromise(
       db
