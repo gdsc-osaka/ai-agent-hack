@@ -1,6 +1,7 @@
 import { z } from "@hono/zod-openapi";
 import { ApiError } from "../controller/error/api-error";
 import { createDefaultRoute } from "./shared/default-route";
+import { Timestamp } from "../domain/timestamp";
 
 const tags = ["Vector"];
 
@@ -35,16 +36,14 @@ const authenticateFace = createDefaultRoute({
         "application/json": {
           schema: z
             .object({
-              customerId: z
+              id: z
                 .string()
                 .openapi({ description: "The ID of the authenticated user" }),
-              createdAt: z.date().openapi({
+              createdAt: Timestamp.openapi({
                 description: "Timestamp of when the user was created",
-                format: "date-time",
               }),
-              updatedAt: z.date().openapi({
+              updatedAt: Timestamp.openapi({
                 description: "Timestamp of when the user was last updated",
-                format: "date-time",
               }),
             })
             .openapi("Customer"),
@@ -100,13 +99,13 @@ const registerFace = createDefaultRoute({
         "application/json": {
           schema: z
             .object({
-              customerId: z
+              id: z
                 .string()
                 .openapi({ description: "The ID of registered user." }),
-              createdAt: z.string().openapi({
+              createdAt: Timestamp.openapi({
                 description: "Timestamp of when the user was created",
               }),
-              updatedAt: z.string().openapi({
+              updatedAt: Timestamp.openapi({
                 description: "Timestamp of when the user was last updated",
               }),
             })
