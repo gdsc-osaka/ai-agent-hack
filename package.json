@@ -1,0 +1,13 @@
+{
+  "name": "ai-agent-hack",
+  "private": true,
+  "scripts": {
+    "dev:backend": "pnpm --filter recall-you-api dev",
+    "dev:web": "pnpm --filter recall-you dev",
+    "build:backend": "pnpm --filter recall-you-api build",
+    "build:functions": "pnpm --filter \"functions-*\" build"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

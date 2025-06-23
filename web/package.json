@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "start": "next start",
     "build": "next build",
     "lint": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\" && eslint src test -c eslint.config.mjs",

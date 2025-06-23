@@ -63,5 +63,12 @@
     "typescript-eslint": "^8.31.1",
     "vitest": "^3.1.2",
     "wait-on": "^8.0.3"
+  },
+  "exports": {
+    "./db": "./src/db/db.ts",
+    "./schema": "./src/db/schema.ts",
+    "./schema/*": "./src/db/schema/*.ts",
+    "./controller/*": "./src/controller/*.ts",
+    "./domain/*": "./src/domain/*.ts"
   }
 }

@@ -1,5 +1,5 @@
 {
-  "name": "functions",
+  "name": "functions-cleanup_preview",
   "scripts": {
     "lint": "eslint --ext .js,.ts ..",
     "fix": "eslint --ext .js,.ts .. --fix",
