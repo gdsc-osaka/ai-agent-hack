@@ -1,35 +1,47 @@
 import { AuthUser } from "../domain/auth";
 import db from "../db/db";
 import { Result, ResultAsync } from "neverthrow";
-import { FetchDBStoreByPublicId } from "../infra/store-repo";
+import { FetchDBStoreById, FetchDBStoreByPublicId } from "../infra/store-repo";
 import { RunTransaction } from "../infra/transaction";
 import {
-  validateStaffRole,
+  assignStaffToStore,
   InvalidStaffRoleError,
+  validateStaffRole,
 } from "../domain/store-staff";
-import { FetchDBStaffForStoreById } from "../infra/staff-repo";
 import {
-  validateStaffForStore,
-  InvalidStaffForStoreError,
-} from "../domain/staff";
-import { InvalidStoreError, validateStore } from "../domain/store";
+  FetchDBStaffByUserId,
+  FetchDBStaffForStoreById,
+} from "../infra/staff-repo";
 import {
   checkDuplicateStaffInvitation,
+  checkValidityOfStaffInvitation,
+  createAcceptedStaffInvitation,
+  createDeclinedStaffInvitation,
   createStaffInvitation,
   CreateStaffInvitationPermissionError,
   DuplicateStaffInvitationError,
   InvalidStaffInvitationError,
   StaffInvitation,
+  StaffInvitationExpiredError,
+  StaffInvitationNotPendingError,
+  StaffInvitationWrongEmailError,
   validateStaffInvitation,
 } from "../domain/staff-invitation";
 import {
   FetchDBStaffInvitationByEmailAndPending,
+  FetchDBStaffInvitationByToken,
   InsertDBStaffInvitation,
+  UpdateDBStaffInvitation,
 } from "../infra/staff-invitation-repo";
 import { DBInternalError } from "../infra/shared/db-error";
 import { DBStaffNotFoundError } from "../infra/staff-repo.error";
 import { DBStoreNotFoundError } from "../infra/store-repo.error";
-import { DBStaffInvitationAlreadyExistsError } from "../infra/staff-invitation-repo.error";
+import {
+  DBStaffInvitationAlreadyExistsError,
+  DBStaffInvitationNotFoundError,
+} from "../infra/staff-invitation-repo.error";
+import { InsertDBStoreToStaff } from "../infra/store-to-staff-repo";
+import { DBStoreToStaffAlreadyExistsError } from "../infra/store-to-staff-repo.error";
 
 export type InviteStaffToStore = (
   authUser: AuthUser,
@@ -45,9 +57,7 @@ export type InviteStaffToStore = (
   | DuplicateStaffInvitationError
   | CreateStaffInvitationPermissionError
   | InvalidStaffInvitationError
-  | InvalidStoreError
   | InvalidStaffRoleError
-  | InvalidStaffForStoreError
 >;
 
 export const inviteStaffToStore =
@@ -72,16 +82,103 @@ export const inviteStaffToStore =
           fetchDBStaffInvitationByEmailAndPending(tx)(storeId, targetEmail)
         ),
       ])
-        .andThen(([dbStaff, dbStore]) =>
+        .andThen(([staff, store]) =>
+          validateStaffRole(targetRole).andThen((targetRole) =>
+            createStaffInvitation(store, staff, targetEmail, targetRole)
+          )
+        )
+        .andTee((inv) => console.debug(inv))
+        .andThen(insertDBStaffInvitation(tx))
+        .andThen(validateStaffInvitation)
+    );
+
+export type AcceptStaffInvitation = (
+  authUser: AuthUser,
+  token: string
+) => ResultAsync<
+  StaffInvitation,
+  | DBInternalError
+  | DBStaffNotFoundError
+  | DBStoreNotFoundError
+  | DBStaffInvitationNotFoundError
+  | DBStoreToStaffAlreadyExistsError
+  | StaffInvitationExpiredError
+  | StaffInvitationNotPendingError
+  | StaffInvitationWrongEmailError
+  | InvalidStaffInvitationError
+>;
+
+export const acceptStaffInvitation =
+  (
+    runTransaction: RunTransaction,
+    fetchDBStaffInvitationByToken: FetchDBStaffInvitationByToken,
+    fetchDBStaffByUserId: FetchDBStaffByUserId,
+    fetchDBStoreById: FetchDBStoreById,
+    insertDBStoreToStaff: InsertDBStoreToStaff,
+    updateDBStaffInvitation: UpdateDBStaffInvitation
+  ): AcceptStaffInvitation =>
+  (authUser: AuthUser, token: string) =>
+    runTransaction(db)((tx) =>
+      ResultAsync.combine([
+        fetchDBStaffInvitationByToken(tx)(token).andThen((invitation) =>
+          fetchDBStoreById(tx)(invitation.storeId).map((store) => ({
+            invitation,
+            store,
+          }))
+        ),
+        fetchDBStaffByUserId(tx)(authUser.uid),
+      ])
+        .andThen(([{ invitation, store }, staff]) =>
           Result.combine([
-            validateStaffForStore(dbStaff),
-            validateStore(dbStore),
-            validateStaffRole(targetRole),
+            assignStaffToStore(store, staff, invitation.role),
+            createAcceptedStaffInvitation(invitation),
+            checkValidityOfStaffInvitation(invitation, staff),
           ])
         )
-        .andThen(([staff, store, targetRole]) =>
-          createStaffInvitation(store.id, staff, targetEmail, targetRole)
+        .andThen(([staffToStore, staffInvitation]) =>
+          ResultAsync.combine([
+            updateDBStaffInvitation(tx)(staffInvitation),
+            insertDBStoreToStaff(tx)(staffToStore),
+          ])
         )
-        .andThen(insertDBStaffInvitation(tx))
+        .andThen(([newStaffInvitation]) =>
+          validateStaffInvitation(newStaffInvitation)
+        )
+    );
+
+export type DeclineStaffInvitation = (
+  authUser: AuthUser,
+  token: string
+) => ResultAsync<
+  StaffInvitation,
+  | DBInternalError
+  | DBStaffNotFoundError
+  | DBStaffInvitationNotFoundError
+  | StaffInvitationExpiredError
+  | StaffInvitationNotPendingError
+  | StaffInvitationWrongEmailError
+  | InvalidStaffInvitationError
+>;
+
+export const declineStaffInvitation =
+  (
+    runTransaction: RunTransaction,
+    fetchDBStaffInvitationByToken: FetchDBStaffInvitationByToken,
+    fetchDBStaffByUserId: FetchDBStaffByUserId,
+    updateDBStaffInvitation: UpdateDBStaffInvitation
+  ): DeclineStaffInvitation =>
+  (authUser: AuthUser, token: string) =>
+    runTransaction(db)((tx) =>
+      ResultAsync.combine([
+        fetchDBStaffInvitationByToken(tx)(token),
+        fetchDBStaffByUserId(tx)(authUser.uid),
+      ])
+        .andThen(([invitation, staff]) =>
+          Result.combine([
+            createDeclinedStaffInvitation(invitation),
+            checkValidityOfStaffInvitation(invitation, staff),
+          ])
+        )
+        .andThen(([invitation]) => updateDBStaffInvitation(tx)(invitation))
         .andThen(validateStaffInvitation)
     );

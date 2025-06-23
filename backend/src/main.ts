@@ -8,6 +8,7 @@ import auth from "./routes/auth";
 import stores from "./routes/stores";
 import vector from "./routes/vector";
 import staffs from "./routes/staffs";
+import invitations from "./routes/invitations";
 
 const app = MyOpenAPIHono({
   docPath: "/api/openapi",
@@ -39,6 +40,7 @@ app.use("/api/*", authorize);
 app.route("/api/v1/vector", vector);
 app.route("/api/v1/stores", stores);
 app.route("/api/v1/staffs", staffs);
+app.route("/api/v1/invitations", invitations);
 
 serve({
   fetch: app.fetch,

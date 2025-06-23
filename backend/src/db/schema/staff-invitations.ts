@@ -15,7 +15,6 @@ export const staffInvitationStatus = pgEnum("staff_invitation_status", [
   "PENDING",
   "ACCEPTED",
   "DECLINED",
-  "EXPIRED",
 ]);
 
 export const staffInvitations = pgTable(
@@ -42,13 +41,13 @@ export const staffInvitations = pgTable(
       .notNull(),
   },
   (t) => [
-    // index('staff_invitations_store_id_target_id_idx').using('btree', t.storeId, t.targetEmail),
     index("staff_invitations_store_id_target_email_status_idx").using(
       "btree",
       t.storeId,
       t.targetEmail,
       t.status
     ),
+    index("staff_invitations_token_idx").using("btree", t.token),
     unique("staff_invitations_unique_idx").on(t.storeId, t.targetEmail),
   ]
 );

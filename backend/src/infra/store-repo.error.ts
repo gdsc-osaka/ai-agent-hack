@@ -11,6 +11,6 @@ export type DBStoreAlreadyExistsError = InferError<
 
 export const DBStoreNotFoundError = errorBuilder(
   "DBStoreNotFoundError",
-  z.object({ publicId: z.string() })
+  z.union([z.object({ publicId: z.string() }), z.object({ id: z.string() })])
 );
 export type DBStoreNotFoundError = InferError<typeof DBStoreNotFoundError>;
