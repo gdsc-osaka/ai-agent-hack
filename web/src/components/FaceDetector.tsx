@@ -1,4 +1,5 @@
 // web/src/components/FaceDetector.tsx
+'use client';
 
 import { useAtom } from 'jotai';
 import { useEffect, useRef, useState } from 'react';
