@@ -38,7 +38,7 @@
   "functions": [
     {
       "source": "functions/cleanup_preview",
-      "codebase": "default",
+      "codebase": "cleanup_preview",
       "ignore": [
         "node_modules",
         ".git",
