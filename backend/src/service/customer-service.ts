@@ -38,5 +38,5 @@ export const registerCustomer =
   (firebase: FirebaseApp, image: File) =>
     getFaceEmbedding(image)
       .andThen((embedding) => registerEmbedding(firebase)(embedding))
-      .andThen((customerId) => createDBCustomer(db)(customerId))
+      .andThen((customerId) => createDBCustomer(db)({ id: customerId }))
       .andThen((customer) => validateCustomer(customer));

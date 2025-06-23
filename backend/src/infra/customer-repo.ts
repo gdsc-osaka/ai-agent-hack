@@ -1,5 +1,5 @@
 import { err, ok, ResultAsync } from "neverthrow";
-import { DBCustomer } from "../domain/customer";
+import { DBCustomer, DBCustomerForCreate } from "../domain/customer";
 import { eq } from "drizzle-orm";
 import { customers } from "../db/schema/customers";
 import { DBorTx } from "../db/db";
@@ -12,7 +12,7 @@ import {
 export type CreatetDBCustomer = (
   db: DBorTx
 ) => (
-  id: string
+  customer: DBCustomerForCreate
 ) => ResultAsync<DBCustomer, DBInternalError | CustomerAlreadyExistsError>;
 
 export type FindDBCustomerById = (
@@ -31,9 +31,9 @@ export const findDBCustomerById: FindDBCustomerById = (db) => (id) =>
       : err(CustomerNotFoundError("Customer not found"))
   );
 
-export const createDBCustomer: CreatetDBCustomer = (db) => (id) =>
+export const createDBCustomer: CreatetDBCustomer = (db) => (customer) =>
   ResultAsync.fromPromise(
-    db.insert(customers).values({ id }).returning(),
+    db.insert(customers).values(customer).returning(),
     DBInternalError.handle
   ).andThen((records) =>
     records.length > 0
