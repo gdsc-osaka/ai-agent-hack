@@ -9,3 +9,10 @@ export type CustomerAlreadyExistsError = InferError<
 
 export const CustomerNotFoundError = errorBuilder("CustomerNotFoundError");
 export type CustomerNotFoundError = InferError<typeof CustomerNotFoundError>;
+
+export const CustomerTosAlreadyAcceptedError = errorBuilder(
+  "CustomerTosAlreadyAcceptedError"
+);
+export type CustomerTosAlreadyAcceptedError = InferError<
+  typeof CustomerTosAlreadyAcceptedError
+>;

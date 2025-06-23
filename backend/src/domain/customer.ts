@@ -2,11 +2,12 @@ import { customers } from "../db/schema/customers";
 import z from "zod";
 import { Timestamp, toTimestamp } from "./timestamp";
 import { errorBuilder, InferError } from "../shared/error";
-import { FieldErrors } from "./shared/types";
+import { FieldErrors, ForUpdate } from "./shared/types";
 import { Result, ok, err } from "neverthrow";
 
 export type DBCustomer = typeof customers.$inferSelect;
 export type DBCustomerForCreate = typeof customers.$inferInsert;
+export type DBCustomerForUpdate = ForUpdate<DBCustomer>;
 
 export const CustomerId = z.string().brand<"CUSTOMER_ID">();
 export type CustomerId = z.infer<typeof CustomerId>;
@@ -14,6 +15,7 @@ export type CustomerId = z.infer<typeof CustomerId>;
 export const Customer = z
   .object({
     id: CustomerId,
+    tosAcceptedAt: Timestamp.optional(),
     createdAt: Timestamp,
     updatedAt: Timestamp,
   })
@@ -27,6 +29,34 @@ export const InvalidCustomerError = errorBuilder<
 >("InvalidCustomerError");
 export type InvalidCustomerError = InferError<typeof InvalidCustomerError>;
 
+// ADDED: Error for when ToS has already been accepted
+export const CustomerTosAlreadyAcceptedError = errorBuilder(
+  "CustomerTosAlreadyAcceptedError"
+);
+export type CustomerTosAlreadyAcceptedError = InferError<
+  typeof CustomerTosAlreadyAcceptedError
+>;
+
+export const checkTosNotAccepted = (
+  customer: DBCustomer
+): Result<DBCustomer, CustomerTosAlreadyAcceptedError> => {
+  if (customer.tosAcceptedAt !== null) {
+    return err(
+      CustomerTosAlreadyAcceptedError("Terms of Service already accepted.")
+    );
+  }
+  return ok(customer);
+};
+
+export const createCustomerWithTosAccepted = (
+  customer: DBCustomer
+): Result<DBCustomerForUpdate, never> => {
+  return ok({
+    id: customer.id,
+    tosAcceptedAt: new Date(),
+  });
+};
+
 export type ValidateCustomer = (
   customer: DBCustomer
 ) => Result<Customer, InvalidCustomerError>;
@@ -35,6 +65,10 @@ export const validateCustomer: ValidateCustomer = (
 ): Result<Customer, InvalidCustomerError> => {
   const res = Customer.safeParse({
     id: customer.id as CustomerId,
+    // UPDATED: Handle nullable tosAcceptedAt
+    tosAcceptedAt: customer.tosAcceptedAt
+      ? toTimestamp(customer.tosAcceptedAt)
+      : undefined,
     createdAt: toTimestamp(customer.createdAt),
     updatedAt: toTimestamp(customer.updatedAt),
   });
