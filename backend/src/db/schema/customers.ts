@@ -7,6 +7,7 @@ export const customers = pgTable("customers", {
     .$defaultFn(() => createId())
     .primaryKey()
     .notNull(),
+  tosAcceptedAt: timestamp("tos_accepted_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .$onUpdate(() => new Date())

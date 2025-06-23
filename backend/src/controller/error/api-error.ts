@@ -15,6 +15,9 @@ export const ApiErrorCode = z
     "STAFF_INVITATION_EXPIRED",
     "STAFF_INVITATION_NOT_PENDING",
     "STAFF_INVITATION_WRONG_EMAIL",
+    "CUSTOMER_NOT_FOUND",
+    "TOS_ALREADY_ACCEPTED",
+    "DOMAIN_VALIDATION_ERROR",
   ])
   .openapi("ApiErrorCode");
 export type ApiErrorCode = z.infer<typeof ApiErrorCode>;
