@@ -8,6 +8,41 @@
       "when": 1749714352382,
       "tag": "0000_easy_logan",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1750002333346,
+      "tag": "0001_gorgeous_bloodstrike",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1750141498866,
+      "tag": "0002_sleepy_blink",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1750179825205,
+      "tag": "0003_unique_hairball",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1750602916157,
+      "tag": "0004_tranquil_shooting_star",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1750602953273,
+      "tag": "0005_lovely_cable",
+      "breakpoints": true
     }
   ]
 }
