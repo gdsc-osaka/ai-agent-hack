@@ -123,6 +123,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/customers/{customerId}/accept-tos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Accept the Terms of Service for a customer. */
+        post: operations["acceptCustomerTos"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/{customerId}/decline-tos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Decline the Terms of Service for a customer and delete their data. */
+        post: operations["declineCustomerTos"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -133,11 +167,12 @@ export interface components {
         };
         Customer: {
             id: string;
+            tosAcceptedAt?: components["schemas"]["Timestamp"];
             createdAt: components["schemas"]["Timestamp"];
             updatedAt: components["schemas"]["Timestamp"];
         };
         /** @enum {string} */
-        ApiErrorCode: "DATABASE_UNKNOWN_ERROR" | "DATABASE_NOT_FOUND" | "DATABASE_ALREADY_EXISTS" | "DATABASE_INCONSISTENT_TYPE" | "PERMISSION_DENIED" | "INVALID_REQUEST_BODY" | "STAFF_NOT_FOUND" | "STORE_NOT_FOUND" | "STAFF_INVITATION_NOT_FOUND" | "STORE_TO_STAFF_ALREADY_EXISTS" | "STAFF_INVITATION_EXPIRED" | "STAFF_INVITATION_NOT_PENDING" | "STAFF_INVITATION_WRONG_EMAIL";
+        ApiErrorCode: "DATABASE_UNKNOWN_ERROR" | "DATABASE_NOT_FOUND" | "DATABASE_ALREADY_EXISTS" | "DATABASE_INCONSISTENT_TYPE" | "PERMISSION_DENIED" | "INVALID_REQUEST_BODY" | "STAFF_NOT_FOUND" | "STORE_NOT_FOUND" | "STAFF_INVITATION_NOT_FOUND" | "STORE_TO_STAFF_ALREADY_EXISTS" | "STAFF_INVITATION_EXPIRED" | "STAFF_INVITATION_NOT_PENDING" | "STAFF_INVITATION_WRONG_EMAIL" | "CUSTOMER_NOT_FOUND" | "TOS_ALREADY_ACCEPTED" | "DOMAIN_VALIDATION_ERROR";
         ApiError: {
             message: string;
             code: components["schemas"]["ApiErrorCode"];
@@ -429,6 +464,64 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["StaffInvitation"];
                 };
+            };
+            /** @description Bad Request - Invalid input or missing image */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    acceptCustomerTos: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successfully accepted the Terms of Service. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request - Invalid input or missing image */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    declineCustomerTos: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successfully declined the Terms of Service and deleted customer data. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Bad Request - Invalid input or missing image */
             400: {
