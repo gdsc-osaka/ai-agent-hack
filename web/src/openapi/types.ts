@@ -117,11 +117,8 @@ export interface operations {
         requestBody?: {
             content: {
                 "multipart/form-data": {
-                    /**
-                     * Format: binary
-                     * @description Image for face authentication
-                     */
-                    image: string;
+                    /** @description Image for face authentication */
+                    image: unknown;
                 };
             };
         };
@@ -165,11 +162,8 @@ export interface operations {
         requestBody?: {
             content: {
                 "multipart/form-data": {
-                    /**
-                     * Format: binary
-                     * @description Image for face registration
-                     */
-                    image: string;
+                    /** @description Image for face authentication */
+                    image: unknown;
                 };
             };
         };
