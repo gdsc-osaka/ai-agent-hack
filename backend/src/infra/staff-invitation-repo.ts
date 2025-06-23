@@ -1,6 +1,7 @@
 import {
   DBStaffInvitation,
   DBStaffInvitationForCreate,
+  DBStaffInvitationForUpdate,
 } from "../domain/staff-invitation";
 import { errAsync, okAsync, ResultAsync } from "neverthrow";
 import { DBorTx } from "../db/db";
@@ -37,6 +38,29 @@ export const insertDBStaffInvitation: InsertDBStaffInvitation =
           )
     );
 
+export type UpdateDBStaffInvitation = (
+  db: DBorTx
+) => (
+  invitation: DBStaffInvitationForUpdate
+) => ResultAsync<
+  DBStaffInvitation,
+  DBInternalError | DBStaffInvitationNotFoundError
+>;
+export const updateDBStaffInvitation: UpdateDBStaffInvitation =
+  (db) => (invitation) =>
+    ResultAsync.fromPromise(
+      db
+        .update(staffInvitations)
+        .set(invitation)
+        .where(eq(staffInvitations.id, invitation.id))
+        .returning(),
+      DBInternalError.handle
+    ).andThen((records) =>
+      records.length > 0
+        ? okAsync(records[0])
+        : errAsync(DBStaffInvitationNotFoundError("Invitation not found"))
+    );
+
 export type FetchDBStaffInvitationByEmailAndPending = (
   db: DBorTx
 ) => (
@@ -70,4 +94,28 @@ export const fetchDBStaffInvitationByEmailAndPending: FetchDBStaffInvitationByEm
               "No pending invitation found for this email"
             )
           )
+    );
+
+export type FetchDBStaffInvitationByToken = (
+  db: DBorTx
+) => (
+  token: string
+) => ResultAsync<
+  DBStaffInvitation,
+  DBInternalError | DBStaffInvitationNotFoundError
+>;
+
+export const fetchDBStaffInvitationByToken: FetchDBStaffInvitationByToken =
+  (db) => (token: string) =>
+    ResultAsync.fromPromise(
+      db
+        .select()
+        .from(staffInvitations)
+        .where(eq(staffInvitations.token, token))
+        .limit(1),
+      DBInternalError.handle
+    ).andThen((records) =>
+      records.length > 0
+        ? okAsync(records[0])
+        : errAsync(DBStaffInvitationNotFoundError("Invitation not found"))
     );

@@ -8,6 +8,13 @@ export const ApiErrorCode = z
     "DATABASE_INCONSISTENT_TYPE",
     "PERMISSION_DENIED",
     "INVALID_REQUEST_BODY",
+    "STAFF_NOT_FOUND",
+    "STORE_NOT_FOUND",
+    "STAFF_INVITATION_NOT_FOUND",
+    "STORE_TO_STAFF_ALREADY_EXISTS",
+    "STAFF_INVITATION_EXPIRED",
+    "STAFF_INVITATION_NOT_PENDING",
+    "STAFF_INVITATION_WRONG_EMAIL",
   ])
   .openapi("ApiErrorCode");
 export type ApiErrorCode = z.infer<typeof ApiErrorCode>;

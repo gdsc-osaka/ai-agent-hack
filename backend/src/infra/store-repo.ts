@@ -81,3 +81,22 @@ export const fetchDBStoreByPublicId: FetchDBStoreByPublicId =
             })
           )
     );
+
+export type FetchDBStoreById = (
+  db: DBorTx
+) => (
+  storeId: string
+) => ResultAsync<DBStore, DBInternalError | DBStoreNotFoundError>;
+
+export const fetchDBStoreById: FetchDBStoreById =
+  (db: DBorTx) => (storeId: string) =>
+    ResultAsync.fromPromise(
+      db.select().from(stores).where(eq(stores.id, storeId)).limit(1),
+      DBInternalError.handle
+    ).andThen((records) =>
+      records.length > 0
+        ? ok(records[0])
+        : err(
+            DBStoreNotFoundError("Store not found", { extra: { id: storeId } })
+          )
+    );
