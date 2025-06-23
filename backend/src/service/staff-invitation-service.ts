@@ -87,7 +87,6 @@ export const inviteStaffToStore =
             createStaffInvitation(store, staff, targetEmail, targetRole)
           )
         )
-        .andTee((inv) => console.debug(inv))
         .andThen(insertDBStaffInvitation(tx))
         .andThen(validateStaffInvitation)
     );
