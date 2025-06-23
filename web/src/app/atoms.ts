@@ -1,5 +1,5 @@
-import { atom } from 'jotai';
+import { atom } from "jotai";
 
-export type FaceRecognitionState = 'no-face' | 'face-detected';
+export type FaceRecognitionState = "no-face" | "face-detected";
 
-export const faceRecognitionAtom = atom<FaceRecognitionState>('no-face');
+export const faceRecognitionAtom = atom<FaceRecognitionState>("no-face");
