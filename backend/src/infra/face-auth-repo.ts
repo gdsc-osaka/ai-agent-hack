@@ -8,13 +8,13 @@ import { CustomerId } from "../domain/customer";
 
 export type RegisterEmbedding = (
   firebase: FirebaseApp
-) => (embedding: number[]) => ResultAsync<string, FirestoreInternalError>;
+) => (embedding: number[]) => ResultAsync<CustomerId, FirestoreInternalError>;
 
 export type AuthenticateFace = (
   firebase: FirebaseApp
 ) => (
   embedding: number[]
-) => ResultAsync<string, FaceAuthError | FirestoreInternalError>;
+) => ResultAsync<CustomerId, FaceAuthError | FirestoreInternalError>;
 
 export const registerEmbedding: RegisterEmbedding = (firebase) => (embedding) =>
   ResultAsync.fromPromise(
@@ -59,5 +59,5 @@ export const authenticateFace: AuthenticateFace = (firebase) => (embedding) =>
     if (snapshot.empty) {
       return err(FaceAuthError("No match found"));
     }
-    return ok(snapshot.docs[0].id);
+    return ok(snapshot.docs[0].id as CustomerId);
   });
