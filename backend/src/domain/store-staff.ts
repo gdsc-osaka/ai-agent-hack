@@ -1,5 +1,5 @@
 import { storesToStaffs } from "../db/schema/stores";
-import { Staff } from "./staff";
+import { DBStaff, Staff } from "./staff";
 import { DBStore } from "./store";
 import { err, ok, Result } from "neverthrow";
 import { z } from "@hono/zod-openapi";
@@ -24,6 +24,18 @@ export const assignAdminStaffToStore: AssignAdminStaffToStore = (
     storeId: store.id,
     staffId: staff.id,
     role: "ADMIN",
+  });
+};
+
+export const assignStaffToStore = (
+  store: DBStore,
+  staff: DBStaff,
+  role: StaffRole
+): Result<DBStoreToStaffForCreate, never> => {
+  return ok({
+    storeId: store.id,
+    staffId: staff.id,
+    role,
   });
 };
 

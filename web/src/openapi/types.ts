@@ -55,7 +55,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/stores/:storeId/invite": {
+    "/api/v1/stores/{storeId}/invite": {
         parameters: {
             query?: never;
             header?: never;
@@ -89,6 +89,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/invitations/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Accept a staff invitation */
+        post: operations["acceptInvitation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/invitations/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Decline a staff invitation */
+        post: operations["declineInvitation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -108,7 +142,7 @@ export interface components {
             updatedAt: string;
         };
         /** @enum {string} */
-        ApiErrorCode: "DATABASE_UNKNOWN_ERROR" | "DATABASE_NOT_FOUND" | "DATABASE_ALREADY_EXISTS" | "DATABASE_INCONSISTENT_TYPE" | "PERMISSION_DENIED" | "INVALID_REQUEST_BODY";
+        ApiErrorCode: "DATABASE_UNKNOWN_ERROR" | "DATABASE_NOT_FOUND" | "DATABASE_ALREADY_EXISTS" | "DATABASE_INCONSISTENT_TYPE" | "PERMISSION_DENIED" | "INVALID_REQUEST_BODY" | "STAFF_NOT_FOUND" | "STORE_NOT_FOUND" | "STAFF_INVITATION_NOT_FOUND" | "STORE_TO_STAFF_ALREADY_EXISTS" | "STAFF_INVITATION_EXPIRED" | "STAFF_INVITATION_NOT_PENDING" | "STAFF_INVITATION_WRONG_EMAIL";
         ApiError: {
             message: string;
             code: components["schemas"]["ApiErrorCode"];
@@ -344,6 +378,78 @@ export interface operations {
                     "application/json": {
                         stores: components["schemas"]["Store"][];
                     };
+                };
+            };
+            /** @description Bad Request - Invalid input or missing image */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    acceptInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** @description Unique token for the invitation */
+                    token: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Staff invitation sent successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffInvitation"];
+                };
+            };
+            /** @description Bad Request - Invalid input or missing image */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    declineInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** @description Unique token for the invitation */
+                    token: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Staff invitation sent successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffInvitation"];
                 };
             };
             /** @description Bad Request - Invalid input or missing image */

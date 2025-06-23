@@ -17,6 +17,7 @@ import {
   fetchDBStaffInvitationByEmailAndPending,
   insertDBStaffInvitation,
 } from "../infra/staff-invitation-repo";
+import invitationsRoute from "./invitations.route";
 
 const app = new OpenAPIHono();
 
@@ -36,7 +37,7 @@ app.openapi(storesRoute.createStore, async (c) => {
   return c.json(res.value, 200);
 });
 
-app.openapi(storesRoute.inviteStaffToStore, async (c) => {
+app.openapi(invitationsRoute.inviteStaffToStore, async (c) => {
   const { email, role } = c.req.valid("json");
   const res = await inviteStaffToStoreController(
     inviteStaffToStore(

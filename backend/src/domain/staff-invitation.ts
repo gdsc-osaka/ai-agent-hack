@@ -1,12 +1,12 @@
 import { staffInvitations } from "../db/schema/staff-invitations";
 import { z } from "@hono/zod-openapi";
 import { StaffRole } from "./store-staff";
-import { StoreId } from "./store";
-import { StaffForStore, StaffId } from "./staff";
+import { DBStore, StoreId } from "./store";
+import { DBStaff, DBStaffForStore, StaffId } from "./staff";
 import { Timestamp, toTimestamp } from "./timestamp";
 import { err, errAsync, ok, okAsync, Result, ResultAsync } from "neverthrow";
 import { errorBuilder, InferError } from "../shared/error";
-import { FieldErrors } from "./shared/types";
+import { FieldErrors, ForUpdate } from "./shared/types";
 import { FetchDBStaffInvitationByEmailAndPending } from "../infra/staff-invitation-repo";
 import { ReturnType2 } from "../shared/types";
 import { match } from "ts-pattern";
@@ -15,6 +15,7 @@ import { DBInternalError } from "../infra/shared/db-error";
 
 export type DBStaffInvitation = typeof staffInvitations.$inferSelect;
 export type DBStaffInvitationForCreate = typeof staffInvitations.$inferInsert;
+export type DBStaffInvitationForUpdate = ForUpdate<DBStaffInvitation>;
 
 export const StaffInvitationStatus = z
   .enum(["PENDING", "ACCEPTED", "DECLINED", "EXPIRED"])
@@ -47,14 +48,14 @@ export type CreateStaffInvitationPermissionError = InferError<
 >;
 
 export type CreateStaffInvitation = (
-  storeId: StoreId,
-  invitedStaff: StaffForStore,
+  store: DBStore,
+  invitedStaff: DBStaffForStore,
   targetEmail: string,
   targetRole: StaffRole
 ) => Result<DBStaffInvitationForCreate, CreateStaffInvitationPermissionError>;
 export const createStaffInvitation: CreateStaffInvitation = (
-  storeId: StoreId,
-  invitedStaff: StaffForStore,
+  store: DBStore,
+  invitedStaff: DBStaffForStore,
   targetEmail: string,
   targetRole: StaffRole
 ) => {
@@ -72,12 +73,30 @@ export const createStaffInvitation: CreateStaffInvitation = (
   return ok({
     status: "PENDING",
     role: targetRole,
-    storeId,
+    storeId: store.id,
     targetEmail: targetEmail,
     invitedBy: invitedStaff.id,
     token: crypto.randomUUID(),
     expiredAt: oneWeekLater,
   } satisfies DBStaffInvitationForCreate);
+};
+
+export const createAcceptedStaffInvitation = (
+  staffInvitation: DBStaffInvitation
+): Result<DBStaffInvitationForUpdate, never> => {
+  return ok({
+    id: staffInvitation.id,
+    status: "ACCEPTED",
+  });
+};
+
+export const createDeclinedStaffInvitation = (
+  staffInvitation: DBStaffInvitation
+): Result<DBStaffInvitationForUpdate, never> => {
+  return ok({
+    id: staffInvitation.id,
+    status: "DECLINED",
+  });
 };
 
 // duplicate invitation error and its function
@@ -112,6 +131,53 @@ export const checkDuplicateStaffInvitation: CheckDuplicateStaffInvitation = (
         .with(DuplicateStaffInvitationError.is, (err) => errAsync(err))
         .exhaustive()
     );
+};
+
+export const StaffInvitationExpiredError = errorBuilder(
+  "StaffInvitationExpiredError"
+);
+export type StaffInvitationExpiredError = InferError<
+  typeof StaffInvitationExpiredError
+>;
+export const StaffInvitationNotPendingError = errorBuilder(
+  "StaffInvitationNotPendingError"
+);
+export type StaffInvitationNotPendingError = InferError<
+  typeof StaffInvitationNotPendingError
+>;
+export const StaffInvitationWrongEmailError = errorBuilder(
+  "StaffInvitationWrongEmailError"
+);
+export type StaffInvitationWrongEmailError = InferError<
+  typeof StaffInvitationWrongEmailError
+>;
+
+export const checkValidityOfStaffInvitation = (
+  staffInvitation: DBStaffInvitation,
+  dbStaff: DBStaff
+): Result<
+  void,
+  | StaffInvitationNotPendingError
+  | StaffInvitationExpiredError
+  | StaffInvitationWrongEmailError
+> => {
+  if (staffInvitation.expiredAt < new Date()) {
+    return err(StaffInvitationExpiredError("Staff invitation has expired"));
+  }
+
+  if (staffInvitation.status !== "PENDING") {
+    return err(
+      StaffInvitationNotPendingError("Staff invitation is not pending")
+    );
+  }
+
+  if (staffInvitation.targetEmail !== dbStaff.email) {
+    return err(
+      StaffInvitationWrongEmailError("Staff invitation email does not match")
+    );
+  }
+
+  return ok(undefined);
 };
 
 export const InvalidStaffInvitationError = errorBuilder<

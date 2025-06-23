@@ -1,7 +1,16 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
+import { swaggerUI } from "@hono/swagger-ui";
+import env from "./env";
 
-export const MyOpenAPIHono = (args: { docPath: string }) => {
+export const MyOpenAPIHono = (args: {
+  docPath: string;
+  swaggerPath: string;
+}) => {
   const app = new OpenAPIHono();
+
+  if (env.NODE_ENV === "production") {
+    return app;
+  }
 
   app.doc(args.docPath, {
     openapi: "3.0.0",
@@ -29,6 +38,13 @@ export const MyOpenAPIHono = (args: { docPath: string }) => {
     in: "cookie",
     name: "__session",
   });
+
+  app.get(
+    args.swaggerPath,
+    swaggerUI({
+      url: args.docPath,
+    })
+  );
 
   return app;
 };
