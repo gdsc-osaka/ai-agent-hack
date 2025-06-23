@@ -1,12 +1,11 @@
-import z from "zod";
-import "zod-openapi/extend";
+import { z } from "@hono/zod-openapi";
 
 export const Timestamp = z
   .object({
     seconds: z.number().int(),
     nanoseconds: z.number().int(),
   })
-  .openapi({ ref: "Timestamp" });
+  .openapi("Timestamp");
 export type Timestamp = z.infer<typeof Timestamp>;
 
 export const toTimestamp = (date: Date): Timestamp => {

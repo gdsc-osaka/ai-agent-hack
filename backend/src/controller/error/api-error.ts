@@ -1,13 +1,15 @@
-import z from "zod";
-import "zod-openapi/extend";
+import { z } from "@hono/zod-openapi";
 
 export const ApiErrorCode = z
   .enum([
     "DATABASE_UNKNOWN_ERROR",
     "DATABASE_NOT_FOUND",
+    "DATABASE_ALREADY_EXISTS",
     "DATABASE_INCONSISTENT_TYPE",
+    "PERMISSION_DENIED",
+    "INVALID_REQUEST_BODY",
   ])
-  .openapi({ ref: "ApiErrorCode" });
+  .openapi("ApiErrorCode");
 export type ApiErrorCode = z.infer<typeof ApiErrorCode>;
 
 export const ApiError = z
@@ -16,7 +18,7 @@ export const ApiError = z
     code: ApiErrorCode,
     details: z.array(z.unknown()).default([]),
   })
-  .openapi({ ref: "ApiError" });
+  .openapi("ApiError");
 export type ApiError = z.infer<typeof ApiError>;
 
 export enum StatusCode {
@@ -24,6 +26,7 @@ export enum StatusCode {
   Unauthorized = 401,
   Forbidden = 403,
   NotFound = 404,
+  Conflict = 409,
   TooManyRequests = 429,
   InternalServerError = 500,
   NotImplemented = 501,

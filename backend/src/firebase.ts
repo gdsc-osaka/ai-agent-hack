@@ -6,7 +6,11 @@ export default function (FIRE_SA: string): app.App {
     return admin.apps[0];
   }
 
-  return admin.initializeApp({
-    credential: admin.credential.cert(FIRE_SA),
+  const firebaseApp = admin.initializeApp({
+    credential: admin.credential.cert(
+      JSON.parse(FIRE_SA) as admin.ServiceAccount
+    ),
   });
+
+  return firebaseApp;
 }
