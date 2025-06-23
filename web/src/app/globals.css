@@ -138,12 +138,10 @@
   @apply mb-3 leading-relaxed;
 }
 
-/* ↓ ul の行をこのように修正 */
 .markdown-content ul {
   @apply mb-3 ml-6 list-disc list-outside;
 }
 
-/* ↓ ol のスタイルを新しく追加 */
 .markdown-content ol {
   @apply mb-3 ml-6 list-decimal list-outside;
 }
