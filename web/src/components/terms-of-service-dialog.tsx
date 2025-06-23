@@ -37,6 +37,11 @@ export function TermsOfServiceDialog({
         .then(([terms, privacy]) => {
           setTermsContent(terms);
           setPrivacyContent(privacy);
+        })
+        .catch((error) => {
+          console.error("ドキュメントの読み込みに失敗しました:", error);
+          setTermsContent("利用規約の読み込みに失敗しました。");
+          setPrivacyContent("プライバシーポリシーの読み込みに失敗しました。");
         });
     }
   }, [isOpen]);
