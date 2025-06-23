@@ -7,16 +7,18 @@ import { faceRecognitionAtom } from '@/app/atoms';
 
 // 顔認証APIにリクエストを送る非同期関数（今後、中身を実装します）
 async function authenticateFace(imageData: FormData): Promise<boolean> {
-  console.log('（API呼び出し）顔認証を実行中...');
+  // ↓ imageData を console.log で使用することで、未使用エラーを回避
+  console.log('（API呼び出し）顔認証を実行中...', imageData);
   // これはダミーです。実際にはAPIを呼び出します。
   return new Promise(resolve => setTimeout(() => resolve(true), 1000));
 }
 
 // 顔検出ライブラリの処理（今後、中身を実装します）
 async function detectFace(videoElement: HTMLVideoElement): Promise<boolean> {
-    console.log('（顔検出）カメラ映像から顔を探しています...');
-    // ダミーの実装です。
-    return Math.random() > 0.5;
+  // ↓ videoElement を console.log で使用することで、未使用エラーを回避
+  console.log('（顔検出）カメラ映像から顔を探しています...', videoElement);
+  // ダミーの実装です。
+  return Math.random() > 0.5;
 }
 
 
