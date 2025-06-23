@@ -29,6 +29,7 @@
     "@google-cloud/storage": "^7.16.0",
     "@google/genai": "^1.5.1",
     "@hono/node-server": "^1.14.4",
+    "@hono/swagger-ui": "^0.5.2",
     "@hono/zod-openapi": "^0.19.8",
     "@hono/zod-validator": "^0.7.0",
     "@paralleldrive/cuid2": "^2.2.2",
@@ -45,7 +46,6 @@
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.44.2",
     "@eslint/js": "^9.26.0",
-    "@hono/swagger-ui": "^0.5.2",
     "@types/node": "^22.15.30",
     "@typescript-eslint/eslint-plugin": "^8.33.1",
     "@typescript-eslint/parser": "^8.34.1",
