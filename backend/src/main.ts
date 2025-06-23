@@ -12,6 +12,7 @@ import invitations from "./routes/invitations";
 
 const app = MyOpenAPIHono({
   docPath: "/api/openapi",
+  swaggerPath: "/api/swagger",
 });
 
 // Production 環境では Firebase Hosting で /api/** のパスをリダクレクトするため、
