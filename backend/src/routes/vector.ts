@@ -5,7 +5,7 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import { faceAuthController } from "../controller/face-auth-controller";
 import { getFaceEmbedding } from "../infra/face-embedding-repo";
 import { authenticateFace, registerEmbedding } from "../infra/face-auth-repo";
-import { createDBCustomer, findDBCustomerById } from "../infra/customer-repo";
+import { insertDBCustomer, findDBCustomerById } from "../infra/customer-repo";
 import { toHTTPException } from "./shared/exception";
 import { authFace } from "../service/face-auth-service";
 import { registerCustomer } from "../service/customer-service";
@@ -43,7 +43,7 @@ app.openapi(vectorRoute.registerFace, async (c) => {
     registerCustomer(
       getFaceEmbedding,
       registerEmbedding,
-      createDBCustomer,
+      insertDBCustomer,
       validateCustomer
     )(firebase, image)
   );
