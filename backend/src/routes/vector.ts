@@ -15,8 +15,8 @@ import { validateCustomer } from "../domain/customer";
 const app = new OpenAPIHono();
 
 app.openapi(vectorRoute.authenticateFace, async (c) => {
-  const { image } = c.req.valid('form')  
- 
+  const { image } = c.req.valid("form");
+
   const firebase = getFirebaseApp(env.FIRE_SA);
 
   const res = await faceAuthController(
@@ -35,7 +35,7 @@ app.openapi(vectorRoute.authenticateFace, async (c) => {
 });
 
 app.openapi(vectorRoute.registerFace, async (c) => {
-  const { image } = c.req.valid('form')
+  const { image } = c.req.valid("form");
 
   const firebase = getFirebaseApp(env.FIRE_SA);
 
