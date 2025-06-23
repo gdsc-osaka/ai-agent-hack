@@ -55,6 +55,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stores/{storeId}/invite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Invite a staff member to a store */
+        post: operations["inviteStaffToStore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/staffs/me/stores": {
         parameters: {
             query?: never;
@@ -66,6 +83,40 @@ export interface paths {
         get: operations["fetchStoresForStaff"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/invitations/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Accept a staff invitation */
+        post: operations["acceptInvitation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/invitations/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Decline a staff invitation */
+        post: operations["declineInvitation"];
         delete?: never;
         options?: never;
         head?: never;
@@ -91,7 +142,7 @@ export interface components {
             updatedAt: string;
         };
         /** @enum {string} */
-        ApiErrorCode: "DATABASE_UNKNOWN_ERROR" | "DATABASE_NOT_FOUND" | "DATABASE_ALREADY_EXISTS" | "DATABASE_INCONSISTENT_TYPE" | "INVALID_REQUEST_BODY";
+        ApiErrorCode: "DATABASE_UNKNOWN_ERROR" | "DATABASE_NOT_FOUND" | "DATABASE_ALREADY_EXISTS" | "DATABASE_INCONSISTENT_TYPE" | "PERMISSION_DENIED" | "INVALID_REQUEST_BODY" | "STAFF_NOT_FOUND" | "STORE_NOT_FOUND" | "STAFF_INVITATION_NOT_FOUND" | "STORE_TO_STAFF_ALREADY_EXISTS" | "STAFF_INVITATION_EXPIRED" | "STAFF_INVITATION_NOT_PENDING" | "STAFF_INVITATION_WRONG_EMAIL";
         ApiError: {
             message: string;
             code: components["schemas"]["ApiErrorCode"];
@@ -104,6 +155,26 @@ export interface components {
         };
         Store: {
             id: string;
+            createdAt: components["schemas"]["Timestamp"];
+            updatedAt: components["schemas"]["Timestamp"];
+        };
+        /** @enum {string} */
+        StaffInvitationStatus: "PENDING" | "ACCEPTED" | "DECLINED" | "EXPIRED";
+        /** @enum {string} */
+        StaffRole: "ADMIN" | "STAFF";
+        StaffInvitation: {
+            status: components["schemas"]["StaffInvitationStatus"];
+            role: components["schemas"]["StaffRole"];
+            storeId: string;
+            /**
+             * Format: email
+             * @description Email of the staff member to invite
+             */
+            targetEmail: string;
+            invitedBy: string;
+            /** @description Unique token for the invitation */
+            token: string;
+            expiredAt: components["schemas"]["Timestamp"];
             createdAt: components["schemas"]["Timestamp"];
             updatedAt: components["schemas"]["Timestamp"];
         };
@@ -246,6 +317,49 @@ export interface operations {
             };
         };
     };
+    inviteStaffToStore: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description ID of the store to invite staff to */
+                storeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: email
+                     * @description Email of the staff member to invite
+                     */
+                    email: string;
+                    role: components["schemas"]["StaffRole"];
+                };
+            };
+        };
+        responses: {
+            /** @description Staff invitation sent successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffInvitation"];
+                };
+            };
+            /** @description Bad Request - Invalid input or missing image */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
     fetchStoresForStaff: {
         parameters: {
             query?: never;
@@ -264,6 +378,78 @@ export interface operations {
                     "application/json": {
                         stores: components["schemas"]["Store"][];
                     };
+                };
+            };
+            /** @description Bad Request - Invalid input or missing image */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    acceptInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** @description Unique token for the invitation */
+                    token: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Staff invitation sent successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffInvitation"];
+                };
+            };
+            /** @description Bad Request - Invalid input or missing image */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    declineInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** @description Unique token for the invitation */
+                    token: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Staff invitation sent successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffInvitation"];
                 };
             };
             /** @description Bad Request - Invalid input or missing image */
