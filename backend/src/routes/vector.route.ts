@@ -1,3 +1,4 @@
+import z from "zod";
 import { ApiError } from "../controller/error/api-error";
 import { createDefaultRoute } from "./shared/default-route";
 import { Customer } from "../domain/customer";
@@ -11,19 +12,13 @@ const authenticateFace = createDefaultRoute({
   validateResponse: true,
   operationId: "authenticateFace",
   description: "Authenticate a user using face recognition",
-  requestBody: {
-    content: {
-      "multipart/form-data": {
-        schema: {
-          type: "object",
-          properties: {
-            image: {
-              type: "string",
-              format: "binary",
-              description: "Image for face authentication",
-            },
-          },
-          required: ["image"],
+  request: {
+    body: {
+      content: {
+        "multipart/form-data": {
+          schema: z.object({
+            image: z.instanceof(File).describe("Image for face authentication"),
+          }),
         },
       },
     },
@@ -62,19 +57,13 @@ const registerFace = createDefaultRoute({
   tags,
   operationId: "registerFace",
   description: "Register a user's face for authentication",
-  requestBody: {
-    content: {
-      "multipart/form-data": {
-        schema: {
-          type: "object",
-          properties: {
-            image: {
-              type: "string",
-              format: "binary",
-              description: "Image for face registration",
-            },
-          },
-          required: ["image"],
+  request: {
+    body: {
+      content: {
+        "multipart/form-data": {
+          schema: z.object({
+            image: z.instanceof(File).describe("Image for face authentication"),
+          }),
         },
       },
     },
