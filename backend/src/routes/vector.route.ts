@@ -1,6 +1,7 @@
-import { z } from "@hono/zod-openapi";
+import z from "zod";
 import { ApiError } from "../controller/error/api-error";
 import { createDefaultRoute } from "./shared/default-route";
+import { Customer } from "../domain/customer";
 
 const tags = ["Vector"];
 
@@ -11,19 +12,13 @@ const authenticateFace = createDefaultRoute({
   validateResponse: true,
   operationId: "authenticateFace",
   description: "Authenticate a user using face recognition",
-  requestBody: {
-    content: {
-      "multipart/form-data": {
-        schema: {
-          type: "object",
-          properties: {
-            image: {
-              type: "string",
-              format: "binary",
-              description: "Image for face authentication",
-            },
-          },
-          required: ["image"],
+  request: {
+    body: {
+      content: {
+        "multipart/form-data": {
+          schema: z.object({
+            image: z.instanceof(File).describe("Image for face authentication"),
+          }),
         },
       },
     },
@@ -33,21 +28,7 @@ const authenticateFace = createDefaultRoute({
       description: "Successful authenticated response",
       content: {
         "application/json": {
-          schema: z
-            .object({
-              customerId: z
-                .string()
-                .openapi({ description: "The ID of the authenticated user" }),
-              createdAt: z.date().openapi({
-                description: "Timestamp of when the user was created",
-                format: "date-time",
-              }),
-              updatedAt: z.date().openapi({
-                description: "Timestamp of when the user was last updated",
-                format: "date-time",
-              }),
-            })
-            .openapi("Customer"),
+          schema: Customer,
         },
       },
     },
@@ -76,19 +57,13 @@ const registerFace = createDefaultRoute({
   tags,
   operationId: "registerFace",
   description: "Register a user's face for authentication",
-  requestBody: {
-    content: {
-      "multipart/form-data": {
-        schema: {
-          type: "object",
-          properties: {
-            image: {
-              type: "string",
-              format: "binary",
-              description: "Image for face registration",
-            },
-          },
-          required: ["image"],
+  request: {
+    body: {
+      content: {
+        "multipart/form-data": {
+          schema: z.object({
+            image: z.instanceof(File).describe("Image for face authentication"),
+          }),
         },
       },
     },
@@ -98,19 +73,7 @@ const registerFace = createDefaultRoute({
       description: "Successful response",
       content: {
         "application/json": {
-          schema: z
-            .object({
-              customerId: z
-                .string()
-                .openapi({ description: "The ID of registered user." }),
-              createdAt: z.string().openapi({
-                description: "Timestamp of when the user was created",
-              }),
-              updatedAt: z.string().openapi({
-                description: "Timestamp of when the user was last updated",
-              }),
-            })
-            .openapi("Customer"),
+          schema: Customer,
         },
       },
     },

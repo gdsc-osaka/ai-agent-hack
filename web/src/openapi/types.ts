@@ -127,19 +127,14 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        Timestamp: {
+            seconds: number;
+            nanoseconds: number;
+        };
         Customer: {
-            /** @description The ID of the authenticated user */
-            customerId: string;
-            /**
-             * Format: date-time
-             * @description Timestamp of when the user was created
-             */
-            createdAt: string;
-            /**
-             * Format: date-time
-             * @description Timestamp of when the user was last updated
-             */
-            updatedAt: string;
+            id: string;
+            createdAt: components["schemas"]["Timestamp"];
+            updatedAt: components["schemas"]["Timestamp"];
         };
         /** @enum {string} */
         ApiErrorCode: "DATABASE_UNKNOWN_ERROR" | "DATABASE_NOT_FOUND" | "DATABASE_ALREADY_EXISTS" | "DATABASE_INCONSISTENT_TYPE" | "PERMISSION_DENIED" | "INVALID_REQUEST_BODY" | "STAFF_NOT_FOUND" | "STORE_NOT_FOUND" | "STAFF_INVITATION_NOT_FOUND" | "STORE_TO_STAFF_ALREADY_EXISTS" | "STAFF_INVITATION_EXPIRED" | "STAFF_INVITATION_NOT_PENDING" | "STAFF_INVITATION_WRONG_EMAIL";
@@ -148,10 +143,6 @@ export interface components {
             code: components["schemas"]["ApiErrorCode"];
             /** @default [] */
             details: unknown[];
-        };
-        Timestamp: {
-            seconds: number;
-            nanoseconds: number;
         };
         Store: {
             id: string;
@@ -197,11 +188,8 @@ export interface operations {
         requestBody?: {
             content: {
                 "multipart/form-data": {
-                    /**
-                     * Format: binary
-                     * @description Image for face authentication
-                     */
-                    image: string;
+                    /** @description Image for face authentication */
+                    image: unknown;
                 };
             };
         };
@@ -245,11 +233,8 @@ export interface operations {
         requestBody?: {
             content: {
                 "multipart/form-data": {
-                    /**
-                     * Format: binary
-                     * @description Image for face registration
-                     */
-                    image: string;
+                    /** @description Image for face authentication */
+                    image: unknown;
                 };
             };
         };
@@ -260,14 +245,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Customer"] & {
-                        /** @description The ID of registered user. */
-                        customerId?: string;
-                        /** @description Timestamp of when the user was created */
-                        createdAt?: string;
-                        /** @description Timestamp of when the user was last updated */
-                        updatedAt?: string;
-                    };
+                    "application/json": components["schemas"]["Customer"];
                 };
             };
             /** @description Bad Request - Invalid input or missing image */
