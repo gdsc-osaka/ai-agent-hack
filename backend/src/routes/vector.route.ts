@@ -1,7 +1,6 @@
-import { z } from "@hono/zod-openapi";
 import { ApiError } from "../controller/error/api-error";
 import { createDefaultRoute } from "./shared/default-route";
-import { Timestamp } from "../domain/timestamp";
+import { Customer } from "../domain/customer";
 
 const tags = ["Vector"];
 
@@ -34,19 +33,7 @@ const authenticateFace = createDefaultRoute({
       description: "Successful authenticated response",
       content: {
         "application/json": {
-          schema: z
-            .object({
-              id: z
-                .string()
-                .openapi({ description: "The ID of the authenticated user" }),
-              createdAt: Timestamp.openapi({
-                description: "Timestamp of when the user was created",
-              }),
-              updatedAt: Timestamp.openapi({
-                description: "Timestamp of when the user was last updated",
-              }),
-            })
-            .openapi("Customer"),
+          schema: Customer,
         },
       },
     },
@@ -97,19 +84,7 @@ const registerFace = createDefaultRoute({
       description: "Successful response",
       content: {
         "application/json": {
-          schema: z
-            .object({
-              id: z
-                .string()
-                .openapi({ description: "The ID of registered user." }),
-              createdAt: Timestamp.openapi({
-                description: "Timestamp of when the user was created",
-              }),
-              updatedAt: Timestamp.openapi({
-                description: "Timestamp of when the user was last updated",
-              }),
-            })
-            .openapi("Customer"),
+          schema: Customer,
         },
       },
     },
