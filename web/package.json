@@ -27,6 +27,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "hono": "^4.7.11",
+    "face-api.js": "^0.22.2",
     "jotai": "^2.12.5",
     "liquid-glass-react": "^1.0.1",
     "lucide-react": "^0.513.0",
