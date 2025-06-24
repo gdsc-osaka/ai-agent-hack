@@ -16,7 +16,7 @@ import type { CustomerNotFoundError } from "../infra/customer-repo.error";
 import type { DBInternalError } from "../infra/shared/db-error";
 import env from "../env";
 
-export type FaceAuthResult = ResultAsync<
+export type FaceAuth = (image: File) => ResultAsync<
   Customer,
   | FaceEmbeddingError
   | FaceAuthError
@@ -26,9 +26,7 @@ export type FaceAuthResult = ResultAsync<
   | InvalidCustomerError
 >;
 
-export type FaceAuth = (image: File) => FaceAuthResult;
-
-export const authFace =
+export const authenticateFace =
   (
     getFaceEmbedding: GetFaceEmbedding,
     findCustomerIdByFaceEmbedding: FindCustomerIdByFaceEmbedding,
