@@ -2,7 +2,11 @@ import { getAuthUser } from "./middleware/authorize";
 import { toHTTPException } from "./shared/exception";
 import { createStoreController } from "../controller/store-controller";
 import { createStore } from "../service/store-service";
-import { fetchDBStoreByPublicId, insertDBStore } from "../infra/store-repo";
+import {
+  fetchDBStoreById,
+  fetchDBStoreByPublicId,
+  insertDBStore,
+} from "../infra/store-repo";
 import {
   fetchDBStaffByUserId,
   fetchDBStaffForStoreRoleById,
@@ -18,6 +22,14 @@ import {
   insertDBStaffInvitation,
 } from "../infra/staff-invitation-repo";
 import invitationsRoute from "./invitations.route";
+import { faceAuthController } from "../controller/face-auth-controller";
+import { authFace } from "../service/face-auth-service";
+import { getFaceEmbedding } from "../infra/face-embedding-repo";
+import { authenticateFace, registerEmbedding } from "../infra/face-auth-repo";
+import { findDBCustomerById, insertDBCustomer } from "../infra/customer-repo";
+import { validateCustomer } from "../domain/customer";
+import { registerCustomerController } from "../controller/customer-controller";
+import { registerCustomer } from "../service/customer-service";
 
 const app = new OpenAPIHono();
 
@@ -52,6 +64,44 @@ app.openapi(invitationsRoute.inviteStaffToStore, async (c) => {
     throw toHTTPException(res.error);
   }
   return c.json(res.value, 200);
+});
+
+app.openapi(storesRoute.authenticateFace, async (c) => {
+  const { image } = c.req.valid("form");
+
+  const res = await faceAuthController(
+    authFace(
+      getFaceEmbedding,
+      authenticateFace,
+      findDBCustomerById,
+      validateCustomer
+    )(image)
+  );
+
+  if (res.isErr()) {
+    throw toHTTPException(res.error);
+  }
+  return c.json(res.value, 200);
+});
+
+app.openapi(storesRoute.registerFace, async (c) => {
+  const { storeId } = c.req.valid("param");
+  const { image } = c.req.valid("form");
+
+  const res = await registerCustomerController(
+    registerCustomer(
+      fetchDBStoreById,
+      getFaceEmbedding,
+      registerEmbedding,
+      insertDBCustomer,
+      validateCustomer
+    )(storeId, image)
+  );
+
+  if (res.isErr()) {
+    throw toHTTPException(res.error);
+  }
+  return c.json(res.value, 201);
 });
 
 export default app;

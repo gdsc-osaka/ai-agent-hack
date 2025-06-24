@@ -6,7 +6,6 @@ import { logger } from "./routes/middleware/logger";
 import authorize from "./routes/middleware/authorize";
 import auth from "./routes/auth";
 import stores from "./routes/stores";
-import vector from "./routes/vector";
 import staffs from "./routes/staffs";
 import invitations from "./routes/invitations";
 import customers from "./routes/customers";
@@ -39,7 +38,6 @@ app.route("/api/v1/auth", auth);
 app.use("/api/*", authorize);
 
 // endpoint
-app.route("/api/v1/vector", vector);
 app.route("/api/v1/stores", stores);
 app.route("/api/v1/staffs", staffs);
 app.route("/api/v1/invitations", invitations);

@@ -2,13 +2,15 @@ import { Store } from "../domain/store";
 import { z } from "zod";
 import { ApiError } from "../controller/error/api-error";
 import { createDefaultRoute } from "./shared/default-route";
+import { Customer } from "../domain/customer";
 
-const tags = ["Stores"];
+const TAG_STORE = "Stores";
+const TAG_CUSTOMER = "Customers";
 
 const createStore = createDefaultRoute({
   method: "post",
   path: "/",
-  tags,
+  tags: [TAG_STORE],
   operationId: "createStore",
   description: "Create a new store",
   security: [
@@ -47,21 +49,89 @@ const createStore = createDefaultRoute({
   },
 });
 
-const fetchStoresForStaff = createDefaultRoute({
-  method: "get",
-  path: "/me/stores",
-  tags,
+const authenticateFace = createDefaultRoute({
+  method: "post",
+  path: "/{storeId}/face-recognition/authenticate",
+  tags: [TAG_CUSTOMER],
   validateResponse: true,
-  operationId: "fetchStoresForStaff",
-  description: "Fetch stores for staff",
+  operationId: "authenticateFace",
+  description: "Authenticate a user using face recognition",
+  request: {
+    params: z.object({
+      storeId: z.string().describe("ID of the store to invite staff to"),
+    }),
+    body: {
+      content: {
+        "multipart/form-data": {
+          schema: z.object({
+            image: z.instanceof(File).describe("Image for face authentication"),
+          }),
+        },
+      },
+    },
+  },
   responses: {
     200: {
+      description: "Successful authenticated response",
+      content: {
+        "application/json": {
+          schema: Customer,
+        },
+      },
+    },
+    403: {
+      description: "Forbidden - User not authenticated",
+      content: {
+        "application/json": {
+          schema: ApiError,
+        },
+      },
+    },
+    400: {
+      description: "Bad Request - Invalid input or missing image",
+      content: {
+        "application/json": {
+          schema: ApiError,
+        },
+      },
+    },
+  },
+});
+
+const registerFace = createDefaultRoute({
+  method: "post",
+  path: "/{storeId}/face-recognition/register",
+  tags: [TAG_CUSTOMER],
+  operationId: "registerFace",
+  description: "Register a user's face for authentication",
+  request: {
+    params: z.object({
+      storeId: z.string().describe("ID of the store to invite staff to"),
+    }),
+    body: {
+      content: {
+        "multipart/form-data": {
+          schema: z.object({
+            image: z.instanceof(File).describe("Image for face authentication"),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
       description: "Successful response",
       content: {
         "application/json": {
-          schema: z.object({
-            stores: Store.array(),
-          }),
+          schema: Customer,
+        },
+      },
+    },
+    400: {
+      description: "Bad Request - Invalid input or missing image",
+      content: {
+        "application/json": {
+          schema: ApiError,
         },
       },
     },
@@ -70,5 +140,6 @@ const fetchStoresForStaff = createDefaultRoute({
 
 export default {
   createStore,
-  fetchStoresForStaff,
+  authenticateFace,
+  registerFace,
 };
