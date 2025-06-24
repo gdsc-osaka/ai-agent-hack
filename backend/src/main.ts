@@ -1,6 +1,6 @@
-import { Hono } from "hono";
 import { serve } from "@hono/node-server";
-import { openApiSpec } from "./openapi-spec";
+import { cors } from "hono/cors";
+import { MyOpenAPIHono } from "./openapi-spec";
 import env from "./env";
 import { logger } from "./routes/middleware/logger";
 import authorize from "./routes/middleware/authorize";
@@ -8,9 +8,13 @@ import auth from "./routes/auth";
 import stores from "./routes/stores";
 import vector from "./routes/vector";
 import staffs from "./routes/staffs";
-import { cors } from "hono/cors";
+import invitations from "./routes/invitations";
+import customers from "./routes/customers";
 
-const app = new Hono();
+const app = MyOpenAPIHono({
+  docPath: "/api/openapi",
+  swaggerPath: "/api/swagger",
+});
 
 // Production 環境では Firebase Hosting で /api/** のパスをリダクレクトするため、
 // ここでは /api/** のパスを受け取る
@@ -27,7 +31,6 @@ app.use(
   })
 );
 app.use(logger);
-app.get("/api/openapi", openApiSpec(app));
 app.get("/api/ping", (c) => c.text("pong"));
 
 // Auth
@@ -39,6 +42,8 @@ app.use("/api/*", authorize);
 app.route("/api/v1/vector", vector);
 app.route("/api/v1/stores", stores);
 app.route("/api/v1/staffs", staffs);
+app.route("/api/v1/invitations", invitations);
+app.route("/api/v1/customers", customers);
 
 serve({
   fetch: app.fetch,

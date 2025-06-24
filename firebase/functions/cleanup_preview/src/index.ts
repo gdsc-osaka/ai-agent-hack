@@ -1,13 +1,16 @@
-import {onSchedule} from "firebase-functions/v2/scheduler";
-import {logger} from "firebase-functions";
-import {ServicesClient} from "@google-cloud/run";
+import { onSchedule } from "firebase-functions/v2/scheduler";
+import { logger } from "firebase-functions";
+import { ServicesClient } from "@google-cloud/run";
 
 const runClient = new ServicesClient();
 
 const PROJECT_ID =
   process.env.GCLOUD_PROJECT || "YOUR_PROJECT_ID";
 const REGION = "asia-northeast1"; // e.g., "us-central1", "asia-northeast1"
-const SERVICE_NAME_PREFIX = ["recall-you-api-preview-", "recall-you-web-preview-"];
+const SERVICE_NAME_PREFIXES = [
+  "recall-you-api-preview-",
+  "recall-you-web-preview-",
+];
 const DAYS_THRESHOLD = 3; // 削除対象とする経過日数 (3日)
 
 exports.previewCleanup = onSchedule(
@@ -56,14 +59,16 @@ exports.previewCleanup = onSchedule(
         }
 
         const serviceId =
-          service.name.split("/").pop() || "";
+          service.name?.split("/").pop() ?? "";
         const updateTime = new Date(
           Number(service.updateTime.seconds) * 1000
         );
 
         // サービス名がプレフィックスに一致し、かつ最終更新日時が閾値より古いかチェック
         if (
-          SERVICE_NAME_PREFIX.every(serviceId.startsWith) &&
+          SERVICE_NAME_PREFIXES.some((prefix) =>
+            serviceId.startsWith(prefix)
+          ) &&
           updateTime < thresholdDate
         ) {
           logger.info(
@@ -71,7 +76,7 @@ exports.previewCleanup = onSchedule(
           );
 
           const deletePromise = runClient
-            .deleteService({name: service.name})
+            .deleteService({ name: service.name })
             .then(() => {
               logger.info(
                 `✅ Successfully deleted service: ${serviceId}`
@@ -86,7 +91,7 @@ exports.previewCleanup = onSchedule(
 
           deletionPromises.push(deletePromise);
         } else if (
-          SERVICE_NAME_PREFIX.every(serviceId.startsWith)
+          SERVICE_NAME_PREFIXES.every(serviceId.startsWith)
         ) {
           logger.info(
             `[SKIP] Service is not old enough: ${serviceId} (Last updated: ${updateTime.toISOString()})`

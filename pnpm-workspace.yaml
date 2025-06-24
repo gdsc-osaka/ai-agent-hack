@@ -1,0 +1,6 @@
+packages:
+  - 'backend'
+  - 'web'
+  - 'firebase/functions/*'
+publicHoistPattern:
+- "*drizzle*"

@@ -12,8 +12,8 @@ import {
   Request as TasksRequest,
 } from "firebase-functions/v2/tasks";
 import { v4 as uuidv4 } from "uuid";
-import db from "../../../../backend/src/db/db";
-import { profiles } from "../../../../backend/src/db/schema/profiles";
+import db from "recall-you-api/db";
+import { profiles } from "recall-you-api/schema/profiles";
 
 const tasksClient = new CloudTasksClient();
 const projectId = process.env.GCP_PROJECT_ID || "recall-you";
@@ -53,9 +53,9 @@ export const uploadAudio = onRequest(
       res.status(200).send(`Task queued (id=${id})`);
     } catch (error) {
       console.error("uploadAudio error:", error);
-      res.status(500).send(
-        error instanceof Error ? error.message : String(error)
-      );
+      res
+        .status(500)
+        .send(error instanceof Error ? error.message : String(error));
     }
   }
 );
@@ -106,11 +106,13 @@ export const generateProfile = onTaskDispatched(
     retryConfig: { maxAttempts: 5, minBackoffSeconds: 60 },
     rateLimits: { maxConcurrentDispatches: 6 },
   },
-  async (req: TasksRequest<{
-    id: string;
-    audioMime: string;
-    audioBase64: string;
-  }>) => {
+  async (
+    req: TasksRequest<{
+      id: string;
+      audioMime: string;
+      audioBase64: string;
+    }>
+  ) => {
     try {
       const { audioMime, audioBase64 } = req.data;
       const buffer = Buffer.from(audioBase64, "base64");

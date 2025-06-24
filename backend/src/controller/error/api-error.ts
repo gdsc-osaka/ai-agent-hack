@@ -1,5 +1,4 @@
-import z from "zod";
-import "zod-openapi/extend";
+import { z } from "@hono/zod-openapi";
 
 export const ApiErrorCode = z
   .enum([
@@ -7,9 +6,20 @@ export const ApiErrorCode = z
     "DATABASE_NOT_FOUND",
     "DATABASE_ALREADY_EXISTS",
     "DATABASE_INCONSISTENT_TYPE",
+    "PERMISSION_DENIED",
     "INVALID_REQUEST_BODY",
+    "STAFF_NOT_FOUND",
+    "STORE_NOT_FOUND",
+    "STAFF_INVITATION_NOT_FOUND",
+    "STORE_TO_STAFF_ALREADY_EXISTS",
+    "STAFF_INVITATION_EXPIRED",
+    "STAFF_INVITATION_NOT_PENDING",
+    "STAFF_INVITATION_WRONG_EMAIL",
+    "CUSTOMER_NOT_FOUND",
+    "TOS_ALREADY_ACCEPTED",
+    "DOMAIN_VALIDATION_ERROR",
   ])
-  .openapi({ ref: "ApiErrorCode" });
+  .openapi("ApiErrorCode");
 export type ApiErrorCode = z.infer<typeof ApiErrorCode>;
 
 export const ApiError = z
@@ -18,7 +28,7 @@ export const ApiError = z
     code: ApiErrorCode,
     details: z.array(z.unknown()).default([]),
   })
-  .openapi({ ref: "ApiError" });
+  .openapi("ApiError");
 export type ApiError = z.infer<typeof ApiError>;
 
 export enum StatusCode {

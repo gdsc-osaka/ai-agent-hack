@@ -1,29 +1,24 @@
-import { describeRoute } from "hono-openapi";
-import { resolver } from "hono-openapi/zod";
-import "zod-openapi/extend";
 import z from "zod";
 import { ApiError } from "../controller/error/api-error";
+import { createDefaultRoute } from "./shared/default-route";
+import { Customer } from "../domain/customer";
 
 const tags = ["Vector"];
 
-const authenticateFace = describeRoute({
+const authenticateFace = createDefaultRoute({
+  method: "post",
+  path: "/face-auth",
   tags,
   validateResponse: true,
   operationId: "authenticateFace",
   description: "Authenticate a user using face recognition",
-  requestBody: {
-    content: {
-      "multipart/form-data": {
-        schema: {
-          type: "object",
-          properties: {
-            image: {
-              type: "string",
-              format: "binary",
-              description: "Image for face authentication",
-            },
-          },
-          required: ["image"],
+  request: {
+    body: {
+      content: {
+        "multipart/form-data": {
+          schema: z.object({
+            image: z.instanceof(File).describe("Image for face authentication"),
+          }),
         },
       },
     },
@@ -33,21 +28,7 @@ const authenticateFace = describeRoute({
       description: "Successful authenticated response",
       content: {
         "application/json": {
-          schema: resolver(
-            z
-              .object({
-                customerId: z
-                  .string()
-                  .openapi({ description: "The ID of the authenticated user" }),
-                createdAt: z.string().openapi({
-                  description: "Timestamp of when the user was created",
-                }),
-                updatedAt: z.string().openapi({
-                  description: "Timestamp of when the user was last updated",
-                }),
-              })
-              .openapi({ ref: "Customer" })
-          ),
+          schema: Customer,
         },
       },
     },
@@ -55,7 +36,7 @@ const authenticateFace = describeRoute({
       description: "Forbidden - User not authenticated",
       content: {
         "application/json": {
-          schema: resolver(ApiError),
+          schema: ApiError,
         },
       },
     },
@@ -63,31 +44,26 @@ const authenticateFace = describeRoute({
       description: "Bad Request - Invalid input or missing image",
       content: {
         "application/json": {
-          schema: resolver(ApiError),
+          schema: ApiError,
         },
       },
     },
   },
 });
 
-const registerFace = describeRoute({
+const registerFace = createDefaultRoute({
+  method: "post",
+  path: "/face",
   tags,
-  validateResponse: true,
   operationId: "registerFace",
   description: "Register a user's face for authentication",
-  requestBody: {
-    content: {
-      "multipart/form-data": {
-        schema: {
-          type: "object",
-          properties: {
-            image: {
-              type: "string",
-              format: "binary",
-              description: "Image for face registration",
-            },
-          },
-          required: ["image"],
+  request: {
+    body: {
+      content: {
+        "multipart/form-data": {
+          schema: z.object({
+            image: z.instanceof(File).describe("Image for face authentication"),
+          }),
         },
       },
     },
@@ -97,21 +73,7 @@ const registerFace = describeRoute({
       description: "Successful response",
       content: {
         "application/json": {
-          schema: resolver(
-            z
-              .object({
-                customerId: z
-                  .string()
-                  .openapi({ description: "The ID of registered user." }),
-                createdAt: z.string().openapi({
-                  description: "Timestamp of when the user was created",
-                }),
-                updatedAt: z.string().openapi({
-                  description: "Timestamp of when the user was last updated",
-                }),
-              })
-              .openapi({ ref: "Customer" })
-          ),
+          schema: Customer,
         },
       },
     },
@@ -119,7 +81,7 @@ const registerFace = describeRoute({
       description: "Bad Request - Invalid input or missing image",
       content: {
         "application/json": {
-          schema: resolver(ApiError),
+          schema: ApiError,
         },
       },
     },

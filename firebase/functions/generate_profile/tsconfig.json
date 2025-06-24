@@ -1,16 +1,16 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "es2015",
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "esModuleInterop": true,
     "outDir": "lib",
     "sourceMap": true,
     "strict": true,
-    "target": "es2017"
+    "target": "es2017",
+    "moduleResolution": "bundler",
+    "skipLibCheck": true // Avoid drizzle-orm's type error
   },
   "compileOnSave": true,
-  "include": [
-    "src"
-  ]
+  "include": ["src"]
 }
