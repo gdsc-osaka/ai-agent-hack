@@ -1,63 +1,50 @@
 import { err, ok, ResultAsync } from "neverthrow";
 import { FieldValue } from "firebase-admin/firestore";
-import { createId } from "@paralleldrive/cuid2";
 import { FaceAuthError } from "./face-auth-repo.error";
-import type { FirebaseApp } from "../firebase";
+import { FirestoreOrTx } from "../firebase";
 import { FirestoreInternalError } from "./shared/firestore-error";
-import { CustomerId } from "../domain/customer";
+import { CustomerId, DBCustomerForCreate } from "../domain/customer";
 
 const EMBEDDINGS_COLLECTION = "embeddings";
 
 export type RegisterEmbedding = (
-  firebase: FirebaseApp
-) => (embedding: number[]) => ResultAsync<CustomerId, FirestoreInternalError>;
+  firestore: FirestoreOrTx
+) => (
+  customer: DBCustomerForCreate,
+  embedding: number[]
+) => ResultAsync<void, FirestoreInternalError>;
 
 export type AuthenticateFace = (
-  firebase: FirebaseApp
+  firestore: FirestoreOrTx
 ) => (
   embedding: number[]
 ) => ResultAsync<CustomerId, FaceAuthError | FirestoreInternalError>;
 
 export type DeleteEmbedding = (
-  firebase: FirebaseApp
+  firestore: FirestoreOrTx
 ) => (customerId: CustomerId) => ResultAsync<void, FirestoreInternalError>;
 
-export const registerEmbedding: RegisterEmbedding = (firebase) => (embedding) =>
+export const registerEmbedding: RegisterEmbedding =
+  (firestore) => (customer, embedding) =>
+    ResultAsync.fromPromise(
+      firestore.set(firestore.doc(`${EMBEDDINGS_COLLECTION}/${customer.id}`), {
+        value: FieldValue.vector(embedding),
+        created_at: new Date().toISOString(),
+      }),
+      FirestoreInternalError.handle
+    );
+
+export const authenticateFace: AuthenticateFace = (firestore) => (embedding) =>
   ResultAsync.fromPromise(
-    (async () => {
-      const firestore = firebase.firestore();
-      const customerId = createId();
-
-      await firestore
-        .collection(EMBEDDINGS_COLLECTION)
-        .doc(customerId)
-        .set({
-          value: FieldValue.vector(embedding),
-          created_at: new Date().toISOString(),
-        });
-
-      return customerId as CustomerId;
-    })(),
-    FirestoreInternalError.handle
-  ).andThen((customerId) => ok(customerId));
-
-export const authenticateFace: AuthenticateFace = (firebase) => (embedding) =>
-  ResultAsync.fromPromise(
-    (async () => {
-      const firestore = firebase.firestore();
-
-      const snapshot = await firestore
-        .collection(EMBEDDINGS_COLLECTION)
-        .findNearest({
-          vectorField: "value",
-          queryVector: FieldValue.vector(embedding),
-          limit: 1,
-          distanceMeasure: "COSINE",
-        })
-        .get();
-
-      return snapshot;
-    })(),
+    firestore
+      .collection(EMBEDDINGS_COLLECTION)
+      .findNearest({
+        vectorField: "value",
+        queryVector: FieldValue.vector(embedding),
+        limit: 1,
+        distanceMeasure: "COSINE",
+      })
+      .get(),
     FirestoreInternalError.handle
   ).andThen((snapshot) => {
     if (snapshot.empty) {
@@ -68,12 +55,8 @@ export const authenticateFace: AuthenticateFace = (firebase) => (embedding) =>
     return ok(snapshot.docs[0].id as CustomerId);
   });
 
-export const deleteEmbedding: DeleteEmbedding = (firebase) => (customerId) =>
+export const deleteEmbedding: DeleteEmbedding = (firestore) => (customerId) =>
   ResultAsync.fromPromise(
-    firebase
-      .firestore()
-      .collection(EMBEDDINGS_COLLECTION)
-      .doc(customerId)
-      .delete(),
+    firestore.delete(firestore.doc(`${EMBEDDINGS_COLLECTION}/${customerId}`)),
     FirestoreInternalError.handle
   ).map(() => undefined); // map to void on success
