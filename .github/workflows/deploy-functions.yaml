@@ -64,6 +64,7 @@ jobs:
         run: npm install -g firebase-tools
 
       - name: Install all dependencies
+        if: ${{ steps.cache-node.outputs.cache-hit != 'true' }}
         run: pnpm i
 
       - name: Deploy to Firebase Functions
