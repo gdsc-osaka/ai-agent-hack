@@ -48,9 +48,10 @@ serve({
   port: env.PORT,
 });
 
-console.log(
-  "Server started" +
-    (env.NODE_ENV === "development"
-      ? ` at http://localhost:${env.PORT}/api`
-      : "")
-);
+console.log("Server started");
+
+if (env.NODE_ENV === "development") {
+  console.log(`- http://localhost:${env.PORT}`);
+  console.log(`- Swagger UI: http://localhost:${env.PORT}/api/swagger`);
+  console.log(`- OpenAPI Spec: http://localhost:${env.PORT}/api/openapi`);
+}
