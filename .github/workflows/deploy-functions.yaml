@@ -47,6 +47,19 @@ jobs:
           cache: "pnpm"
           cache-dependency-path: "pnpm-lock.yaml"
 
+      - name: cache-node-modules
+        uses: actions/cache@v3
+        id: cache-node
+        env:
+          cache-name: cache-node
+        with:
+          path: "**/node_modules"
+          key: ${{ runner.os }}-cache-web-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-cache-web-
+            ${{ runner.os }}-cache-
+            ${{ runner.os }}-
+
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
