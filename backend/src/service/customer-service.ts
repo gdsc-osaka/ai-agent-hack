@@ -1,6 +1,9 @@
 import { Result, ResultAsync } from "neverthrow";
 import { GetFaceEmbedding } from "../infra/face-embedding-repo";
-import { DeleteEmbedding, RegisterEmbedding } from "../infra/face-auth-repo";
+import {
+  DeleteFaceEmbedding,
+  InsertFaceEmbedding,
+} from "../infra/face-auth-repo";
 import {
   DeleteDBCustomerById,
   FindDBCustomerById,
@@ -48,7 +51,7 @@ export const registerCustomer =
   (
     fetchDBStoreById: FetchDBStoreById,
     getFaceEmbedding: GetFaceEmbedding,
-    registerEmbedding: RegisterEmbedding,
+    insertFaceEmbedding: InsertFaceEmbedding,
     insertDBCustomer: InserttDBCustomer,
     validateCustomer: ValidateCustomer
   ): RegisterCustomer =>
@@ -57,7 +60,7 @@ export const registerCustomer =
       getFaceEmbedding(image),
       fetchDBStoreById(db)(storeId).andThen(createCustomer),
     ]).andThen(([embedding, customer]) =>
-      registerEmbedding(firestoreDB(firebase(env.FIRE_SA).firestore()))(
+      insertFaceEmbedding(firestoreDB(firebase(env.FIRE_SA).firestore()))(
         customer,
         embedding
       )
@@ -105,7 +108,7 @@ export const declineCustomerTos =
     runTransaction: RunTransaction,
     findDBCustomerById: FindDBCustomerById, // To ensure customer exists before deleting
     deleteDBCustomerById: DeleteDBCustomerById,
-    deleteEmbedding: DeleteEmbedding
+    deleteEmbedding: DeleteFaceEmbedding
   ): DeclineCustomerTos =>
   (customerId) =>
     // First, delete the database record

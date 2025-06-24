@@ -15,7 +15,7 @@ import {
   findDBCustomerById,
   updateDBCustomer,
 } from "../infra/customer-repo";
-import { deleteEmbedding } from "../infra/face-auth-repo";
+import { deleteFaceEmbedding } from "../infra/face-auth-repo";
 
 const app = new OpenAPIHono();
 
@@ -45,7 +45,7 @@ app.openapi(customersRoute.declineTos, async (c) => {
       runTransaction,
       findDBCustomerById,
       deleteDBCustomerById,
-      deleteEmbedding
+      deleteFaceEmbedding
     )(customerId)
   );
 

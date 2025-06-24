@@ -24,7 +24,10 @@ import {
 import { faceAuthController } from "../controller/face-auth-controller";
 import { authFace } from "../service/face-auth-service";
 import { getFaceEmbedding } from "../infra/face-embedding-repo";
-import { authenticateFace, registerEmbedding } from "../infra/face-auth-repo";
+import {
+  findCustomerIdByFaceEmbedding,
+  insertFaceEmbedding,
+} from "../infra/face-auth-repo";
 import { findDBCustomerById, insertDBCustomer } from "../infra/customer-repo";
 import { validateCustomer } from "../domain/customer";
 import { registerCustomerController } from "../controller/customer-controller";
@@ -71,7 +74,7 @@ app.openapi(storesRoute.authenticateFace, async (c) => {
   const res = await faceAuthController(
     authFace(
       getFaceEmbedding,
-      authenticateFace,
+      findCustomerIdByFaceEmbedding,
       findDBCustomerById,
       validateCustomer
     )(image)
@@ -91,7 +94,7 @@ app.openapi(storesRoute.registerFace, async (c) => {
     registerCustomer(
       fetchDBStoreById,
       getFaceEmbedding,
-      registerEmbedding,
+      insertFaceEmbedding,
       insertDBCustomer,
       validateCustomer
     )(storeId, image)

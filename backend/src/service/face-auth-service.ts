@@ -1,6 +1,6 @@
 import { ResultAsync } from "neverthrow";
 import { GetFaceEmbedding } from "../infra/face-embedding-repo";
-import { AuthenticateFace } from "../infra/face-auth-repo";
+import { FindCustomerIdByFaceEmbedding } from "../infra/face-auth-repo";
 import db from "../db/db";
 import { FindDBCustomerById } from "../infra/customer-repo";
 import firebase, { firestoreDB } from "../firebase";
@@ -31,16 +31,16 @@ export type FaceAuth = (image: File) => FaceAuthResult;
 export const authFace =
   (
     getFaceEmbedding: GetFaceEmbedding,
-    authenticateFace: AuthenticateFace,
+    findCustomerIdByFaceEmbedding: FindCustomerIdByFaceEmbedding,
     findDBCustomerById: FindDBCustomerById,
     validateCustomer: ValidateCustomer
   ): FaceAuth =>
   (image: File) =>
     getFaceEmbedding(image)
       .andThen((embedding) =>
-        authenticateFace(firestoreDB(firebase(env.FIRE_SA).firestore()))(
-          embedding
-        )
+        findCustomerIdByFaceEmbedding(
+          firestoreDB(firebase(env.FIRE_SA).firestore())
+        )(embedding)
       )
       .andThen((customerId) => findDBCustomerById(db)(customerId))
       .andThen((customer) => validateCustomer(customer));
