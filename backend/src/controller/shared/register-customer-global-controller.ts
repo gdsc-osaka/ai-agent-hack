@@ -6,11 +6,13 @@ import { FirestoreInternalError } from "../../infra/shared/firestore-error";
 import { CustomerAlreadyExistsError } from "../../infra/customer-repo.error";
 import { DBInternalError } from "../../infra/shared/db-error";
 import { InvalidCustomerError } from "../../domain/customer";
+import { DBStoreNotFoundError } from "../../infra/store-repo.error";
 
 export type RegisterCustomerAllError =
   | FaceEmbeddingError
   | FirestoreInternalError
   | DBInternalError
+  | DBStoreNotFoundError
   | CustomerAlreadyExistsError
   | InvalidCustomerError;
 
@@ -37,6 +39,13 @@ export const registerCustomerGlobalController = <T>(
         HTTPErrorCarrier(StatusCode.InternalServerError, {
           message: e.message,
           code: "DATABASE_UNKNOWN_ERROR",
+          details: [e.cause],
+        })
+      )
+      .with(DBStoreNotFoundError.is, (e) =>
+        HTTPErrorCarrier(StatusCode.NotFound, {
+          message: e.message,
+          code: "STORE_NOT_FOUND",
           details: [e.cause],
         })
       )

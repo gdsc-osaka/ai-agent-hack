@@ -1,6 +1,4 @@
 import vectorRoute from "./vector.route";
-import getFirebaseApp from "../firebase";
-import env from "../env";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { faceAuthController } from "../controller/face-auth-controller";
 import { getFaceEmbedding } from "../infra/face-embedding-repo";
@@ -11,13 +9,12 @@ import { authFace } from "../service/face-auth-service";
 import { registerCustomer } from "../service/customer-service";
 import { registerCustomerController } from "../controller/customer-controller";
 import { validateCustomer } from "../domain/customer";
+import { fetchDBStoreById } from "../infra/store-repo";
 
 const app = new OpenAPIHono();
 
 app.openapi(vectorRoute.authenticateFace, async (c) => {
   const { image } = c.req.valid("form");
-
-  const firebase = getFirebaseApp(env.FIRE_SA);
 
   const res = await faceAuthController(
     authFace(
@@ -25,7 +22,7 @@ app.openapi(vectorRoute.authenticateFace, async (c) => {
       authenticateFace,
       findDBCustomerById,
       validateCustomer
-    )(firebase, image)
+    )(image)
   );
 
   if (res.isErr()) {
@@ -37,15 +34,14 @@ app.openapi(vectorRoute.authenticateFace, async (c) => {
 app.openapi(vectorRoute.registerFace, async (c) => {
   const { image } = c.req.valid("form");
 
-  const firebase = getFirebaseApp(env.FIRE_SA);
-
   const res = await registerCustomerController(
     registerCustomer(
+      fetchDBStoreById,
       getFaceEmbedding,
       registerEmbedding,
       insertDBCustomer,
       validateCustomer
-    )(firebase, image)
+    )("dummy", image)
   );
 
   if (res.isErr()) {
