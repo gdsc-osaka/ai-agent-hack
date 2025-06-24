@@ -46,9 +46,7 @@
         "firebase-debug.*.log",
         "*.local"
       ],
-      "predeploy": [
-        "npm --prefix \"$RESOURCE_DIR\" run build"
-      ]
+      "predeploy": ["pnpm --filter functions-cleanup-preview run build"]
     },
     {
       "source": "functions/generate_profile",
@@ -59,10 +57,7 @@
         "firebase-debug.log",
         "firebase-debug.*.log"
       ],
-      "predeploy": [
-        "npm --prefix \"$RESOURCE_DIR\" run lint",
-        "npm --prefix \"$RESOURCE_DIR\" run build"
-      ]
+      "predeploy": ["pnpm --filter functions-generate-profile build"]
     }
   ]
 }
