@@ -4,6 +4,8 @@ import { Timestamp, toTimestamp } from "./timestamp";
 import { errorBuilder, InferError } from "../shared/error";
 import { FieldErrors, ForUpdate } from "./shared/types";
 import { Result, ok, err } from "neverthrow";
+import { DBStore } from "./store";
+import { createId } from "@paralleldrive/cuid2";
 
 export type DBCustomer = typeof customers.$inferSelect;
 export type DBCustomerForCreate = typeof customers.$inferInsert;
@@ -46,6 +48,16 @@ export const checkTosNotAccepted = (
     );
   }
   return ok(customer);
+};
+
+export const createCustomer = (
+  store: DBStore
+): Result<DBCustomerForCreate, never> => {
+  return ok({
+    id: createId(), // CUID
+    tosAcceptedAt: null,
+    storeId: store.id,
+  });
 };
 
 export const createCustomerWithTosAccepted = (
