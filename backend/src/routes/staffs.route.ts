@@ -1,13 +1,12 @@
 import { createDefaultRoute } from "./shared/default-route";
 import { z } from "zod";
 import { Store } from "../domain/store";
-
-const TAG_STORE = "Stores";
+import tags from "./shared/tags";
 
 const fetchStoresForStaff = createDefaultRoute({
   method: "get",
   path: "/me/stores",
-  tags: [TAG_STORE],
+  tags: tags.stores,
   validateResponse: true,
   operationId: "fetchStoresForStaff",
   description: "Fetch stores for staff",

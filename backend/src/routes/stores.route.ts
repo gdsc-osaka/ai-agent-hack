@@ -3,14 +3,14 @@ import { z } from "zod";
 import { ApiError } from "../controller/error/api-error";
 import { createDefaultRoute } from "./shared/default-route";
 import { Customer } from "../domain/customer";
-
-const TAG_STORE = "Stores";
-const TAG_CUSTOMER = "Customers";
+import tags from "./shared/tags";
+import { StaffRole } from "../domain/store-staff";
+import { StaffInvitation } from "../domain/staff-invitation";
 
 const createStore = createDefaultRoute({
   method: "post",
   path: "/",
-  tags: [TAG_STORE],
+  tags: tags.stores,
   operationId: "createStore",
   description: "Create a new store",
   security: [
@@ -49,10 +49,51 @@ const createStore = createDefaultRoute({
   },
 });
 
+const inviteStaffToStore = createDefaultRoute({
+  method: "post",
+  path: "/{storeId}/invite",
+  tags: tags.invitations,
+  operationId: "inviteStaffToStore",
+  description: "Invite a staff member to a store",
+  security: [
+    {
+      session: [],
+    },
+  ],
+  request: {
+    params: z.object({
+      storeId: z.string().describe("ID of the store to invite staff to"),
+    }),
+    body: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            email: z
+              .string()
+              .email()
+              .describe("Email of the staff member to invite"),
+            role: StaffRole,
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Staff invitation sent successfully",
+      content: {
+        "application/json": {
+          schema: StaffInvitation,
+        },
+      },
+    },
+  },
+});
+
 const authenticateFace = createDefaultRoute({
   method: "post",
   path: "/{storeId}/face-recognition/authenticate",
-  tags: [TAG_CUSTOMER],
+  tags: tags.face,
   validateResponse: true,
   operationId: "authenticateFace",
   description: "Authenticate a user using face recognition",
@@ -101,7 +142,7 @@ const authenticateFace = createDefaultRoute({
 const registerFace = createDefaultRoute({
   method: "post",
   path: "/{storeId}/face-recognition/register",
-  tags: [TAG_CUSTOMER],
+  tags: tags.face,
   operationId: "registerFace",
   description: "Register a user's face for authentication",
   request: {
@@ -140,6 +181,7 @@ const registerFace = createDefaultRoute({
 
 export default {
   createStore,
+  inviteStaffToStore,
   authenticateFace,
   registerFace,
 };
