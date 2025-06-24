@@ -21,7 +21,6 @@ import {
   fetchDBStaffInvitationByEmailAndPending,
   insertDBStaffInvitation,
 } from "../infra/staff-invitation-repo";
-import invitationsRoute from "./invitations.route";
 import { faceAuthController } from "../controller/face-auth-controller";
 import { authFace } from "../service/face-auth-service";
 import { getFaceEmbedding } from "../infra/face-embedding-repo";
@@ -49,7 +48,7 @@ app.openapi(storesRoute.createStore, async (c) => {
   return c.json(res.value, 200);
 });
 
-app.openapi(invitationsRoute.inviteStaffToStore, async (c) => {
+app.openapi(storesRoute.inviteStaffToStore, async (c) => {
   const { email, role } = c.req.valid("json");
   const res = await inviteStaffToStoreController(
     inviteStaffToStore(
