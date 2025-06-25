@@ -93,7 +93,7 @@ const inviteStaffToStore = createDefaultRoute({
 const authenticateFace = createDefaultRoute({
   method: "post",
   path: "/{storeId}/customers/authenticate",
-  tags: tags.face,
+  tags: tags.customers,
   validateResponse: true,
   // TODO: Rename this operationId to authenticateCustomer
   operationId: "authenticateFace",
@@ -143,7 +143,7 @@ const authenticateFace = createDefaultRoute({
 const registerFace = createDefaultRoute({
   method: "post",
   path: "/{storeId}/customers",
-  tags: tags.face,
+  tags: tags.customers,
   // TODO: Rename this operationId to registerCustomer
   operationId: "registerFace",
   description: "Register a user's face for authentication",
