@@ -21,7 +21,6 @@ import {
   fetchDBStaffInvitationByEmailAndPending,
   insertDBStaffInvitation,
 } from "../infra/staff-invitation-repo";
-import { faceAuthController } from "../controller/face-auth-controller";
 import { getFaceEmbedding } from "../infra/face-embedding-repo";
 import {
   findCustomerIdByFaceEmbedding,
@@ -29,7 +28,10 @@ import {
 } from "../infra/face-auth-repo";
 import { findDBCustomerById, insertDBCustomer } from "../infra/customer-repo";
 import { validateCustomer } from "../domain/customer";
-import { registerCustomerController } from "../controller/customer-controller";
+import {
+  authenticateCustomerController,
+  registerCustomerController,
+} from "../controller/customer-controller";
 import {
   authenticateCustomer,
   registerCustomer,
@@ -74,7 +76,7 @@ app.openapi(storesRoute.authenticateCustomer, async (c) => {
   const { image } = c.req.valid("form");
   const { storeId } = c.req.valid("param");
 
-  const res = await faceAuthController(
+  const res = await authenticateCustomerController(
     authenticateCustomer(
       fetchDBStoreById,
       getFaceEmbedding,
