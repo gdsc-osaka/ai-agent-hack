@@ -1,14 +1,16 @@
-import { Store } from "../domain/store";
+import { Store, StoreId } from "../domain/store";
 import { z } from "zod";
 import { ApiError } from "../controller/error/api-error";
 import { createDefaultRoute } from "./shared/default-route";
-
-const tags = ["Stores"];
+import { Customer, CustomerId } from "../domain/customer";
+import tags from "./shared/tags";
+import { StaffRole } from "../domain/store-staff";
+import { StaffInvitation } from "../domain/staff-invitation";
 
 const createStore = createDefaultRoute({
   method: "post",
   path: "/",
-  tags,
+  tags: tags.stores,
   operationId: "createStore",
   description: "Create a new store",
   security: [
@@ -47,21 +49,185 @@ const createStore = createDefaultRoute({
   },
 });
 
-const fetchStoresForStaff = createDefaultRoute({
-  method: "get",
-  path: "/me/stores",
-  tags,
+const inviteStaffToStore = createDefaultRoute({
+  method: "post",
+  path: "/{storeId}/invite",
+  tags: tags.invitations,
+  operationId: "inviteStaffToStore",
+  description: "Invite a staff member to a store",
+  security: [
+    {
+      session: [],
+    },
+  ],
+  request: {
+    params: z.object({
+      storeId: z.string().describe("ID of the store to invite staff to"),
+    }),
+    body: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            email: z
+              .string()
+              .email()
+              .describe("Email of the staff member to invite"),
+            role: StaffRole,
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Staff invitation sent successfully",
+      content: {
+        "application/json": {
+          schema: StaffInvitation,
+        },
+      },
+    },
+  },
+});
+
+const authenticateCustomer = createDefaultRoute({
+  method: "post",
+  path: "/{storeId}/customers/authenticate",
+  tags: tags.customers,
   validateResponse: true,
-  operationId: "fetchStoresForStaff",
-  description: "Fetch stores for staff",
+  operationId: "authenticateCustomer",
+  description: "Authenticate a user using face recognition",
+  request: {
+    params: z.object({
+      storeId: z.string().describe("ID of the store to invite staff to"),
+    }),
+    body: {
+      content: {
+        "multipart/form-data": {
+          schema: z.object({
+            image: z.instanceof(File).describe("Image for face authentication"),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Successful authenticated response",
+      content: {
+        "application/json": {
+          schema: Customer,
+        },
+      },
+    },
+    403: {
+      description: "Forbidden - User not authenticated",
+      content: {
+        "application/json": {
+          schema: ApiError,
+        },
+      },
+    },
+    400: {
+      description: "Bad Request - Invalid input or missing image",
+      content: {
+        "application/json": {
+          schema: ApiError,
+        },
+      },
+    },
+  },
+});
+
+const registerCustomer = createDefaultRoute({
+  method: "post",
+  path: "/{storeId}/customers",
+  tags: tags.customers,
+  operationId: "registerCustomer",
+  description: "Register a user's face for authentication",
+  request: {
+    params: z.object({
+      storeId: z.string().describe("ID of the store to invite staff to"),
+    }),
+    body: {
+      content: {
+        "multipart/form-data": {
+          schema: z.object({
+            image: z.instanceof(File).describe("Image for face authentication"),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: "Successful response",
+      content: {
+        "application/json": {
+          schema: Customer,
+        },
+      },
+    },
+    400: {
+      description: "Bad Request - Invalid input or missing image",
+      content: {
+        "application/json": {
+          schema: ApiError,
+        },
+      },
+    },
+  },
+});
+
+const checkoutCustomer = createDefaultRoute({
+  method: "post",
+  path: "/{storeId}/customers/:customerId/checkout",
+  tags: tags.customers,
+  operationId: "checkoutCustomer",
+  description: "Checkout a customer from the store",
+  request: {
+    params: z.object({
+      storeId: StoreId.describe("ID of the store to invite staff to"),
+      customerId: CustomerId.describe("ID of the customer to checkout"),
+    }),
+    // TODO: 音声ファイルを送信してプロフィールデータ生成の firebase function を呼び出す
+    // body: {
+    //   content: {
+    //     "multipart/form-data": {
+    //       schema: z.object({
+    //         image: z.instanceof(File).describe("Image for face authentication"),
+    //       }),
+    //     },
+    //   },
+    // },
+  },
+  responses: {
+    200: {
+      description: "Successful response",
+    },
+  },
+});
+
+const getCustomersByStore = createDefaultRoute({
+  method: "get",
+  path: "/{storeId}/customers",
+  tags: tags.customers,
+  operationId: "getCustomersByStore",
+  description: "Get customers for a store",
+  request: {
+    params: z.object({
+      storeId: StoreId.describe("ID of the store to invite staff to"),
+    }),
+    query: z.object({
+      status: z.enum(["visiting"]),
+    }),
+  },
   responses: {
     200: {
       description: "Successful response",
       content: {
         "application/json": {
-          schema: z.object({
-            stores: Store.array(),
-          }),
+          schema: z.array(Customer).describe("List of customers for the store"),
         },
       },
     },
@@ -70,5 +236,9 @@ const fetchStoresForStaff = createDefaultRoute({
 
 export default {
   createStore,
-  fetchStoresForStaff,
+  inviteStaffToStore,
+  authenticateCustomer,
+  registerCustomer,
+  checkoutCustomer,
+  getCustomersByStore,
 };

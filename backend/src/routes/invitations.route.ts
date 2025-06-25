@@ -1,55 +1,12 @@
 import { createDefaultRoute } from "./shared/default-route";
 import { z } from "zod";
 import { StaffInvitation } from "../domain/staff-invitation";
-import { StaffRole } from "../domain/store-staff";
-
-const tags = ["Invitations"];
-
-const inviteStaffToStore = createDefaultRoute({
-  method: "post",
-  path: "/{storeId}/invite",
-  tags,
-  operationId: "inviteStaffToStore",
-  description: "Invite a staff member to a store",
-  security: [
-    {
-      session: [],
-    },
-  ],
-  request: {
-    params: z.object({
-      storeId: z.string().describe("ID of the store to invite staff to"),
-    }),
-    body: {
-      content: {
-        "application/json": {
-          schema: z.object({
-            email: z
-              .string()
-              .email()
-              .describe("Email of the staff member to invite"),
-            role: StaffRole,
-          }),
-        },
-      },
-    },
-  },
-  responses: {
-    200: {
-      description: "Staff invitation sent successfully",
-      content: {
-        "application/json": {
-          schema: StaffInvitation,
-        },
-      },
-    },
-  },
-});
+import tags from "./shared/tags";
 
 const acceptInvitation = createDefaultRoute({
   method: "post",
   path: "/accept",
-  tags,
+  tags: tags.invitations,
   operationId: "acceptInvitation",
   description: "Accept a staff invitation",
   security: [
@@ -83,7 +40,7 @@ const acceptInvitation = createDefaultRoute({
 const declineInvitation = createDefaultRoute({
   method: "post",
   path: "/decline",
-  tags,
+  tags: tags.invitations,
   operationId: "declineInvitation",
   description: "Decline a staff invitation",
   security: [
@@ -115,7 +72,6 @@ const declineInvitation = createDefaultRoute({
 });
 
 export default {
-  inviteStaffToStore,
   acceptInvitation,
   declineInvitation,
 };

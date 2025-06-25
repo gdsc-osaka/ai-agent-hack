@@ -1,13 +1,12 @@
 import { createDefaultRoute } from "./shared/default-route";
 import { z } from "zod";
 import { CustomerId } from "../domain/customer";
-
-const tags = ["Customers"];
+import tags from "./shared/tags";
 
 const acceptTos = createDefaultRoute({
   method: "post",
   path: "/{customerId}/accept-tos",
-  tags,
+  tags: tags.customers,
   operationId: "acceptCustomerTos",
   description: "Accept the Terms of Service for a customer.",
   request: {
@@ -25,7 +24,7 @@ const acceptTos = createDefaultRoute({
 const declineTos = createDefaultRoute({
   method: "post",
   path: "/{customerId}/decline-tos",
-  tags,
+  tags: tags.customers,
   operationId: "declineCustomerTos",
   description:
     "Decline the Terms of Service for a customer and delete their data.",

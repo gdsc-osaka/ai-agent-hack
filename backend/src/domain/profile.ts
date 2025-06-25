@@ -1,4 +1,4 @@
-import { profiles } from "../db/schema/profiles";
+import { profiles } from "../db/schema/app/profiles";
 import z from "zod";
 import "zod-openapi/extend";
 import { err, ok, Result } from "neverthrow";

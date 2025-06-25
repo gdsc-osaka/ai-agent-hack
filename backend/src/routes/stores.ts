@@ -2,7 +2,11 @@ import { getAuthUser } from "./middleware/authorize";
 import { toHTTPException } from "./shared/exception";
 import { createStoreController } from "../controller/store-controller";
 import { createStore } from "../service/store-service";
-import { fetchDBStoreByPublicId, insertDBStore } from "../infra/store-repo";
+import {
+  fetchDBStoreById,
+  fetchDBStoreByPublicId,
+  insertDBStore,
+} from "../infra/store-repo";
 import {
   fetchDBStaffByUserId,
   fetchDBStaffForStoreRoleById,
@@ -17,7 +21,33 @@ import {
   fetchDBStaffInvitationByEmailAndPending,
   insertDBStaffInvitation,
 } from "../infra/staff-invitation-repo";
-import invitationsRoute from "./invitations.route";
+import { getFaceEmbedding } from "../infra/face-embedding-repo";
+import {
+  findCustomerIdByFaceEmbedding,
+  insertFaceEmbedding,
+} from "../infra/face-auth-repo";
+import {
+  findDBCustomerById,
+  findVisitingDBCustomersByStoreId,
+  insertDBCustomer,
+} from "../infra/customer-repo";
+import {
+  authenticateCustomerController,
+  checkoutCustomerController,
+  fetchVisitingCustomersController,
+  registerCustomerController,
+} from "../controller/customer-controller";
+import {
+  authenticateCustomer,
+  checkoutCustomer,
+  fetchVisitingCustomers,
+  registerCustomer,
+} from "../service/customer-service";
+import {
+  fetchDBVisitByStoreIdAndCustomerId,
+  insertDBVisit,
+  updateDBVisit,
+} from "../infra/visit-repo";
 
 const app = new OpenAPIHono();
 
@@ -37,7 +67,7 @@ app.openapi(storesRoute.createStore, async (c) => {
   return c.json(res.value, 200);
 });
 
-app.openapi(invitationsRoute.inviteStaffToStore, async (c) => {
+app.openapi(storesRoute.inviteStaffToStore, async (c) => {
   const { email, role } = c.req.valid("json");
   const res = await inviteStaffToStoreController(
     inviteStaffToStore(
@@ -48,6 +78,79 @@ app.openapi(invitationsRoute.inviteStaffToStore, async (c) => {
       insertDBStaffInvitation
     )(getAuthUser(c), c.req.param("storeId"), email, role)
   );
+  if (res.isErr()) {
+    throw toHTTPException(res.error);
+  }
+  return c.json(res.value, 200);
+});
+
+app.openapi(storesRoute.authenticateCustomer, async (c) => {
+  const { image } = c.req.valid("form");
+  const { storeId } = c.req.valid("param");
+
+  const res = await authenticateCustomerController(
+    authenticateCustomer(
+      runTransaction,
+      fetchDBStoreById,
+      getFaceEmbedding,
+      findCustomerIdByFaceEmbedding,
+      findDBCustomerById,
+      insertDBVisit
+    )(storeId, image)
+  );
+
+  if (res.isErr()) {
+    throw toHTTPException(res.error);
+  }
+  return c.json(res.value, 200);
+});
+
+app.openapi(storesRoute.registerCustomer, async (c) => {
+  const { storeId } = c.req.valid("param");
+  const { image } = c.req.valid("form");
+
+  const res = await registerCustomerController(
+    registerCustomer(
+      runTransaction,
+      fetchDBStoreById,
+      getFaceEmbedding,
+      insertFaceEmbedding,
+      insertDBCustomer,
+      insertDBVisit
+    )(storeId, image)
+  );
+
+  if (res.isErr()) {
+    throw toHTTPException(res.error);
+  }
+  return c.json(res.value, 201);
+});
+
+app.openapi(storesRoute.checkoutCustomer, async (c) => {
+  const { storeId, customerId } = c.req.valid("param");
+
+  const res = await checkoutCustomerController(
+    checkoutCustomer(
+      runTransaction,
+      fetchDBVisitByStoreIdAndCustomerId,
+      updateDBVisit
+    )(customerId, storeId)
+  );
+
+  if (res.isErr()) {
+    throw toHTTPException(res.error);
+  }
+  return c.text("ok", 201);
+});
+
+app.openapi(storesRoute.getCustomersByStore, async (c) => {
+  const { storeId } = c.req.valid("param");
+  // const { status } = c.req.valid("query");
+
+  const res = await fetchVisitingCustomersController(
+    fetchVisitingCustomers(findVisitingDBCustomersByStoreId)(storeId)
+  );
+
   if (res.isErr()) {
     throw toHTTPException(res.error);
   }

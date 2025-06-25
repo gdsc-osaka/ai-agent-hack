@@ -6,7 +6,7 @@ import {
   unique,
   varchar,
 } from "drizzle-orm/pg-core";
-import { CUID_LENGTH } from "../constants";
+import { CUID_LENGTH } from "../../constants";
 import { createId } from "@paralleldrive/cuid2";
 import { staffRole, staffs, stores } from "./stores";
 import { relations } from "drizzle-orm";

@@ -1,8 +1,9 @@
-import * as stores from "./schema/stores";
-import * as staffInvitations from "./schema/staff-invitations";
-import * as customers from "./schema/customers";
-import * as profiles from "./schema/profiles";
-import * as auth from "./schema/auth";
+import * as stores from "./schema/app/stores";
+import * as staffInvitations from "./schema/app/staff-invitations";
+import * as customers from "./schema/app/customers";
+import * as profiles from "./schema/app/profiles";
+import * as visits from "./schema/app/visits";
+import * as auth from "./schema/auth/auth";
 
 export const authSchema = auth;
 
@@ -11,4 +12,5 @@ export default {
   ...staffInvitations,
   ...customers,
   ...profiles,
+  ...visits,
 };
