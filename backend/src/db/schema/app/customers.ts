@@ -1,6 +1,6 @@
 import { createId } from "@paralleldrive/cuid2";
 import { pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
-import { CUID_LENGTH } from "../constants";
+import { CUID_LENGTH } from "../../constants";
 import { stores } from "./stores";
 
 export const customers = pgTable("customers", {

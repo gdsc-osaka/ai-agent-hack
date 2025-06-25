@@ -1,4 +1,4 @@
-import { customers } from "../db/schema/customers";
+import { customers } from "../db/schema/app/customers";
 import z from "zod";
 import { Timestamp, toTimestamp } from "./timestamp";
 import { errorBuilder, InferError } from "../shared/error";

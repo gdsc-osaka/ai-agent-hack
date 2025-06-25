@@ -5,7 +5,7 @@ import {
   DBCustomerForUpdate,
 } from "../domain/customer";
 import { eq } from "drizzle-orm";
-import { customers } from "../db/schema/customers";
+import { customers } from "../db/schema/app/customers";
 import { DBorTx } from "../db/db";
 import { DBInternalError } from "./shared/db-error";
 import {

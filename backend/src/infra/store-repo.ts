@@ -6,7 +6,7 @@ import {
   DBStoreAlreadyExistsError,
   DBStoreNotFoundError,
 } from "./store-repo.error";
-import { staffs, stores } from "../db/schema/stores";
+import { staffs, stores } from "../db/schema/app/stores";
 import { StaffId } from "../domain/staff";
 import { eq } from "drizzle-orm";
 

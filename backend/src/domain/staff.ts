@@ -1,4 +1,4 @@
-import { staffs } from "../db/schema/stores";
+import { staffs } from "../db/schema/app/stores";
 import { FieldErrors, ForUpdate } from "./shared/types";
 import { z } from "@hono/zod-openapi";
 import { Timestamp, toTimestamp } from "./timestamp";

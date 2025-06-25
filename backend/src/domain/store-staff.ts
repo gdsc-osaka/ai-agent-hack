@@ -1,4 +1,4 @@
-import { storesToStaffs } from "../db/schema/stores";
+import { storesToStaffs } from "../db/schema/app/stores";
 import { DBStaff, Staff } from "./staff";
 import { DBStore } from "./store";
 import { err, ok, Result } from "neverthrow";

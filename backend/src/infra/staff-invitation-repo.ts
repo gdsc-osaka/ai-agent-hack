@@ -10,7 +10,7 @@ import {
   DBStaffInvitationAlreadyExistsError,
   DBStaffInvitationNotFoundError,
 } from "./staff-invitation-repo.error";
-import { staffInvitations } from "../db/schema/staff-invitations";
+import { staffInvitations } from "../db/schema/app/staff-invitations";
 import { and, eq } from "drizzle-orm";
 
 export type InsertDBStaffInvitation = (
