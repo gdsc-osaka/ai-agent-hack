@@ -90,13 +90,12 @@ const inviteStaffToStore = createDefaultRoute({
   },
 });
 
-const authenticateFace = createDefaultRoute({
+const authenticateCustomer = createDefaultRoute({
   method: "post",
   path: "/{storeId}/customers/authenticate",
   tags: tags.customers,
   validateResponse: true,
-  // TODO: Rename this operationId to authenticateCustomer
-  operationId: "authenticateFace",
+  operationId: "authenticateCustomer",
   description: "Authenticate a user using face recognition",
   request: {
     params: z.object({
@@ -140,12 +139,11 @@ const authenticateFace = createDefaultRoute({
   },
 });
 
-const registerFace = createDefaultRoute({
+const registerCustomer = createDefaultRoute({
   method: "post",
   path: "/{storeId}/customers",
   tags: tags.customers,
-  // TODO: Rename this operationId to registerCustomer
-  operationId: "registerFace",
+  operationId: "registerCustomer",
   description: "Register a user's face for authentication",
   request: {
     params: z.object({
@@ -184,6 +182,6 @@ const registerFace = createDefaultRoute({
 export default {
   createStore,
   inviteStaffToStore,
-  authenticateFace,
-  registerFace,
+  authenticateCustomer,
+  registerCustomer,
 };

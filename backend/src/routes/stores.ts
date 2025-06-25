@@ -70,7 +70,7 @@ app.openapi(storesRoute.inviteStaffToStore, async (c) => {
   return c.json(res.value, 200);
 });
 
-app.openapi(storesRoute.authenticateFace, async (c) => {
+app.openapi(storesRoute.authenticateCustomer, async (c) => {
   const { image } = c.req.valid("form");
   const { storeId } = c.req.valid("param");
 
@@ -90,7 +90,7 @@ app.openapi(storesRoute.authenticateFace, async (c) => {
   return c.json(res.value, 200);
 });
 
-app.openapi(storesRoute.registerFace, async (c) => {
+app.openapi(storesRoute.registerCustomer, async (c) => {
   const { storeId } = c.req.valid("param");
   const { image } = c.req.valid("form");
 
