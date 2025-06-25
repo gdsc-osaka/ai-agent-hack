@@ -55,7 +55,7 @@ export const findVisitingDBCustomersByStoreId: FindVisitingDBCustomersByStoreId 
   (db) => (storeId) =>
     ResultAsync.fromPromise(
       db.query.visits.findMany({
-        where: (stores, { eq }) => eq(stores.storeId, storeId),
+        where: (visits, { eq }) => eq(visits.storeId, storeId),
         with: {
           customer: true,
         },
