@@ -29,13 +29,19 @@ import {
 import { findDBCustomerById, insertDBCustomer } from "../infra/customer-repo";
 import {
   authenticateCustomerController,
+  checkoutCustomerController,
   registerCustomerController,
 } from "../controller/customer-controller";
 import {
   authenticateCustomer,
+  checkoutCustomer,
   registerCustomer,
 } from "../service/customer-service";
-import { insertDBVisit } from "../infra/visit-repo";
+import {
+  fetchDBVisitByStoreIdAndCustomerId,
+  insertDBVisit,
+  updateDBVisit,
+} from "../infra/visit-repo";
 
 const app = new OpenAPIHono();
 
@@ -112,6 +118,23 @@ app.openapi(storesRoute.registerCustomer, async (c) => {
     throw toHTTPException(res.error);
   }
   return c.json(res.value, 201);
+});
+
+app.openapi(storesRoute.checkoutCustomer, async (c) => {
+  const { storeId, customerId } = c.req.valid("param");
+
+  const res = await checkoutCustomerController(
+    checkoutCustomer(
+      runTransaction,
+      fetchDBVisitByStoreIdAndCustomerId,
+      updateDBVisit
+    )(customerId, storeId)
+  );
+
+  if (res.isErr()) {
+    throw toHTTPException(res.error);
+  }
+  return c.text("ok", 201);
 });
 
 export default app;

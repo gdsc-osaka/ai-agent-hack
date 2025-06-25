@@ -34,6 +34,7 @@ import { InvalidStaffRoleError } from "../../domain/store-staff";
 import { DBStoreToStaffAlreadyExistsError } from "../../infra/store-to-staff-repo.error";
 import { CreateNewStoreError, InvalidStoreError } from "../../domain/store";
 import { InvalidStaffError } from "../../domain/staff";
+import { DBVisitNotFoundError } from "../../infra/visit-repo";
 
 export const errorCodeMap = {
   [DBInternalError._tag]: "internal/database_error",
@@ -66,6 +67,8 @@ export const errorCodeMap = {
   [StaffInvitationNotPendingError._tag]: "staff_invitation/not_pending",
   [StaffInvitationWrongEmailError._tag]: "staff_invitation/wrong_email",
   [InvalidStaffInvitationError._tag]: "staff_invitation/invalid",
+  // visit
+  [DBVisitNotFoundError._tag]: "visit/not_found",
 } satisfies Record<BaseTag, ApiErrorCode>;
 type ErrorCodeMap = typeof errorCodeMap;
 

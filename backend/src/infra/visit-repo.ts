@@ -1,14 +1,18 @@
-import { DBVisit, DBVisitForCreate } from "../domain/visit";
+import { DBVisit, DBVisitForCreate, DBVisitForUpdate } from "../domain/visit";
 import { DBorTx } from "../db/db";
 import { errAsync, okAsync, ResultAsync } from "neverthrow";
 import { DBInternalError } from "./shared/db-error";
 import { visits } from "../db/schema/app/visits";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { StoreId } from "../domain/store";
+import { errorBuilder, InferError } from "../shared/error";
+import { CustomerId } from "../domain/customer";
 
 // Errors
 // export const DBVisitAlreadyExistsError = errorBuilder('DBVisitAlreadyExistsError');
 // export type DBVisitAlreadyExistsError = InferError<typeof DBVisitAlreadyExistsError>;
+export const DBVisitNotFoundError = errorBuilder("DBVisitNotFoundError");
+export type DBVisitNotFoundError = InferError<typeof DBVisitNotFoundError>;
 
 export type InsertDBVisit = (
   db: DBorTx
@@ -24,16 +28,41 @@ export const insertDBVisit: InsertDBVisit = (db) => (visit) =>
       : errAsync(DBInternalError("Unexpected error: no records returned"))
   );
 
-export type FetchDBVisitByStoreId = (
+export type UpdateDBVisit = (
   db: DBorTx
-) => (storeId: StoreId) => ResultAsync<DBVisit[], DBInternalError>;
+) => (
+  visit: DBVisitForUpdate
+) => ResultAsync<DBVisit, DBInternalError | DBVisitNotFoundError>;
 
-export const fetchDBVisitByStoreId: FetchDBVisitByStoreId = (db) => (storeId) =>
+export const updateDBVisit: UpdateDBVisit = (db) => (visit) =>
   ResultAsync.fromPromise(
-    db.select().from(visits).where(eq(visits.storeId, storeId)),
+    db.update(visits).set(visit).where(eq(visits.id, visit.id)).returning(),
     DBInternalError.handle
   ).andThen((records) =>
     records.length > 0
-      ? okAsync(records)
-      : errAsync(DBInternalError("No visits found for the store"))
+      ? okAsync(records[0])
+      : errAsync(DBVisitNotFoundError("Unexpected error: no records returned"))
   );
+
+export type FetchDBVisitByStoreIdAndCustomerId = (
+  db: DBorTx
+) => (
+  storeId: StoreId,
+  customerId: CustomerId
+) => ResultAsync<DBVisit, DBInternalError | DBVisitNotFoundError>;
+
+export const fetchDBVisitByStoreIdAndCustomerId: FetchDBVisitByStoreIdAndCustomerId =
+  (db) => (storeId, customerId) =>
+    ResultAsync.fromPromise(
+      db
+        .select()
+        .from(visits)
+        .where(
+          and(eq(visits.storeId, storeId), eq(visits.customerId, customerId))
+        ),
+      DBInternalError.handle
+    ).andThen((records) =>
+      records.length > 0
+        ? okAsync(records[0])
+        : errAsync(DBVisitNotFoundError("Visit not found"))
+    );

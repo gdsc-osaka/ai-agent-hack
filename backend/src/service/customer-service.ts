@@ -36,9 +36,19 @@ import env from "../env";
 import { FetchDBStoreById } from "../infra/store-repo";
 import { DBStoreNotFoundError } from "../infra/store-repo.error";
 import type { FaceAuthError } from "../infra/face-auth-repo.error";
-import { InsertDBVisit } from "../infra/visit-repo";
-import { createVisit, createVisitAndCustomer } from "../domain/visit";
-import { pickFirst } from "../shared/func";
+import {
+  DBVisitNotFoundError,
+  FetchDBVisitByStoreIdAndCustomerId,
+  InsertDBVisit,
+  UpdateDBVisit,
+} from "../infra/visit-repo";
+import {
+  createVisit,
+  createVisitAndCustomer,
+  createVisitForCheckout,
+} from "../domain/visit";
+import { pickFirst, voidify } from "../shared/func";
+import { StoreId } from "../domain/store";
 
 export type RegisterCustomer = (
   storeId: string,
@@ -132,6 +142,25 @@ export const authenticateCustomer =
       )
       .map(pickFirst)
       .andThen(validateCustomer);
+
+export type CheckoutCustomer = (
+  customerId: CustomerId,
+  storeId: StoreId
+) => ResultAsync<void, DBInternalError | DBVisitNotFoundError>;
+
+export const checkoutCustomer =
+  (
+    runTransaction: RunTransaction,
+    findVisitByCustomerIdAndStoreId: FetchDBVisitByStoreIdAndCustomerId,
+    updateDBVisit: UpdateDBVisit
+  ): CheckoutCustomer =>
+  (customerId, storeId) =>
+    runTransaction(db)((tx) =>
+      // fetch the visit is enough because of the foreign key constraint of customer and store
+      findVisitByCustomerIdAndStoreId(tx)(storeId, customerId)
+        .andThen(createVisitForCheckout)
+        .andThen(updateDBVisit(tx))
+    ).map(voidify);
 
 export type AcceptCustomerTos = (
   customerId: CustomerId

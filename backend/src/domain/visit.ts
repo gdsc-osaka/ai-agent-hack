@@ -20,6 +20,15 @@ export const createVisit = (
   });
 };
 
+export const createVisitForCheckout = (
+  visit: DBVisit
+): Result<DBVisitForUpdate, never> => {
+  return ok({
+    id: visit.id,
+    checkoutAt: new Date(),
+  });
+};
+
 export const createVisitAndCustomer = (
   store: DBStore
 ): Result<
