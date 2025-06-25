@@ -96,7 +96,5 @@ export const fetchDBStoreById: FetchDBStoreById =
     ).andThen((records) =>
       records.length > 0
         ? ok(records[0])
-        : err(
-            DBStoreNotFoundError("Store not found", { extra: { id: storeId } })
-          )
+        : err(DBStoreNotFoundError("Store not found", { extra: { storeId } }))
     );
