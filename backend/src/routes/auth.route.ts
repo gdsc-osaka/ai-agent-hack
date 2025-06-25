@@ -1,12 +1,11 @@
 import { z } from "@hono/zod-openapi";
 import { createDefaultRoute } from "./shared/default-route";
-
-const tags = ["Auth"];
+import tags from "./shared/tags";
 
 const getSession = createDefaultRoute({
   method: "get",
   path: "/get-session",
-  tags,
+  tags: tags.auth,
   validateResponse: false,
   operationId: "getSession",
   description: "Get current session",

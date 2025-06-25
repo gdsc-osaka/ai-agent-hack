@@ -1,57 +1,113 @@
 import { Result, ResultAsync } from "neverthrow";
 import { GetFaceEmbedding } from "../infra/face-embedding-repo";
-import { RegisterEmbedding, DeleteEmbedding } from "../infra/face-auth-repo";
 import {
-  InserttDBCustomer,
+  DeleteFaceEmbedding,
+  FindCustomerIdByFaceEmbedding,
+  InsertFaceEmbedding,
+} from "../infra/face-auth-repo";
+import {
   DeleteDBCustomerById,
   FindDBCustomerById,
+  InserttDBCustomer,
   UpdateDBCustomer,
 } from "../infra/customer-repo";
 import db, { DBorTx } from "../db/db";
-import type { FirebaseApp } from "../firebase";
+import firebase, { firestoreDB } from "../firebase";
 import type { FaceEmbeddingError } from "../infra/face-embedding-repo.error";
 import type { FirestoreInternalError } from "../infra/shared/firestore-error";
 import {
+  checkCustomerBelongsToStore,
+  checkTosNotAccepted,
+  createCustomer,
+  createCustomerWithTosAccepted,
   Customer,
   CustomerId,
+  CustomerNotBelongsToStoreError,
   CustomerTosAlreadyAcceptedError,
   InvalidCustomerError,
   ValidateCustomer,
-  checkTosNotAccepted,
-  createCustomerWithTosAccepted,
 } from "../domain/customer";
 import type {
   CustomerAlreadyExistsError,
-  CustomerNotFoundError, // IMPORTED
+  CustomerNotFoundError,
 } from "../infra/customer-repo.error";
 import type { DBInternalError } from "../infra/shared/db-error";
 import { RunTransaction } from "../infra/transaction";
+import env from "../env";
+import { FetchDBStoreById } from "../infra/store-repo";
+import { DBStoreNotFoundError } from "../infra/store-repo.error";
+import type { FaceAuthError } from "../infra/face-auth-repo.error";
 
-export type RegisterCustomerResult = ResultAsync<
+export type RegisterCustomer = (
+  storeId: string,
+  image: File
+) => ResultAsync<
   Customer,
   | FaceEmbeddingError
   | FirestoreInternalError
   | DBInternalError
+  | DBStoreNotFoundError
   | CustomerAlreadyExistsError
   | InvalidCustomerError
 >;
 
-export type RegisterCustomer = (
-  firebase: FirebaseApp,
-  image: File
-) => RegisterCustomerResult;
-
 export const registerCustomer =
   (
+    fetchDBStoreById: FetchDBStoreById,
     getFaceEmbedding: GetFaceEmbedding,
-    registerEmbedding: RegisterEmbedding,
+    insertFaceEmbedding: InsertFaceEmbedding,
     insertDBCustomer: InserttDBCustomer,
     validateCustomer: ValidateCustomer
   ): RegisterCustomer =>
-  (firebase: FirebaseApp, image: File) =>
-    getFaceEmbedding(image)
-      .andThen((embedding) => registerEmbedding(firebase)(embedding))
-      .andThen((customerId) => insertDBCustomer(db)({ id: customerId }))
+  (storeId, image: File) =>
+    ResultAsync.combine([
+      getFaceEmbedding(image),
+      fetchDBStoreById(db)(storeId).andThen(createCustomer),
+    ]).andThen(([embedding, customer]) =>
+      insertFaceEmbedding(firestoreDB(firebase(env.FIRE_SA).firestore()))(
+        customer,
+        embedding
+      )
+        .andThen(() => insertDBCustomer(db)(customer))
+        .andThen((customer) => validateCustomer(customer))
+    );
+
+export type AuthenticateCustomer = (
+  storeId: string,
+  image: File
+) => ResultAsync<
+  Customer,
+  | FaceEmbeddingError
+  | FaceAuthError
+  | FirestoreInternalError
+  | CustomerNotFoundError
+  | DBInternalError
+  | DBStoreNotFoundError
+  | InvalidCustomerError
+  | CustomerNotBelongsToStoreError
+>;
+export const authenticateCustomer =
+  (
+    fetchDBStoreById: FetchDBStoreById,
+    getFaceEmbedding: GetFaceEmbedding,
+    findCustomerIdByFaceEmbedding: FindCustomerIdByFaceEmbedding,
+    findDBCustomerById: FindDBCustomerById,
+    validateCustomer: ValidateCustomer
+  ): AuthenticateCustomer =>
+  (storeId, image) =>
+    ResultAsync.combine([
+      getFaceEmbedding(image).andThen(
+        findCustomerIdByFaceEmbedding(
+          firestoreDB(firebase(env.FIRE_SA).firestore())
+        )
+      ),
+      fetchDBStoreById(db)(storeId),
+    ])
+      .andThen(([customerId, store]) =>
+        findDBCustomerById(db)(customerId).andThen((customer) =>
+          checkCustomerBelongsToStore(customer, store)
+        )
+      )
       .andThen((customer) => validateCustomer(customer));
 
 export type AcceptCustomerTos = (
@@ -83,7 +139,6 @@ export const acceptCustomerTos =
     ).map(() => undefined);
 
 export type DeclineCustomerTos = (
-  firebase: FirebaseApp,
   customerId: CustomerId
 ) => ResultAsync<
   void,
@@ -95,13 +150,17 @@ export const declineCustomerTos =
     runTransaction: RunTransaction,
     findDBCustomerById: FindDBCustomerById, // To ensure customer exists before deleting
     deleteDBCustomerById: DeleteDBCustomerById,
-    deleteEmbedding: DeleteEmbedding
+    deleteEmbedding: DeleteFaceEmbedding
   ): DeclineCustomerTos =>
-  (firebase, customerId) =>
+  (customerId) =>
     // First, delete the database record
     runTransaction(db)((tx: DBorTx) =>
       findDBCustomerById(tx)(customerId) // Ensure it exists before trying to delete
         .andThen(() => deleteDBCustomerById(tx)(customerId))
     )
       // Then, delete the face embedding data from Firestore
-      .andThen(() => deleteEmbedding(firebase)(customerId));
+      .andThen(() =>
+        deleteEmbedding(firestoreDB(firebase(env.FIRE_SA).firestore()))(
+          customerId
+        )
+      );
