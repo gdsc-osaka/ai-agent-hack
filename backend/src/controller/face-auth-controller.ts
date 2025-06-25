@@ -1,4 +1,3 @@
-import { AuthenticateCustomer } from "../service/face-auth-service";
 import { ResultAsync } from "neverthrow";
 import { HTTPErrorCarrier, StatusCode } from "./error/api-error";
 import {
@@ -13,6 +12,7 @@ import { FirestoreInternalError } from "../infra/shared/firestore-error";
 import { CustomerNotFoundError } from "../infra/customer-repo.error";
 import { DBInternalError } from "../infra/shared/db-error";
 import { DBStoreNotFoundError } from "../infra/store-repo.error";
+import { AuthenticateCustomer } from "../service/customer-service";
 
 export const faceAuthController = (
   faceAuthRes: ReturnType<AuthenticateCustomer>

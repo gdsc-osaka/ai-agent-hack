@@ -2,6 +2,7 @@ import { Result, ResultAsync } from "neverthrow";
 import { GetFaceEmbedding } from "../infra/face-embedding-repo";
 import {
   DeleteFaceEmbedding,
+  FindCustomerIdByFaceEmbedding,
   InsertFaceEmbedding,
 } from "../infra/face-auth-repo";
 import {
@@ -15,11 +16,13 @@ import firebase, { firestoreDB } from "../firebase";
 import type { FaceEmbeddingError } from "../infra/face-embedding-repo.error";
 import type { FirestoreInternalError } from "../infra/shared/firestore-error";
 import {
+  checkCustomerBelongsToStore,
   checkTosNotAccepted,
   createCustomer,
   createCustomerWithTosAccepted,
   Customer,
   CustomerId,
+  CustomerNotBelongsToStoreError,
   CustomerTosAlreadyAcceptedError,
   InvalidCustomerError,
   ValidateCustomer,
@@ -33,6 +36,7 @@ import { RunTransaction } from "../infra/transaction";
 import env from "../env";
 import { FetchDBStoreById } from "../infra/store-repo";
 import { DBStoreNotFoundError } from "../infra/store-repo.error";
+import type { FaceAuthError } from "../infra/face-auth-repo.error";
 
 export type RegisterCustomer = (
   storeId: string,
@@ -67,6 +71,44 @@ export const registerCustomer =
         .andThen(() => insertDBCustomer(db)(customer))
         .andThen((customer) => validateCustomer(customer))
     );
+
+export type AuthenticateCustomer = (
+  storeId: string,
+  image: File
+) => ResultAsync<
+  Customer,
+  | FaceEmbeddingError
+  | FaceAuthError
+  | FirestoreInternalError
+  | CustomerNotFoundError
+  | DBInternalError
+  | DBStoreNotFoundError
+  | InvalidCustomerError
+  | CustomerNotBelongsToStoreError
+>;
+export const authenticateCustomer =
+  (
+    fetchDBStoreById: FetchDBStoreById,
+    getFaceEmbedding: GetFaceEmbedding,
+    findCustomerIdByFaceEmbedding: FindCustomerIdByFaceEmbedding,
+    findDBCustomerById: FindDBCustomerById,
+    validateCustomer: ValidateCustomer
+  ): AuthenticateCustomer =>
+  (storeId, image) =>
+    ResultAsync.combine([
+      getFaceEmbedding(image).andThen(
+        findCustomerIdByFaceEmbedding(
+          firestoreDB(firebase(env.FIRE_SA).firestore())
+        )
+      ),
+      fetchDBStoreById(db)(storeId),
+    ])
+      .andThen(([customerId, store]) =>
+        findDBCustomerById(db)(customerId).andThen((customer) =>
+          checkCustomerBelongsToStore(customer, store)
+        )
+      )
+      .andThen((customer) => validateCustomer(customer));
 
 export type AcceptCustomerTos = (
   customerId: CustomerId

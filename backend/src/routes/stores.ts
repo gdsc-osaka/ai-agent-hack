@@ -22,7 +22,6 @@ import {
   insertDBStaffInvitation,
 } from "../infra/staff-invitation-repo";
 import { faceAuthController } from "../controller/face-auth-controller";
-import { authenticateCustomer } from "../service/face-auth-service";
 import { getFaceEmbedding } from "../infra/face-embedding-repo";
 import {
   findCustomerIdByFaceEmbedding,
@@ -31,7 +30,10 @@ import {
 import { findDBCustomerById, insertDBCustomer } from "../infra/customer-repo";
 import { validateCustomer } from "../domain/customer";
 import { registerCustomerController } from "../controller/customer-controller";
-import { registerCustomer } from "../service/customer-service";
+import {
+  authenticateCustomer,
+  registerCustomer,
+} from "../service/customer-service";
 
 const app = new OpenAPIHono();
 
