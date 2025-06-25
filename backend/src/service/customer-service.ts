@@ -38,7 +38,7 @@ import { DBStoreNotFoundError } from "../infra/store-repo.error";
 import type { FaceAuthError } from "../infra/face-auth-repo.error";
 import { InsertDBVisit } from "../infra/visit-repo";
 import { createVisit, createVisitAndCustomer } from "../domain/visit";
-import { pickFirst } from "../shared/result";
+import { pickFirst } from "../shared/func";
 
 export type RegisterCustomer = (
   storeId: string,
