@@ -50,6 +50,27 @@ export const checkTosNotAccepted = (
   return ok(customer);
 };
 
+export const CustomerNotBelongsToStoreError = errorBuilder(
+  "CustomerNotBelongsToStoreError"
+);
+export type CustomerNotBelongsToStoreError = InferError<
+  typeof CustomerNotBelongsToStoreError
+>;
+
+export const checkCustomerBelongsToStore = (
+  customer: DBCustomer,
+  store: DBStore
+): Result<DBCustomer, CustomerNotBelongsToStoreError> => {
+  if (customer.storeId !== store.id) {
+    return err(
+      CustomerNotBelongsToStoreError(
+        `Customer with id ${customer.id} does not belong to store with id ${store.id}.`
+      )
+    );
+  }
+  return ok(customer);
+};
+
 export const createCustomer = (
   store: DBStore
 ): Result<DBCustomerForCreate, never> => {

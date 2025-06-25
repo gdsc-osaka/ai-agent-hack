@@ -70,14 +70,16 @@ app.openapi(storesRoute.inviteStaffToStore, async (c) => {
 
 app.openapi(storesRoute.authenticateFace, async (c) => {
   const { image } = c.req.valid("form");
+  const { storeId } = c.req.valid("param");
 
   const res = await faceAuthController(
     authenticateFace(
+      fetchDBStoreById,
       getFaceEmbedding,
       findCustomerIdByFaceEmbedding,
       findDBCustomerById,
       validateCustomer
-    )(image)
+    )(storeId, image)
   );
 
   if (res.isErr()) {
