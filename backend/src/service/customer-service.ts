@@ -18,14 +18,13 @@ import type { FirestoreInternalError } from "../infra/shared/firestore-error";
 import {
   checkCustomerBelongsToStore,
   checkTosNotAccepted,
-  createCustomer,
   createCustomerWithTosAccepted,
   Customer,
   CustomerId,
   CustomerNotBelongsToStoreError,
   CustomerTosAlreadyAcceptedError,
   InvalidCustomerError,
-  ValidateCustomer,
+  validateCustomer,
 } from "../domain/customer";
 import type {
   CustomerAlreadyExistsError,
@@ -37,6 +36,9 @@ import env from "../env";
 import { FetchDBStoreById } from "../infra/store-repo";
 import { DBStoreNotFoundError } from "../infra/store-repo.error";
 import type { FaceAuthError } from "../infra/face-auth-repo.error";
+import { InsertDBVisit } from "../infra/visit-repo";
+import { createVisit, createVisitAndCustomer } from "../domain/visit";
+import { pickFirst } from "../shared/result";
 
 export type RegisterCustomer = (
   storeId: string,
@@ -53,23 +55,32 @@ export type RegisterCustomer = (
 
 export const registerCustomer =
   (
+    runTransaction: RunTransaction,
     fetchDBStoreById: FetchDBStoreById,
     getFaceEmbedding: GetFaceEmbedding,
     insertFaceEmbedding: InsertFaceEmbedding,
     insertDBCustomer: InserttDBCustomer,
-    validateCustomer: ValidateCustomer
+    insertDBVisit: InsertDBVisit
   ): RegisterCustomer =>
   (storeId, image: File) =>
     ResultAsync.combine([
       getFaceEmbedding(image),
-      fetchDBStoreById(db)(storeId).andThen(createCustomer),
-    ]).andThen(([embedding, customer]) =>
+      fetchDBStoreById(db)(storeId).andThen(createVisitAndCustomer),
+    ]).andThen(([embedding, { customer, visit }]) =>
       insertFaceEmbedding(firestoreDB(firebase(env.FIRE_SA).firestore()))(
         customer,
         embedding
       )
-        .andThen(() => insertDBCustomer(db)(customer))
-        .andThen((customer) => validateCustomer(customer))
+        .andThen(() =>
+          runTransaction(db)((tx) =>
+            ResultAsync.combine([
+              insertDBCustomer(tx)(customer),
+              insertDBVisit(tx)(visit),
+            ])
+          )
+        )
+        .map(pickFirst)
+        .andThen(validateCustomer)
     );
 
 export type AuthenticateCustomer = (
@@ -88,11 +99,12 @@ export type AuthenticateCustomer = (
 >;
 export const authenticateCustomer =
   (
+    runTransaction: RunTransaction,
     fetchDBStoreById: FetchDBStoreById,
     getFaceEmbedding: GetFaceEmbedding,
     findCustomerIdByFaceEmbedding: FindCustomerIdByFaceEmbedding,
     findDBCustomerById: FindDBCustomerById,
-    validateCustomer: ValidateCustomer
+    insertDBVisit: InsertDBVisit
   ): AuthenticateCustomer =>
   (storeId, image) =>
     ResultAsync.combine([
@@ -104,11 +116,22 @@ export const authenticateCustomer =
       fetchDBStoreById(db)(storeId),
     ])
       .andThen(([customerId, store]) =>
-        findDBCustomerById(db)(customerId).andThen((customer) =>
-          checkCustomerBelongsToStore(customer, store)
+        createVisit(store.id, customerId).map(
+          (visit) => [customerId, store, visit] as const
         )
       )
-      .andThen((customer) => validateCustomer(customer));
+      .andThen(([customerId, store, visit]) =>
+        runTransaction(db)((tx) =>
+          ResultAsync.combine([
+            findDBCustomerById(tx)(customerId).andThen((customer) =>
+              checkCustomerBelongsToStore(customer, store)
+            ),
+            insertDBVisit(tx)(visit),
+          ])
+        )
+      )
+      .map(pickFirst)
+      .andThen(validateCustomer);
 
 export type AcceptCustomerTos = (
   customerId: CustomerId

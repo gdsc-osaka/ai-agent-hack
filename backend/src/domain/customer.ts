@@ -73,7 +73,12 @@ export const checkCustomerBelongsToStore = (
 
 export const createCustomer = (
   store: DBStore
-): Result<DBCustomerForCreate, never> => {
+): Result<
+  DBCustomerForCreate & {
+    id: string;
+  },
+  never
+> => {
   return ok({
     id: createId(), // CUID
     tosAcceptedAt: null,
@@ -90,10 +95,7 @@ export const createCustomerWithTosAccepted = (
   });
 };
 
-export type ValidateCustomer = (
-  customer: DBCustomer
-) => Result<Customer, InvalidCustomerError>;
-export const validateCustomer: ValidateCustomer = (
+export const validateCustomer = (
   customer: DBCustomer
 ): Result<Customer, InvalidCustomerError> => {
   const res = Customer.safeParse({

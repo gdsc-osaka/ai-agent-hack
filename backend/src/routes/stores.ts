@@ -27,7 +27,6 @@ import {
   insertFaceEmbedding,
 } from "../infra/face-auth-repo";
 import { findDBCustomerById, insertDBCustomer } from "../infra/customer-repo";
-import { validateCustomer } from "../domain/customer";
 import {
   authenticateCustomerController,
   registerCustomerController,
@@ -36,6 +35,7 @@ import {
   authenticateCustomer,
   registerCustomer,
 } from "../service/customer-service";
+import { insertDBVisit } from "../infra/visit-repo";
 
 const app = new OpenAPIHono();
 
@@ -78,11 +78,12 @@ app.openapi(storesRoute.authenticateCustomer, async (c) => {
 
   const res = await authenticateCustomerController(
     authenticateCustomer(
+      runTransaction,
       fetchDBStoreById,
       getFaceEmbedding,
       findCustomerIdByFaceEmbedding,
       findDBCustomerById,
-      validateCustomer
+      insertDBVisit
     )(storeId, image)
   );
 
@@ -98,11 +99,12 @@ app.openapi(storesRoute.registerCustomer, async (c) => {
 
   const res = await registerCustomerController(
     registerCustomer(
+      runTransaction,
       fetchDBStoreById,
       getFaceEmbedding,
       insertFaceEmbedding,
       insertDBCustomer,
-      validateCustomer
+      insertDBVisit
     )(storeId, image)
   );
 
