@@ -6,7 +6,8 @@ type Extra<E extends BaseExtra> = [E] extends [never]
   ? { extra?: E }
   : { extra: E };
 
-const TAG: unique symbol = Symbol("TAG");
+// const TAG: unique symbol = Symbol("TAG");
+const TAG = 'TAG';
 
 export type BaseError<Tag extends BaseTag, Ext extends BaseExtra> = {
   [TAG]: Tag;
