@@ -1,4 +1,4 @@
-import { customers } from "../db/schema/customers";
+import { customers } from "../db/schema/app/customers";
 import z from "zod";
 import { Timestamp, toTimestamp } from "./timestamp";
 import { errorBuilder, InferError } from "../shared/error";
@@ -73,7 +73,12 @@ export const checkCustomerBelongsToStore = (
 
 export const createCustomer = (
   store: DBStore
-): Result<DBCustomerForCreate, never> => {
+): Result<
+  DBCustomerForCreate & {
+    id: string;
+  },
+  never
+> => {
   return ok({
     id: createId(), // CUID
     tosAcceptedAt: null,
@@ -90,10 +95,7 @@ export const createCustomerWithTosAccepted = (
   });
 };
 
-export type ValidateCustomer = (
-  customer: DBCustomer
-) => Result<Customer, InvalidCustomerError>;
-export const validateCustomer: ValidateCustomer = (
+export const validateCustomer = (
   customer: DBCustomer
 ): Result<Customer, InvalidCustomerError> => {
   const res = Customer.safeParse({
@@ -113,5 +115,13 @@ export const validateCustomer: ValidateCustomer = (
       cause: res.error,
       extra: res.error.flatten().fieldErrors,
     })
+  );
+};
+
+export const validateCustomers = (
+  customers: DBCustomer[]
+): Result<Customer[], InvalidCustomerError> => {
+  return Result.combine(
+    customers.map((customer) => validateCustomer(customer))
   );
 };

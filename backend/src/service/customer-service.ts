@@ -8,6 +8,7 @@ import {
 import {
   DeleteDBCustomerById,
   FindDBCustomerById,
+  FindVisitingDBCustomersByStoreId,
   InserttDBCustomer,
   UpdateDBCustomer,
 } from "../infra/customer-repo";
@@ -18,14 +19,14 @@ import type { FirestoreInternalError } from "../infra/shared/firestore-error";
 import {
   checkCustomerBelongsToStore,
   checkTosNotAccepted,
-  createCustomer,
   createCustomerWithTosAccepted,
   Customer,
   CustomerId,
   CustomerNotBelongsToStoreError,
   CustomerTosAlreadyAcceptedError,
   InvalidCustomerError,
-  ValidateCustomer,
+  validateCustomer,
+  validateCustomers,
 } from "../domain/customer";
 import type {
   CustomerAlreadyExistsError,
@@ -37,6 +38,23 @@ import env from "../env";
 import { FetchDBStoreById } from "../infra/store-repo";
 import { DBStoreNotFoundError } from "../infra/store-repo.error";
 import type { FaceAuthError } from "../infra/face-auth-repo.error";
+import {
+  DBVisitNotFoundError,
+  FetchDBVisitByStoreIdAndCustomerId,
+  InsertDBVisit,
+  UpdateDBVisit,
+} from "../infra/visit-repo";
+import {
+  createVisit,
+  createVisitAndCustomer,
+  createVisitForCheckout,
+} from "../domain/visit";
+import { pickFirst, voidify } from "../shared/func";
+import { StoreId } from "../domain/store";
+
+// =============
+// == Command ==
+// =============
 
 export type RegisterCustomer = (
   storeId: string,
@@ -53,23 +71,32 @@ export type RegisterCustomer = (
 
 export const registerCustomer =
   (
+    runTransaction: RunTransaction,
     fetchDBStoreById: FetchDBStoreById,
     getFaceEmbedding: GetFaceEmbedding,
     insertFaceEmbedding: InsertFaceEmbedding,
     insertDBCustomer: InserttDBCustomer,
-    validateCustomer: ValidateCustomer
+    insertDBVisit: InsertDBVisit
   ): RegisterCustomer =>
   (storeId, image: File) =>
     ResultAsync.combine([
       getFaceEmbedding(image),
-      fetchDBStoreById(db)(storeId).andThen(createCustomer),
-    ]).andThen(([embedding, customer]) =>
+      fetchDBStoreById(db)(storeId).andThen(createVisitAndCustomer),
+    ]).andThen(([embedding, { customer, visit }]) =>
       insertFaceEmbedding(firestoreDB(firebase(env.FIRE_SA).firestore()))(
         customer,
         embedding
       )
-        .andThen(() => insertDBCustomer(db)(customer))
-        .andThen((customer) => validateCustomer(customer))
+        .andThen(() =>
+          runTransaction(db)((tx) =>
+            ResultAsync.combine([
+              insertDBCustomer(tx)(customer),
+              insertDBVisit(tx)(visit),
+            ])
+          )
+        )
+        .map(pickFirst)
+        .andThen(validateCustomer)
     );
 
 export type AuthenticateCustomer = (
@@ -88,11 +115,12 @@ export type AuthenticateCustomer = (
 >;
 export const authenticateCustomer =
   (
+    runTransaction: RunTransaction,
     fetchDBStoreById: FetchDBStoreById,
     getFaceEmbedding: GetFaceEmbedding,
     findCustomerIdByFaceEmbedding: FindCustomerIdByFaceEmbedding,
     findDBCustomerById: FindDBCustomerById,
-    validateCustomer: ValidateCustomer
+    insertDBVisit: InsertDBVisit
   ): AuthenticateCustomer =>
   (storeId, image) =>
     ResultAsync.combine([
@@ -104,11 +132,41 @@ export const authenticateCustomer =
       fetchDBStoreById(db)(storeId),
     ])
       .andThen(([customerId, store]) =>
-        findDBCustomerById(db)(customerId).andThen((customer) =>
-          checkCustomerBelongsToStore(customer, store)
+        createVisit(store.id, customerId).map(
+          (visit) => [customerId, store, visit] as const
         )
       )
-      .andThen((customer) => validateCustomer(customer));
+      .andThen(([customerId, store, visit]) =>
+        runTransaction(db)((tx) =>
+          ResultAsync.combine([
+            findDBCustomerById(tx)(customerId).andThen((customer) =>
+              checkCustomerBelongsToStore(customer, store)
+            ),
+            insertDBVisit(tx)(visit),
+          ])
+        )
+      )
+      .map(pickFirst)
+      .andThen(validateCustomer);
+
+export type CheckoutCustomer = (
+  customerId: CustomerId,
+  storeId: StoreId
+) => ResultAsync<void, DBInternalError | DBVisitNotFoundError>;
+
+export const checkoutCustomer =
+  (
+    runTransaction: RunTransaction,
+    findVisitByCustomerIdAndStoreId: FetchDBVisitByStoreIdAndCustomerId,
+    updateDBVisit: UpdateDBVisit
+  ): CheckoutCustomer =>
+  (customerId, storeId) =>
+    runTransaction(db)((tx) =>
+      // fetch the visit is enough because of the foreign key constraint of customer and store
+      findVisitByCustomerIdAndStoreId(tx)(storeId, customerId)
+        .andThen(createVisitForCheckout)
+        .andThen(updateDBVisit(tx))
+    ).map(voidify);
 
 export type AcceptCustomerTos = (
   customerId: CustomerId
@@ -164,3 +222,21 @@ export const declineCustomerTos =
           customerId
         )
       );
+
+// =============
+// === Query ===
+// =============
+
+export type FetchVisitingCustomers = (
+  storeId: StoreId
+) => ResultAsync<
+  Customer[],
+  DBInternalError | CustomerNotFoundError | InvalidCustomerError
+>;
+
+export const fetchVisitingCustomers =
+  (
+    findVisitingDBCustomersByStoreId: FindVisitingDBCustomersByStoreId
+  ): FetchVisitingCustomers =>
+  (storeId) =>
+    findVisitingDBCustomersByStoreId(db)(storeId).andThen(validateCustomers);

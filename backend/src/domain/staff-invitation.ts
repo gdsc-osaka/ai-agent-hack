@@ -1,4 +1,4 @@
-import { staffInvitations } from "../db/schema/staff-invitations";
+import { staffInvitations } from "../db/schema/app/staff-invitations";
 import { z } from "@hono/zod-openapi";
 import { StaffRole } from "./store-staff";
 import { DBStore, StoreId } from "./store";

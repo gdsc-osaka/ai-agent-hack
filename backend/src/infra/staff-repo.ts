@@ -6,7 +6,7 @@ import {
   DBStaffAlreadyExistsError,
   DBStaffNotFoundError,
 } from "./staff-repo.error";
-import { staffs, storesToStaffs } from "../db/schema/stores";
+import { staffs, storesToStaffs } from "../db/schema/app/stores";
 import { and, eq } from "drizzle-orm";
 import { Uid } from "../domain/auth";
 

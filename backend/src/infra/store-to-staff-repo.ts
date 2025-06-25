@@ -3,7 +3,7 @@ import { DBorTx } from "../db/db";
 import { err, ok, ResultAsync } from "neverthrow";
 import { DBInternalError } from "./shared/db-error";
 import { DBStoreToStaffAlreadyExistsError } from "./store-to-staff-repo.error";
-import { storesToStaffs } from "../db/schema/stores";
+import { storesToStaffs } from "../db/schema/app/stores";
 
 export type InsertDBStoreToStaff = (
   db: DBorTx

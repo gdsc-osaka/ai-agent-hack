@@ -62,10 +62,28 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** @description Get customers for a store */
+        get: operations["getCustomersByStore"];
         put?: never;
         /** @description Register a user's face for authentication */
         post: operations["registerCustomer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stores/{storeId}/customers/:customerId/checkout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Checkout a customer from the store */
+        post: operations["checkoutCustomer"];
         delete?: never;
         options?: never;
         head?: never;
@@ -171,7 +189,7 @@ export interface components {
             updatedAt: components["schemas"]["Timestamp"];
         };
         /** @enum {string} */
-        ApiErrorCode: "internal/database_error" | "internal/firestore_error" | "store/not_found" | "store/already_exists" | "store/invalid_store_id" | "store/invalid" | "customer/already_exists" | "customer/not_found" | "customer/invalid" | "customer/not_belongs_to_store" | "customer/tos_already_accepted" | "customer/face_auth_error" | "face_embedding/error" | "staff/not_found" | "staff/invalid" | "staff/invalid_role" | "staff/already_exists_in_store" | "staff_invitation/not_found" | "staff_invitation/already_exists" | "staff_invitation/duplicate" | "staff_invitation/permission_error" | "staff_invitation/expired" | "staff_invitation/not_pending" | "staff_invitation/wrong_email" | "staff_invitation/invalid";
+        ApiErrorCode: "internal/database_error" | "internal/firestore_error" | "store/not_found" | "store/already_exists" | "store/invalid_store_id" | "store/invalid" | "customer/already_exists" | "customer/not_found" | "customer/invalid" | "customer/not_belongs_to_store" | "customer/tos_already_accepted" | "customer/face_auth_error" | "face_embedding/error" | "staff/not_found" | "staff/invalid" | "staff/invalid_role" | "staff/already_exists_in_store" | "staff_invitation/not_found" | "staff_invitation/already_exists" | "staff_invitation/duplicate" | "staff_invitation/permission_error" | "staff_invitation/expired" | "staff_invitation/not_pending" | "staff_invitation/wrong_email" | "staff_invitation/invalid" | "visit/not_found";
         ApiError: {
             message: string;
             code: components["schemas"]["ApiErrorCode"];
@@ -340,6 +358,40 @@ export interface operations {
             };
         };
     };
+    getCustomersByStore: {
+        parameters: {
+            query: {
+                status: "visiting";
+            };
+            header?: never;
+            path: {
+                /** @description ID of the store to invite staff to */
+                storeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Customer"][];
+                };
+            };
+            /** @description Bad Request - Invalid input or missing image */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
     registerCustomer: {
         parameters: {
             query?: never;
@@ -367,6 +419,38 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Customer"];
                 };
+            };
+            /** @description Bad Request - Invalid input or missing image */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    checkoutCustomer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description ID of the store to invite staff to */
+                storeId: string;
+                /** @description ID of the customer to checkout */
+                customerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Bad Request - Invalid input or missing image */
             400: {

@@ -11,7 +11,7 @@ import {
 } from "firebase-functions/v2/tasks";
 import { v4 as uuidv4 } from "uuid";
 import db from "backend/dist/db/db";
-import { profiles } from "backend/dist/db/schema/profiles";
+import { profiles } from "backend/dist/db/schema/app/profiles";
 
 const tasksClient = new CloudTasksClient();
 const projectId = process.env.GCP_PROJECT_ID || "recall-you";

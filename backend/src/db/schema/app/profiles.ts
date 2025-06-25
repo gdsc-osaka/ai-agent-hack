@@ -1,6 +1,6 @@
 import { createId } from "@paralleldrive/cuid2";
 import { date, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
-import { CUID_LENGTH } from "../constants";
+import { CUID_LENGTH } from "../../constants";
 
 export const profiles = pgTable("profiles", {
   id: varchar("id", { length: CUID_LENGTH })

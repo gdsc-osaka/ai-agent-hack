@@ -16,13 +16,16 @@ import { FirestoreInternalError } from "../infra/shared/firestore-error";
 import {
   AcceptCustomerTos,
   AuthenticateCustomer,
+  CheckoutCustomer,
   DeclineCustomerTos,
+  FetchVisitingCustomers,
   RegisterCustomer,
 } from "../service/customer-service";
 import { FaceEmbeddingError } from "../infra/face-embedding-repo.error";
 import { FaceAuthError } from "../infra/face-auth-repo.error";
 import { DBStoreNotFoundError } from "../infra/store-repo.error";
 import { convertErrorToApiError } from "./error/api-error-utils";
+import { DBVisitNotFoundError } from "../infra/visit-repo";
 
 export const registerCustomerController = (
   registerCustomerRes: ReturnType<RegisterCustomer>
@@ -60,6 +63,19 @@ export const authenticateCustomerController = (
     )
   );
 
+export const checkoutCustomerController = (
+  result: ReturnType<CheckoutCustomer>
+): ResultAsync<void, HTTPErrorCarrier> =>
+  result.mapErr((err) =>
+    HTTPErrorCarrier(
+      match(err)
+        .with(DBInternalError.is, () => StatusCode.InternalServerError)
+        .with(DBVisitNotFoundError.is, () => StatusCode.NotFound)
+        .exhaustive(),
+      convertErrorToApiError(err)
+    )
+  );
+
 export const acceptCustomerTosController = (
   res: ReturnType<AcceptCustomerTos>
 ): ResultAsync<void, HTTPErrorCarrier> =>
@@ -83,6 +99,20 @@ export const declineCustomerTosController = (
       match(err)
         .with(DBInternalError.is, () => StatusCode.InternalServerError)
         .with(FirestoreInternalError.is, () => StatusCode.InternalServerError)
+        .with(CustomerNotFoundError.is, () => StatusCode.NotFound)
+        .exhaustive(),
+      convertErrorToApiError(err)
+    )
+  );
+
+export const fetchVisitingCustomersController = (
+  res: ReturnType<FetchVisitingCustomers>
+): ResultAsync<Customer[], HTTPErrorCarrier> =>
+  res.mapErr((err) =>
+    HTTPErrorCarrier(
+      match(err)
+        .with(DBInternalError.is, () => StatusCode.InternalServerError)
+        .with(InvalidCustomerError.is, () => StatusCode.InternalServerError)
         .with(CustomerNotFoundError.is, () => StatusCode.NotFound)
         .exhaustive(),
       convertErrorToApiError(err)

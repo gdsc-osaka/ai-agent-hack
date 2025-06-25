@@ -19,6 +19,7 @@
 //    "lib": [
 //      "ESNext"
 //    ]
+    "declaration": true,
   },
   "include": [
     "src/**/*.ts",
