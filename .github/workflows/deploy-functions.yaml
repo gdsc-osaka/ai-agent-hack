@@ -40,6 +40,8 @@ jobs:
       - name: Install backend dependencies
         run: pnpm i
         working-directory: backend
+
+      # Install firebase/functions/generate_profile　
       - name: Cache npm dependencies for generate_profile
         uses: actions/cache@v4
         id: cache-npm-generate-profile
@@ -52,6 +54,21 @@ jobs:
         if: steps.cache-npm-generate-profile.outputs.cache-hit != 'true'
         run: npm install
         working-directory: firebase/functions/generate_profile
+
+      # Install firebase/functions/cleanup_preview
+      - name: Cache npm dependencies for cleanup_preview
+        uses: actions/cache@v4
+        id: cache-npm-cleanup-preview
+        with:
+          path: firebase/functions/cleanup_preview/node_modules
+          key: ${{ runner.os }}-node22-npm-cleanup-preview-${{ hashFiles('firebase/functions/cleanup_preview/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node22-npm-cleanup-preview-
+      - name: Install cleanup_preview dependencies
+        if: steps.cache-npm-cleanup-preview.outputs.cache-hit != 'true'
+        run: npm install
+        working-directory: firebase/functions/cleanup_preview
+
       - uses: 'google-github-actions/auth@v2'
         with:
           workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
