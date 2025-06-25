@@ -62,7 +62,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** @description Get customers for a store */
+        get: operations["getCustomersByStore"];
         put?: never;
         /** @description Register a user's face for authentication */
         post: operations["registerCustomer"];
@@ -357,6 +358,40 @@ export interface operations {
             };
         };
     };
+    getCustomersByStore: {
+        parameters: {
+            query: {
+                status: "visiting";
+            };
+            header?: never;
+            path: {
+                /** @description ID of the store to invite staff to */
+                storeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Customer"][];
+                };
+            };
+            /** @description Bad Request - Invalid input or missing image */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
     registerCustomer: {
         parameters: {
             query?: never;
@@ -411,7 +446,7 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Successful response */
-            201: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

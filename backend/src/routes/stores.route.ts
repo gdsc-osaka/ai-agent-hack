@@ -202,8 +202,34 @@ const checkoutCustomer = createDefaultRoute({
     // },
   },
   responses: {
-    201: {
+    200: {
       description: "Successful response",
+    },
+  },
+});
+
+const getCustomersByStore = createDefaultRoute({
+  method: "get",
+  path: "/{storeId}/customers",
+  tags: tags.customers,
+  operationId: "getCustomersByStore",
+  description: "Get customers for a store",
+  request: {
+    params: z.object({
+      storeId: StoreId.describe("ID of the store to invite staff to"),
+    }),
+    query: z.object({
+      status: z.enum(["visiting"]),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Successful response",
+      content: {
+        "application/json": {
+          schema: z.array(Customer).describe("List of customers for the store"),
+        },
+      },
     },
   },
 });
@@ -214,4 +240,5 @@ export default {
   authenticateCustomer,
   registerCustomer,
   checkoutCustomer,
+  getCustomersByStore,
 };

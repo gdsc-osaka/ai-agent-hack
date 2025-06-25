@@ -45,6 +45,28 @@ export const findDBCustomerById: FindDBCustomerById = (db) => (id) =>
       : err(CustomerNotFoundError("Customer not found"))
   );
 
+export type FindVisitingDBCustomersByStoreId = (
+  db: DBorTx
+) => (
+  storeId: string
+) => ResultAsync<DBCustomer[], DBInternalError | CustomerNotFoundError>;
+
+export const findVisitingDBCustomersByStoreId: FindVisitingDBCustomersByStoreId =
+  (db) => (storeId) =>
+    ResultAsync.fromPromise(
+      db.query.visits.findMany({
+        where: (stores, { eq }) => eq(stores.storeId, storeId),
+        with: {
+          customer: true,
+        },
+      }),
+      DBInternalError.handle
+    ).andThen((records) =>
+      records.length > 0
+        ? ok(records.map((visit) => visit.customer))
+        : err(CustomerNotFoundError("No visiting customers found for store"))
+    );
+
 // ADDED: Function to update a customer record
 export type UpdateDBCustomer = (
   db: DBorTx

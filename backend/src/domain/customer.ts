@@ -117,3 +117,11 @@ export const validateCustomer = (
     })
   );
 };
+
+export const validateCustomers = (
+  customers: DBCustomer[]
+): Result<Customer[], InvalidCustomerError> => {
+  return Result.combine(
+    customers.map((customer) => validateCustomer(customer))
+  );
+};

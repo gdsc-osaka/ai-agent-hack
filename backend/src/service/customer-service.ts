@@ -8,6 +8,7 @@ import {
 import {
   DeleteDBCustomerById,
   FindDBCustomerById,
+  FindVisitingDBCustomersByStoreId,
   InserttDBCustomer,
   UpdateDBCustomer,
 } from "../infra/customer-repo";
@@ -25,6 +26,7 @@ import {
   CustomerTosAlreadyAcceptedError,
   InvalidCustomerError,
   validateCustomer,
+  validateCustomers,
 } from "../domain/customer";
 import type {
   CustomerAlreadyExistsError,
@@ -49,6 +51,10 @@ import {
 } from "../domain/visit";
 import { pickFirst, voidify } from "../shared/func";
 import { StoreId } from "../domain/store";
+
+// =============
+// == Command ==
+// =============
 
 export type RegisterCustomer = (
   storeId: string,
@@ -216,3 +222,21 @@ export const declineCustomerTos =
           customerId
         )
       );
+
+// =============
+// === Query ===
+// =============
+
+export type FetchVisitingCustomers = (
+  storeId: StoreId
+) => ResultAsync<
+  Customer[],
+  DBInternalError | CustomerNotFoundError | InvalidCustomerError
+>;
+
+export const fetchVisitingCustomers =
+  (
+    findVisitingDBCustomersByStoreId: FindVisitingDBCustomersByStoreId
+  ): FetchVisitingCustomers =>
+  (storeId) =>
+    findVisitingDBCustomersByStoreId(db)(storeId).andThen(validateCustomers);

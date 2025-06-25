@@ -18,6 +18,7 @@ import {
   AuthenticateCustomer,
   CheckoutCustomer,
   DeclineCustomerTos,
+  FetchVisitingCustomers,
   RegisterCustomer,
 } from "../service/customer-service";
 import { FaceEmbeddingError } from "../infra/face-embedding-repo.error";
@@ -98,6 +99,20 @@ export const declineCustomerTosController = (
       match(err)
         .with(DBInternalError.is, () => StatusCode.InternalServerError)
         .with(FirestoreInternalError.is, () => StatusCode.InternalServerError)
+        .with(CustomerNotFoundError.is, () => StatusCode.NotFound)
+        .exhaustive(),
+      convertErrorToApiError(err)
+    )
+  );
+
+export const fetchVisitingCustomersController = (
+  res: ReturnType<FetchVisitingCustomers>
+): ResultAsync<Customer[], HTTPErrorCarrier> =>
+  res.mapErr((err) =>
+    HTTPErrorCarrier(
+      match(err)
+        .with(DBInternalError.is, () => StatusCode.InternalServerError)
+        .with(InvalidCustomerError.is, () => StatusCode.InternalServerError)
         .with(CustomerNotFoundError.is, () => StatusCode.NotFound)
         .exhaustive(),
       convertErrorToApiError(err)

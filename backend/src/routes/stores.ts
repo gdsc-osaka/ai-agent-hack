@@ -26,15 +26,21 @@ import {
   findCustomerIdByFaceEmbedding,
   insertFaceEmbedding,
 } from "../infra/face-auth-repo";
-import { findDBCustomerById, insertDBCustomer } from "../infra/customer-repo";
+import {
+  findDBCustomerById,
+  findVisitingDBCustomersByStoreId,
+  insertDBCustomer,
+} from "../infra/customer-repo";
 import {
   authenticateCustomerController,
   checkoutCustomerController,
+  fetchVisitingCustomersController,
   registerCustomerController,
 } from "../controller/customer-controller";
 import {
   authenticateCustomer,
   checkoutCustomer,
+  fetchVisitingCustomers,
   registerCustomer,
 } from "../service/customer-service";
 import {
@@ -135,6 +141,20 @@ app.openapi(storesRoute.checkoutCustomer, async (c) => {
     throw toHTTPException(res.error);
   }
   return c.text("ok", 201);
+});
+
+app.openapi(storesRoute.getCustomersByStore, async (c) => {
+  const { storeId } = c.req.valid("param");
+  // const { status } = c.req.valid("query");
+
+  const res = await fetchVisitingCustomersController(
+    fetchVisitingCustomers(findVisitingDBCustomersByStoreId)(storeId)
+  );
+
+  if (res.isErr()) {
+    throw toHTTPException(res.error);
+  }
+  return c.json(res.value, 200);
 });
 
 export default app;
