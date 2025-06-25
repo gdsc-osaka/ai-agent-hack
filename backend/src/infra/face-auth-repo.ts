@@ -25,6 +25,13 @@ export type DeleteEmbedding = (
 export const registerEmbedding: RegisterEmbedding = (firebase) => (embedding) =>
   ResultAsync.fromPromise(
     (async () => {
+      // 開発環境でFirestoreが利用できない場合のモック実装
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Using mock embedding registration for development');
+        const customerId = createId();
+        return customerId as CustomerId;
+      }
+
       const firestore = firebase.firestore();
       const customerId = createId();
 
@@ -44,6 +51,18 @@ export const registerEmbedding: RegisterEmbedding = (firebase) => (embedding) =>
 export const authenticateFace: AuthenticateFace = (firebase) => (embedding) =>
   ResultAsync.fromPromise(
     (async () => {
+      // 開発環境でFirestoreが利用できない場合のモック実装
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Using mock face authentication for development');
+        // 50%の確率で認証成功
+        if (Math.random() > 0.5) {
+          const customerId = createId();
+          return { empty: false, docs: [{ id: customerId }] };
+        } else {
+          return { empty: true, docs: [] };
+        }
+      }
+
       const firestore = firebase.firestore();
 
       const snapshot = await firestore
@@ -70,10 +89,18 @@ export const authenticateFace: AuthenticateFace = (firebase) => (embedding) =>
 
 export const deleteEmbedding: DeleteEmbedding = (firebase) => (customerId) =>
   ResultAsync.fromPromise(
-    firebase
-      .firestore()
-      .collection(EMBEDDINGS_COLLECTION)
-      .doc(customerId)
-      .delete(),
+    (async () => {
+      // 開発環境でFirestoreが利用できない場合のモック実装
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Using mock embedding deletion for development');
+        return;
+      }
+
+      await firebase
+        .firestore()
+        .collection(EMBEDDINGS_COLLECTION)
+        .doc(customerId)
+        .delete();
+    })(),
     FirestoreInternalError.handle
   ).map(() => undefined); // map to void on success

@@ -23,8 +23,8 @@ async function detectFace(videoElement: HTMLVideoElement): Promise<boolean> {
 
 // [本物] バックエンドAPIを呼び出す関数 (storeIdを引数に追加)
 async function authenticateFace(imageData: FormData, storeId: string): Promise<boolean> {
-  // 最終的に特定した、正しいAPIエンドポイントに修正
-  const API_ENDPOINT = `/api/v1/stores/${storeId}/customers/authenticate`; 
+  // 正しいAPIエンドポイント
+  const API_ENDPOINT = `/api/v1/vector/face-auth`; 
 
   try {
     console.log('（API呼び出し）顔認証を実行中...', API_ENDPOINT);
