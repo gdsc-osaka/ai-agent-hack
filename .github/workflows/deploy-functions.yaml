@@ -1,13 +1,6 @@
 name: Deploy Firebase Functions on merge
 
 on:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'backend/**'
-      - 'firebase/**'
-      - '.github/workflows/deploy-functions.yaml'
   push:
     branches:
       - main
