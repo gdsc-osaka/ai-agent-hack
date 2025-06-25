@@ -57,7 +57,8 @@
         "node_modules",
         ".git",
         "firebase-debug.log",
-        "firebase-debug.*.log"
+        "firebase-debug.*.log",
+        "package-lock.json"
       ],
       "predeploy": [
         "(cd ../backend && pnpm install && npm run build)",
