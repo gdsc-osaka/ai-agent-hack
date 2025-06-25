@@ -1,8 +1,6 @@
 import { CloudTasksClient, protos } from "@google-cloud/tasks";
 import { GoogleGenAI, Type } from "@google/genai";
 import Busboy from "busboy";
-import * as express from "express";
-import { Blob } from "fetch-blob";
 import {
   Request as HttpsRequest,
   onRequest,
@@ -12,8 +10,8 @@ import {
   Request as TasksRequest,
 } from "firebase-functions/v2/tasks";
 import { v4 as uuidv4 } from "uuid";
-import db from "../../../../backend/src/db/db";
-import { profiles } from "../../../../backend/src/db/schema/profiles";
+import db from "backend/dist/db/db";
+import { profiles } from "backend/dist/db/schema/profiles";
 
 const tasksClient = new CloudTasksClient();
 const projectId = process.env.GCP_PROJECT_ID || "recall-you";
@@ -23,7 +21,7 @@ const queue = process.env.TASK_QUEUE || "profile-queue";
 // 音声をCloud Tasksに登録
 export const uploadAudio = onRequest(
   { region },
-  async (req: HttpsRequest, res: express.Response): Promise<void> => {
+  async (req, res): Promise<void> => {
     if (req.method !== "POST") {
       res.status(405).send("Method Not Allowed");
       return;
@@ -180,6 +178,7 @@ export const generateProfile = onTaskDispatched(
         ...p,
         birthday: new Date(p.birthday),
       }));
+      console.log("Generated profiles:", normalizedProfiles);
       await db.insert(profiles).values(normalizedProfiles);
       return;
     } catch (error) {

@@ -1,0 +1,73 @@
+name: Deploy Firebase Functions on merge
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'firebase/**'
+      - '.github/workflows/deploy-functions.yaml'
+
+env:
+  GCP_PROJECT_ID: 'recall-you'
+  GCP_SERVICE_ACCOUNT: 'github-action-994212429@recall-you.iam.gserviceaccount.com'
+  GCP_WORKLOAD_IDENTITY_PROVIDER: 'projects/966744275445/locations/global/workloadIdentityPools/gh-pool/providers/gh-repo-provider'
+
+jobs:
+  build_and_deploy_functions:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+          cache-dependency-path: 'backend/pnpm-lock.yaml'
+      - name: Install backend dependencies
+        run: pnpm i
+        working-directory: backend
+
+      # Install firebase/functions/generate_profile　
+      - name: Cache npm dependencies for generate_profile
+        uses: actions/cache@v4
+        id: cache-npm-generate-profile
+        with:
+          path: firebase/functions/generate_profile/node_modules
+          key: ${{ runner.os }}-node22-npm-generate-profile-${{ hashFiles('firebase/functions/generate_profile/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node22-npm-generate-profile-
+      - name: Install generate_profile dependencies
+        if: steps.cache-npm-generate-profile.outputs.cache-hit != 'true'
+        run: npm install
+        working-directory: firebase/functions/generate_profile
+
+      # Install firebase/functions/cleanup_preview
+      - name: Cache npm dependencies for cleanup_preview
+        uses: actions/cache@v4
+        id: cache-npm-cleanup-preview
+        with:
+          path: firebase/functions/cleanup_preview/node_modules
+          key: ${{ runner.os }}-node22-npm-cleanup-preview-${{ hashFiles('firebase/functions/cleanup_preview/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node22-npm-cleanup-preview-
+      - name: Install cleanup_preview dependencies
+        if: steps.cache-npm-cleanup-preview.outputs.cache-hit != 'true'
+        run: npm install
+        working-directory: firebase/functions/cleanup_preview
+
+      - uses: 'google-github-actions/auth@v2'
+        with:
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+      - name: Deploy to Firebase Functions
+        run: firebase deploy --only functions --project ${{ env.GCP_PROJECT_ID }} --non-interactive
+        working-directory: firebase
