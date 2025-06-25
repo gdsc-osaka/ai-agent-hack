@@ -20,7 +20,7 @@ import env from "../env";
 import { FetchDBStoreById } from "../infra/store-repo";
 import { DBStoreNotFoundError } from "../infra/store-repo.error";
 
-export type FaceAuth = (
+export type AuthenticateCustomer = (
   storeId: string,
   image: File
 ) => ResultAsync<
@@ -35,14 +35,14 @@ export type FaceAuth = (
   | CustomerNotBelongsToStoreError
 >;
 
-export const authenticateFace =
+export const authenticateCustomer =
   (
     fetchDBStoreById: FetchDBStoreById,
     getFaceEmbedding: GetFaceEmbedding,
     findCustomerIdByFaceEmbedding: FindCustomerIdByFaceEmbedding,
     findDBCustomerById: FindDBCustomerById,
     validateCustomer: ValidateCustomer
-  ): FaceAuth =>
+  ): AuthenticateCustomer =>
   (storeId, image) =>
     ResultAsync.combine([
       getFaceEmbedding(image).andThen(

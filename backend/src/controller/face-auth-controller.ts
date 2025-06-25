@@ -1,4 +1,4 @@
-import { FaceAuth } from "../service/face-auth-service";
+import { AuthenticateCustomer } from "../service/face-auth-service";
 import { ResultAsync } from "neverthrow";
 import { HTTPErrorCarrier, StatusCode } from "./error/api-error";
 import {
@@ -15,7 +15,7 @@ import { DBInternalError } from "../infra/shared/db-error";
 import { DBStoreNotFoundError } from "../infra/store-repo.error";
 
 export const faceAuthController = (
-  faceAuthRes: ReturnType<FaceAuth>
+  faceAuthRes: ReturnType<AuthenticateCustomer>
 ): ResultAsync<Customer, HTTPErrorCarrier> =>
   faceAuthRes.mapErr((err) =>
     match(err)

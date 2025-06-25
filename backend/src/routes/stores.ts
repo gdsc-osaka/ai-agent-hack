@@ -22,7 +22,7 @@ import {
   insertDBStaffInvitation,
 } from "../infra/staff-invitation-repo";
 import { faceAuthController } from "../controller/face-auth-controller";
-import { authenticateFace } from "../service/face-auth-service";
+import { authenticateCustomer } from "../service/face-auth-service";
 import { getFaceEmbedding } from "../infra/face-embedding-repo";
 import {
   findCustomerIdByFaceEmbedding,
@@ -73,7 +73,7 @@ app.openapi(storesRoute.authenticateFace, async (c) => {
   const { storeId } = c.req.valid("param");
 
   const res = await faceAuthController(
-    authenticateFace(
+    authenticateCustomer(
       fetchDBStoreById,
       getFaceEmbedding,
       findCustomerIdByFaceEmbedding,
