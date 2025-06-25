@@ -48,7 +48,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** @description Authenticate a user using face recognition */
-        post: operations["authenticateFace"];
+        post: operations["authenticateCustomer"];
         delete?: never;
         options?: never;
         head?: never;
@@ -65,7 +65,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** @description Register a user's face for authentication */
-        post: operations["registerFace"];
+        post: operations["registerCustomer"];
         delete?: never;
         options?: never;
         head?: never;
@@ -171,7 +171,7 @@ export interface components {
             updatedAt: components["schemas"]["Timestamp"];
         };
         /** @enum {string} */
-        ApiErrorCode: "DATABASE_UNKNOWN_ERROR" | "DATABASE_NOT_FOUND" | "DATABASE_ALREADY_EXISTS" | "DATABASE_INCONSISTENT_TYPE" | "PERMISSION_DENIED" | "INVALID_REQUEST_BODY" | "STAFF_NOT_FOUND" | "STORE_NOT_FOUND" | "STAFF_INVITATION_NOT_FOUND" | "STORE_TO_STAFF_ALREADY_EXISTS" | "STAFF_INVITATION_EXPIRED" | "STAFF_INVITATION_NOT_PENDING" | "STAFF_INVITATION_WRONG_EMAIL" | "CUSTOMER_NOT_FOUND" | "TOS_ALREADY_ACCEPTED" | "DOMAIN_VALIDATION_ERROR";
+        ApiErrorCode: "DATABASE_UNKNOWN_ERROR" | "DATABASE_NOT_FOUND" | "DATABASE_ALREADY_EXISTS" | "DATABASE_INCONSISTENT_TYPE" | "PERMISSION_DENIED" | "INVALID_REQUEST_BODY" | "STAFF_NOT_FOUND" | "STORE_NOT_FOUND" | "STAFF_INVITATION_NOT_FOUND" | "STORE_TO_STAFF_ALREADY_EXISTS" | "STAFF_INVITATION_EXPIRED" | "STAFF_INVITATION_NOT_PENDING" | "STAFF_INVITATION_WRONG_EMAIL" | "CUSTOMER_NOT_FOUND" | "CUSTOMER_NOT_BELONGS_TO_STORE" | "TOS_ALREADY_ACCEPTED" | "DOMAIN_VALIDATION_ERROR";
         ApiError: {
             message: string;
             code: components["schemas"]["ApiErrorCode"];
@@ -292,7 +292,7 @@ export interface operations {
             };
         };
     };
-    authenticateFace: {
+    authenticateCustomer: {
         parameters: {
             query?: never;
             header?: never;
@@ -340,7 +340,7 @@ export interface operations {
             };
         };
     };
-    registerFace: {
+    registerCustomer: {
         parameters: {
             query?: never;
             header?: never;
