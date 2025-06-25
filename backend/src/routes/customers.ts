@@ -15,9 +15,7 @@ import {
   findDBCustomerById,
   updateDBCustomer,
 } from "../infra/customer-repo";
-import { deleteEmbedding } from "../infra/face-auth-repo";
-import getFirebaseApp from "../firebase";
-import env from "../env";
+import { deleteFaceEmbedding } from "../infra/face-auth-repo";
 
 const app = new OpenAPIHono();
 
@@ -41,15 +39,14 @@ app.openapi(customersRoute.acceptTos, async (c) => {
 
 app.openapi(customersRoute.declineTos, async (c) => {
   const { customerId } = c.req.valid("param");
-  const firebaseApp = getFirebaseApp(env.FIRE_SA);
 
   const res = await declineCustomerTosController(
     declineCustomerTos(
       runTransaction,
       findDBCustomerById,
       deleteDBCustomerById,
-      deleteEmbedding
-    )(firebaseApp, customerId)
+      deleteFaceEmbedding
+    )(customerId)
   );
 
   if (res.isErr()) {

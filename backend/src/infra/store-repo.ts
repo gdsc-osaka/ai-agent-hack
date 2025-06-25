@@ -6,7 +6,7 @@ import {
   DBStoreAlreadyExistsError,
   DBStoreNotFoundError,
 } from "./store-repo.error";
-import { staffs, stores } from "../db/schema/stores";
+import { staffs, stores } from "../db/schema/app/stores";
 import { StaffId } from "../domain/staff";
 import { eq } from "drizzle-orm";
 
@@ -96,7 +96,5 @@ export const fetchDBStoreById: FetchDBStoreById =
     ).andThen((records) =>
       records.length > 0
         ? ok(records[0])
-        : err(
-            DBStoreNotFoundError("Store not found", { extra: { id: storeId } })
-          )
+        : err(DBStoreNotFoundError("Store not found", { extra: { storeId } }))
     );

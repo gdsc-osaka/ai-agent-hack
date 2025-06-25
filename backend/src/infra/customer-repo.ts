@@ -5,7 +5,7 @@ import {
   DBCustomerForUpdate,
 } from "../domain/customer";
 import { eq } from "drizzle-orm";
-import { customers } from "../db/schema/customers";
+import { customers } from "../db/schema/app/customers";
 import { DBorTx } from "../db/db";
 import { DBInternalError } from "./shared/db-error";
 import {
@@ -44,6 +44,28 @@ export const findDBCustomerById: FindDBCustomerById = (db) => (id) =>
       ? ok(records[0])
       : err(CustomerNotFoundError("Customer not found"))
   );
+
+export type FindVisitingDBCustomersByStoreId = (
+  db: DBorTx
+) => (
+  storeId: string
+) => ResultAsync<DBCustomer[], DBInternalError | CustomerNotFoundError>;
+
+export const findVisitingDBCustomersByStoreId: FindVisitingDBCustomersByStoreId =
+  (db) => (storeId) =>
+    ResultAsync.fromPromise(
+      db.query.visits.findMany({
+        where: (visits, { eq }) => eq(visits.storeId, storeId),
+        with: {
+          customer: true,
+        },
+      }),
+      DBInternalError.handle
+    ).andThen((records) =>
+      records.length > 0
+        ? ok(records.map((visit) => visit.customer))
+        : err(CustomerNotFoundError("No visiting customers found for store"))
+    );
 
 // ADDED: Function to update a customer record
 export type UpdateDBCustomer = (

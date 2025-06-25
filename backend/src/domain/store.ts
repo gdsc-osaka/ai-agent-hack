@@ -1,5 +1,5 @@
 import { FieldErrors, ForUpdate } from "./shared/types";
-import { stores } from "../db/schema/stores";
+import { stores } from "../db/schema/app/stores";
 import { z } from "@hono/zod-openapi";
 import { Timestamp, toTimestamp } from "./timestamp";
 import { errorBuilder, InferError } from "../shared/error";

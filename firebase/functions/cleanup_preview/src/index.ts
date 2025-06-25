@@ -68,34 +68,33 @@ exports.previewCleanup = onSchedule(
         if (
           SERVICE_NAME_PREFIXES.some((prefix) =>
             serviceId.startsWith(prefix)
-          ) &&
-          updateTime < thresholdDate
+          )
         ) {
-          logger.info(
-            `[DELETE TARGET] Found old service: ${serviceId} (Last updated: ${updateTime.toISOString()})`
-          );
+          if (updateTime < thresholdDate) {
+            logger.info(
+              `[DELETE TARGET] Found old service: ${serviceId} (Last updated: ${updateTime.toISOString()})`
+            );
 
-          const deletePromise = runClient
-            .deleteService({ name: service.name })
-            .then(() => {
-              logger.info(
-                `✅ Successfully deleted service: ${serviceId}`
-              );
-            })
-            .catch((error) => {
-              logger.error(
-                `❌ Failed to delete service: ${serviceId}`,
-                error
-              );
-            });
+            const deletePromise = runClient
+              .deleteService({ name: service.name })
+              .then(() => {
+                logger.info(
+                  `✅ Successfully deleted service: ${serviceId}`
+                );
+              })
+              .catch((error) => {
+                logger.error(
+                  `❌ Failed to delete service: ${serviceId}`,
+                  error
+                );
+              });
 
-          deletionPromises.push(deletePromise);
-        } else if (
-          SERVICE_NAME_PREFIXES.every(serviceId.startsWith)
-        ) {
-          logger.info(
-            `[SKIP] Service is not old enough: ${serviceId} (Last updated: ${updateTime.toISOString()})`
-          );
+            deletionPromises.push(deletePromise);
+          } else {
+            logger.info(
+              `[SKIP] Service is not old enough: ${serviceId} (Last updated: ${updateTime.toISOString()})`
+            );
+          }
         }
       }
 

@@ -50,6 +50,20 @@
       "when": 1750668091262,
       "tag": "0006_melted_talos",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1750836222197,
+      "tag": "0007_charming_lady_bullseye",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1750839626627,
+      "tag": "0008_natural_the_hunter",
+      "breakpoints": true
     }
   ]
 }
