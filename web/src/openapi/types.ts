@@ -38,7 +38,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/stores/{storeId}/face-recognition/authenticate": {
+    "/api/v1/stores/{storeId}/customers/authenticate": {
         parameters: {
             query?: never;
             header?: never;
@@ -55,7 +55,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/stores/{storeId}/face-recognition/register": {
+    "/api/v1/stores/{storeId}/customers": {
         parameters: {
             query?: never;
             header?: never;

@@ -92,9 +92,10 @@ const inviteStaffToStore = createDefaultRoute({
 
 const authenticateFace = createDefaultRoute({
   method: "post",
-  path: "/{storeId}/face-recognition/authenticate",
+  path: "/{storeId}/customers/authenticate",
   tags: tags.face,
   validateResponse: true,
+  // TODO: Rename this operationId to authenticateCustomer
   operationId: "authenticateFace",
   description: "Authenticate a user using face recognition",
   request: {
@@ -141,8 +142,9 @@ const authenticateFace = createDefaultRoute({
 
 const registerFace = createDefaultRoute({
   method: "post",
-  path: "/{storeId}/face-recognition/register",
+  path: "/{storeId}/customers",
   tags: tags.face,
+  // TODO: Rename this operationId to registerCustomer
   operationId: "registerFace",
   description: "Register a user's face for authentication",
   request: {
