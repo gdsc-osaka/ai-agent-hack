@@ -2,23 +2,31 @@ import { z } from "@hono/zod-openapi";
 
 export const ApiErrorCode = z
   .enum([
-    "DATABASE_UNKNOWN_ERROR",
-    "DATABASE_NOT_FOUND",
-    "DATABASE_ALREADY_EXISTS",
-    "DATABASE_INCONSISTENT_TYPE",
-    "PERMISSION_DENIED",
-    "INVALID_REQUEST_BODY",
-    "STAFF_NOT_FOUND",
-    "STORE_NOT_FOUND",
-    "STAFF_INVITATION_NOT_FOUND",
-    "STORE_TO_STAFF_ALREADY_EXISTS",
-    "STAFF_INVITATION_EXPIRED",
-    "STAFF_INVITATION_NOT_PENDING",
-    "STAFF_INVITATION_WRONG_EMAIL",
-    "CUSTOMER_NOT_FOUND",
-    "CUSTOMER_NOT_BELONGS_TO_STORE",
-    "TOS_ALREADY_ACCEPTED",
-    "DOMAIN_VALIDATION_ERROR",
+    "internal/database_error",
+    "internal/firestore_error",
+    "store/not_found",
+    "store/already_exists",
+    "store/invalid_store_id",
+    "store/invalid",
+    "customer/already_exists",
+    "customer/not_found",
+    "customer/invalid",
+    "customer/not_belongs_to_store",
+    "customer/tos_already_accepted",
+    "customer/face_auth_error",
+    "face_embedding/error",
+    "staff/not_found",
+    "staff/invalid",
+    "staff/invalid_role",
+    "staff/already_exists_in_store",
+    "staff_invitation/not_found",
+    "staff_invitation/already_exists",
+    "staff_invitation/duplicate",
+    "staff_invitation/permission_error",
+    "staff_invitation/expired",
+    "staff_invitation/not_pending",
+    "staff_invitation/wrong_email",
+    "staff_invitation/invalid",
   ])
   .openapi("ApiErrorCode");
 export type ApiErrorCode = z.infer<typeof ApiErrorCode>;
@@ -30,7 +38,11 @@ export const ApiError = z
     details: z.array(z.unknown()).default([]),
   })
   .openapi("ApiError");
-export type ApiError = z.infer<typeof ApiError>;
+export interface ApiError<Code extends ApiErrorCode = ApiErrorCode> {
+  message: string;
+  code: Code;
+  details?: unknown[];
+}
 
 export enum StatusCode {
   BadRequest = 400,
@@ -44,16 +56,13 @@ export enum StatusCode {
   ServiceUnavailable = 503,
 }
 
-type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+// type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
-export const HTTPErrorCarrier = (
+export const HTTPErrorCarrier = <Code extends ApiErrorCode>(
   status: StatusCode,
-  error: PartialBy<ApiError, "details">
+  error: ApiError<Code>
 ) => ({
   status,
-  error: {
-    ...error,
-    details: error.details?.filter((detail) => detail !== undefined) ?? [],
-  },
+  error: error,
 });
 export type HTTPErrorCarrier = ReturnType<typeof HTTPErrorCarrier>;

@@ -24,177 +24,72 @@ import {
   DBStaffInvitationNotFoundError,
 } from "../infra/staff-invitation-repo.error";
 import { DBStoreToStaffAlreadyExistsError } from "../infra/store-to-staff-repo.error";
+import { convertErrorToApiError } from "./error/api-error-utils";
 
 export const inviteStaffToStoreController = (
   inviteStaffToStoreRes: ReturnType<InviteStaffToStore>
 ): ResultAsync<StaffInvitation, HTTPErrorCarrier> =>
   inviteStaffToStoreRes.mapErr((err) =>
-    match(err)
-      .with(
-        P.union(
-          DBStaffNotFoundError.is,
-          DBStoreNotFoundError.is,
-          DBStoreNotFoundError.is,
-          DBStaffInvitationAlreadyExistsError.is,
-          DuplicateStaffInvitationError.is
-        ),
-        (err) =>
-          HTTPErrorCarrier(StatusCode.BadRequest, {
-            message: err.message,
-            code: "DATABASE_NOT_FOUND",
-            details: [err.cause, err.extra],
-          })
-      )
-      .with(CreateStaffInvitationPermissionError.is, (err) =>
-        HTTPErrorCarrier(StatusCode.Forbidden, {
-          message: err.message,
-          code: "PERMISSION_DENIED",
-          details: [err.cause, err.extra],
-        })
-      )
-      .with(
-        P.union(InvalidStaffInvitationError.is, InvalidStaffRoleError.is),
-        (err) =>
-          HTTPErrorCarrier(StatusCode.InternalServerError, {
-            message: err.message,
-            code: "DATABASE_INCONSISTENT_TYPE",
-            details: [err.cause, err.extra],
-          })
-      )
-      .with(DBInternalError.is, (err) =>
-        HTTPErrorCarrier(StatusCode.InternalServerError, {
-          message: err.message,
-          code: "DATABASE_UNKNOWN_ERROR",
-          details: [err.cause, err.extra],
-        })
-      )
-      .exhaustive()
+    HTTPErrorCarrier(
+      match(err)
+        .with(DBStaffNotFoundError.is, () => StatusCode.NotFound)
+        .with(DBStoreNotFoundError.is, () => StatusCode.NotFound)
+        .with(DBStaffInvitationAlreadyExistsError.is, () => StatusCode.Conflict)
+        .with(DuplicateStaffInvitationError.is, () => StatusCode.Conflict)
+        .with(
+          CreateStaffInvitationPermissionError.is,
+          () => StatusCode.Forbidden
+        )
+        .with(
+          P.union(InvalidStaffInvitationError.is, InvalidStaffRoleError.is),
+          () => StatusCode.BadRequest
+        )
+        .with(DBInternalError.is, () => StatusCode.InternalServerError)
+        .exhaustive(),
+      convertErrorToApiError(err)
+    )
   );
 
 export const acceptStaffInvitationController = (
   res: ReturnType<AcceptStaffInvitation>
 ): ResultAsync<StaffInvitation, HTTPErrorCarrier> =>
   res.mapErr((err) =>
-    match(err)
-      .with(DBInternalError.is, (err) =>
-        HTTPErrorCarrier(StatusCode.InternalServerError, {
-          message: err.message,
-          code: "DATABASE_UNKNOWN_ERROR",
-          details: [err.cause, err.extra],
-        })
-      )
-      .with(DBStaffNotFoundError.is, (err) =>
-        HTTPErrorCarrier(StatusCode.NotFound, {
-          message: err.message,
-          code: "STAFF_NOT_FOUND",
-          details: [err.cause, err.extra],
-        })
-      )
-      .with(DBStoreNotFoundError.is, (err) =>
-        HTTPErrorCarrier(StatusCode.NotFound, {
-          message: err.message,
-          code: "STORE_NOT_FOUND",
-          details: [err.cause, err.extra],
-        })
-      )
-      .with(DBStaffInvitationNotFoundError.is, (err) =>
-        HTTPErrorCarrier(StatusCode.NotFound, {
-          message: err.message,
-          code: "STAFF_INVITATION_NOT_FOUND",
-          details: [err.cause, err.extra],
-        })
-      )
-      .with(DBStoreToStaffAlreadyExistsError.is, (err) =>
-        HTTPErrorCarrier(StatusCode.Conflict, {
-          message: err.message,
-          code: "STORE_TO_STAFF_ALREADY_EXISTS",
-          details: [err.cause, err.extra],
-        })
-      )
-      .with(StaffInvitationExpiredError.is, (err) =>
-        HTTPErrorCarrier(StatusCode.BadRequest, {
-          message: err.message,
-          code: "STAFF_INVITATION_EXPIRED",
-          details: [err.cause, err.extra],
-        })
-      )
-      .with(StaffInvitationNotPendingError.is, (err) =>
-        HTTPErrorCarrier(StatusCode.BadRequest, {
-          message: err.message,
-          code: "STAFF_INVITATION_NOT_PENDING",
-          details: [err.cause, err.extra],
-        })
-      )
-      .with(StaffInvitationWrongEmailError.is, (err) =>
-        HTTPErrorCarrier(StatusCode.BadRequest, {
-          message: err.message,
-          code: "STAFF_INVITATION_WRONG_EMAIL",
-          details: [err.cause, err.extra],
-        })
-      )
-      .with(InvalidStaffInvitationError.is, (err) =>
-        HTTPErrorCarrier(StatusCode.InternalServerError, {
-          message: err.message,
-          code: "DATABASE_INCONSISTENT_TYPE",
-          details: [err.cause, err.extra],
-        })
-      )
-      .exhaustive()
+    HTTPErrorCarrier(
+      match(err)
+        .with(DBInternalError.is, () => StatusCode.InternalServerError)
+        .with(DBStaffNotFoundError.is, () => StatusCode.NotFound)
+        .with(DBStoreNotFoundError.is, () => StatusCode.NotFound)
+        .with(DBStaffInvitationNotFoundError.is, () => StatusCode.NotFound)
+        .with(DBStoreToStaffAlreadyExistsError.is, () => StatusCode.Conflict)
+        .with(StaffInvitationExpiredError.is, () => StatusCode.BadRequest)
+        .with(StaffInvitationNotPendingError.is, () => StatusCode.BadRequest)
+        .with(StaffInvitationWrongEmailError.is, () => StatusCode.BadRequest)
+        .with(
+          InvalidStaffInvitationError.is,
+          () => StatusCode.InternalServerError
+        )
+        .exhaustive(),
+      convertErrorToApiError(err)
+    )
   );
 
 export const declineStaffInvitationController = (
   res: ReturnType<DeclineStaffInvitation>
 ): ResultAsync<StaffInvitation, HTTPErrorCarrier> =>
   res.mapErr((err) =>
-    match(err)
-      .with(DBInternalError.is, (err) =>
-        HTTPErrorCarrier(StatusCode.InternalServerError, {
-          message: err.message,
-          code: "DATABASE_UNKNOWN_ERROR",
-          details: [err.cause, err.extra],
-        })
-      )
-      .with(DBStaffInvitationNotFoundError.is, (err) =>
-        HTTPErrorCarrier(StatusCode.NotFound, {
-          message: err.message,
-          code: "STAFF_INVITATION_NOT_FOUND",
-          details: [err.cause, err.extra],
-        })
-      )
-      .with(DBStaffNotFoundError.is, (err) =>
-        HTTPErrorCarrier(StatusCode.NotFound, {
-          message: err.message,
-          code: "STAFF_NOT_FOUND",
-          details: [err.cause, err.extra],
-        })
-      )
-      .with(StaffInvitationExpiredError.is, (err) =>
-        HTTPErrorCarrier(StatusCode.BadRequest, {
-          message: err.message,
-          code: "STAFF_INVITATION_EXPIRED",
-          details: [err.cause, err.extra],
-        })
-      )
-      .with(StaffInvitationNotPendingError.is, (err) =>
-        HTTPErrorCarrier(StatusCode.BadRequest, {
-          message: err.message,
-          code: "STAFF_INVITATION_NOT_PENDING",
-          details: [err.cause, err.extra],
-        })
-      )
-      .with(StaffInvitationWrongEmailError.is, (err) =>
-        HTTPErrorCarrier(StatusCode.BadRequest, {
-          message: err.message,
-          code: "STAFF_INVITATION_WRONG_EMAIL",
-          details: [err.cause, err.extra],
-        })
-      )
-      .with(InvalidStaffInvitationError.is, (err) =>
-        HTTPErrorCarrier(StatusCode.InternalServerError, {
-          message: err.message,
-          code: "DATABASE_INCONSISTENT_TYPE",
-          details: [err.cause, err.extra],
-        })
-      )
-      .exhaustive()
+    HTTPErrorCarrier(
+      match(err)
+        .with(DBInternalError.is, () => StatusCode.InternalServerError)
+        .with(DBStaffNotFoundError.is, () => StatusCode.NotFound)
+        .with(DBStaffInvitationNotFoundError.is, () => StatusCode.NotFound)
+        .with(StaffInvitationExpiredError.is, () => StatusCode.BadRequest)
+        .with(StaffInvitationNotPendingError.is, () => StatusCode.BadRequest)
+        .with(StaffInvitationWrongEmailError.is, () => StatusCode.BadRequest)
+        .with(
+          InvalidStaffInvitationError.is,
+          () => StatusCode.InternalServerError
+        )
+        .exhaustive(),
+      convertErrorToApiError(err)
+    )
   );

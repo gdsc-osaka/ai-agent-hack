@@ -1,0 +1,81 @@
+import { DBInternalError } from "../../infra/shared/db-error";
+import {
+  DBStoreAlreadyExistsError,
+  DBStoreNotFoundError,
+} from "../../infra/store-repo.error";
+import { ApiError, ApiErrorCode } from "./api-error";
+import { BaseError, BaseTag } from "../../shared/error";
+import { FaceEmbeddingError } from "../../infra/face-embedding-repo.error";
+import { FirestoreInternalError } from "../../infra/shared/firestore-error";
+import {
+  CustomerAlreadyExistsError,
+  CustomerNotFoundError,
+} from "../../infra/customer-repo.error";
+import {
+  CustomerNotBelongsToStoreError,
+  CustomerTosAlreadyAcceptedError,
+  InvalidCustomerError,
+} from "../../domain/customer";
+import { FaceAuthError } from "../../infra/face-auth-repo.error";
+import { DBStaffNotFoundError } from "../../infra/staff-repo.error";
+import {
+  DBStaffInvitationAlreadyExistsError,
+  DBStaffInvitationNotFoundError,
+} from "../../infra/staff-invitation-repo.error";
+import {
+  CreateStaffInvitationPermissionError,
+  DuplicateStaffInvitationError,
+  InvalidStaffInvitationError,
+  StaffInvitationExpiredError,
+  StaffInvitationNotPendingError,
+  StaffInvitationWrongEmailError,
+} from "../../domain/staff-invitation";
+import { InvalidStaffRoleError } from "../../domain/store-staff";
+import { DBStoreToStaffAlreadyExistsError } from "../../infra/store-to-staff-repo.error";
+import { CreateNewStoreError, InvalidStoreError } from "../../domain/store";
+import { InvalidStaffError } from "../../domain/staff";
+
+export const errorCodeMap = {
+  [DBInternalError._tag]: "internal/database_error",
+  [FirestoreInternalError._tag]: "internal/firestore_error",
+  // store
+  [DBStoreNotFoundError._tag]: "store/not_found",
+  [DBStoreAlreadyExistsError._tag]: "store/already_exists",
+  [CreateNewStoreError._tag]: "store/invalid_store_id",
+  [InvalidStoreError._tag]: "store/invalid",
+  // customer
+  [CustomerAlreadyExistsError._tag]: "customer/already_exists",
+  [CustomerNotFoundError._tag]: "customer/not_found",
+  [InvalidCustomerError._tag]: "customer/invalid",
+  [CustomerNotBelongsToStoreError._tag]: "customer/not_belongs_to_store",
+  [CustomerTosAlreadyAcceptedError._tag]: "customer/tos_already_accepted",
+  [FaceAuthError._tag]: "customer/face_auth_error",
+  [FaceEmbeddingError._tag]: "face_embedding/error",
+  // staff
+  [DBStaffNotFoundError._tag]: "staff/not_found",
+  [InvalidStaffError._tag]: "staff/invalid",
+  [InvalidStaffRoleError._tag]: "staff/invalid_role",
+  [DBStoreToStaffAlreadyExistsError._tag]: "staff/already_exists_in_store",
+  // staff invitation
+  [DBStaffInvitationNotFoundError._tag]: "staff_invitation/not_found",
+  [DBStaffInvitationAlreadyExistsError._tag]: "staff_invitation/already_exists",
+  [DuplicateStaffInvitationError._tag]: "staff_invitation/duplicate",
+  [CreateStaffInvitationPermissionError._tag]:
+    "staff_invitation/permission_error",
+  [StaffInvitationExpiredError._tag]: "staff_invitation/expired",
+  [StaffInvitationNotPendingError._tag]: "staff_invitation/not_pending",
+  [StaffInvitationWrongEmailError._tag]: "staff_invitation/wrong_email",
+  [InvalidStaffInvitationError._tag]: "staff_invitation/invalid",
+} satisfies Record<BaseTag, ApiErrorCode>;
+type ErrorCodeMap = typeof errorCodeMap;
+
+export const convertErrorToApiError = <Tag extends keyof ErrorCodeMap>(
+  // FIXME: any を使わないと FieldError が通らない.
+  //  BaseError<Tag, any> ではなく全エラーの Union を使う?
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  error: BaseError<Tag, any>
+): ApiError<ErrorCodeMap[Tag]> => ({
+  message: error.message,
+  code: errorCodeMap[error._tag],
+  details: error.extra ? [error.extra] : [],
+});
