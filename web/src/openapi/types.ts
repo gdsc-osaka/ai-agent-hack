@@ -171,7 +171,7 @@ export interface components {
             updatedAt: components["schemas"]["Timestamp"];
         };
         /** @enum {string} */
-        ApiErrorCode: "DATABASE_UNKNOWN_ERROR" | "DATABASE_NOT_FOUND" | "DATABASE_ALREADY_EXISTS" | "DATABASE_INCONSISTENT_TYPE" | "PERMISSION_DENIED" | "INVALID_REQUEST_BODY" | "STAFF_NOT_FOUND" | "STORE_NOT_FOUND" | "STAFF_INVITATION_NOT_FOUND" | "STORE_TO_STAFF_ALREADY_EXISTS" | "STAFF_INVITATION_EXPIRED" | "STAFF_INVITATION_NOT_PENDING" | "STAFF_INVITATION_WRONG_EMAIL" | "CUSTOMER_NOT_FOUND" | "CUSTOMER_NOT_BELONGS_TO_STORE" | "TOS_ALREADY_ACCEPTED" | "DOMAIN_VALIDATION_ERROR";
+        ApiErrorCode: "internal/database_error" | "internal/firestore_error" | "store/not_found" | "store/already_exists" | "store/invalid_store_id" | "store/invalid" | "customer/already_exists" | "customer/not_found" | "customer/invalid" | "customer/not_belongs_to_store" | "customer/tos_already_accepted" | "customer/face_auth_error" | "face_embedding/error" | "staff/not_found" | "staff/invalid" | "staff/invalid_role" | "staff/already_exists_in_store" | "staff_invitation/not_found" | "staff_invitation/already_exists" | "staff_invitation/duplicate" | "staff_invitation/permission_error" | "staff_invitation/expired" | "staff_invitation/not_pending" | "staff_invitation/wrong_email" | "staff_invitation/invalid";
         ApiError: {
             message: string;
             code: components["schemas"]["ApiErrorCode"];
