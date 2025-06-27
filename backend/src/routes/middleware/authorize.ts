@@ -42,7 +42,6 @@ const authorize = createMiddleware<{
   }
 
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
-  console.log("session", session, getCookie(c, "__session"));
 
   if (!session) {
     c.set("user", null);
