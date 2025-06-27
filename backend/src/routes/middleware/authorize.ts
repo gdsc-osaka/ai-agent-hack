@@ -9,7 +9,6 @@ import { DBStoreApiKey } from "../../domain/store-api-key";
 import { Result } from "neverthrow";
 import { fetchDBStoreById } from "../../infra/store-repo";
 import { DBStore } from "../../domain/store";
-import { getCookie } from "hono/cookie";
 import { apiKeyHeaderKey } from "../../shared/const";
 import { toHTTPException } from "../shared/exception";
 import { HTTPErrorCarrier, StatusCode } from "../../controller/error/api-error";
