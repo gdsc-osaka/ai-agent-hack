@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { TermsOfServiceDialog } from '@/components/terms-of-service-dialog';
 import { useCamera } from '@/lib/face-detect';
@@ -12,14 +12,16 @@ import { apiKeyAtom } from '@/app/atoms';
 import { useQuery } from '@/api-client';
 import api from '@/api';
 import Spinner from '@/components/ui/spinner';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
   // const [faceRecognition, setFaceRecognition] = useAtom(faceRecognitionAtom);
   const [showTermsDialog, setShowTermsDialog] = useState(false);
   const [showCamera, setShowCamera] = useState(true);
   const apiKey = useAtomValue(apiKeyAtom);
-  const { data, isLoading, error } = useQuery(api(apiKey))("/api/v1/stores/me");
 
+  const { data, isLoading, error } = useQuery(api(apiKey))("/api/v1/stores/me");
+  const router = useRouter();
   const videoRef = useCamera();
 
   function handleToggleCamera() {
@@ -41,6 +43,12 @@ export default function Home() {
   function handleDeclineTerms() {
     setShowTermsDialog(false);
   }
+
+  useEffect(() => {
+    if (!apiKey) {
+      router.push('/setup');
+    }
+  }, []);
 
   if (isLoading) {
     return (
