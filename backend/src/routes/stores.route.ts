@@ -6,6 +6,7 @@ import { Customer, CustomerId } from "../domain/customer";
 import tags from "./shared/tags";
 import { StaffRole } from "../domain/store-staff";
 import { StaffInvitation } from "../domain/staff-invitation";
+import { StoreApiKey } from "../domain/store-api-key";
 
 const createStore = createDefaultRoute({
   method: "post",
@@ -234,6 +235,72 @@ const getCustomersByStore = createDefaultRoute({
   },
 });
 
+const getStoreById = createDefaultRoute({
+  method: "get",
+  path: "/{storeId}",
+  tags: tags.stores,
+  operationId: "getStoreById",
+  description: "Get store by ID",
+  request: {
+    params: z.object({
+      storeId: StoreId.describe("ID of the store to invite staff to"),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Successful response",
+      content: {
+        "application/json": {
+          schema: Store.describe("Store details by ID"),
+        },
+      },
+    },
+  },
+});
+
+const getStoreByMe = createDefaultRoute({
+  method: "get",
+  path: "/me",
+  tags: tags.stores,
+  operationId: "getStoreByMe",
+  description: "Get store by X-Api-Key",
+  request: {
+  },
+  responses: {
+    200: {
+      description: "Successful response",
+      content: {
+        "application/json": {
+          schema: Store.describe("Store details by X-Api-Key"),
+        },
+      },
+    },
+  },
+});
+
+const createStoreApiKey = createDefaultRoute({
+  method: "post",
+  path: "/{storeId}/api-keys",
+  tags: tags.stores,
+  operationId: "createStoreApiKey",
+  description: "Create an API key for the store",
+  request: {
+    params: z.object({
+      storeId: StoreId.describe("ID of the store to invite staff to"),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Successful response",
+      content: {
+        "application/json": {
+          schema: StoreApiKey.describe("API key for the store"),
+        },
+      },
+    },
+  },
+});
+
 export default {
   createStore,
   inviteStaffToStore,
@@ -241,4 +308,7 @@ export default {
   registerCustomer,
   checkoutCustomer,
   getCustomersByStore,
+  createStoreApiKey,
+  getStoreById,
+  getStoreByMe,
 };

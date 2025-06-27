@@ -1,7 +1,14 @@
-import { getAuthUser } from "./middleware/authorize";
+import {
+  getAuthUser, getStoreClient,
+  safeGetAuthUser,
+  safeGetStoreClient,
+} from './middleware/authorize';
 import { toHTTPException } from "./shared/exception";
-import { createStoreController } from "../controller/store-controller";
-import { createStore } from "../service/store-service";
+import {
+  createStoreController, fetchStoreByStoreClientController,
+  fetchStoreController,
+} from '../controller/store-controller';
+import { createStore, fetchStore, fetchStoreByStoreClient } from '../service/store-service';
 import {
   fetchDBStoreById,
   fetchDBStoreByPublicId,
@@ -9,7 +16,7 @@ import {
 } from "../infra/store-repo";
 import {
   fetchDBStaffByUserId,
-  fetchDBStaffForStoreRoleById,
+  fetchDBStaffForStoreById,
 } from "../infra/staff-repo";
 import { insertDBStoreToStaff } from "../infra/store-to-staff-repo";
 import { runTransaction } from "../infra/transaction";
@@ -48,8 +55,44 @@ import {
   insertDBVisit,
   updateDBVisit,
 } from "../infra/visit-repo";
+import { HTTPErrorCarrier, StatusCode } from "../controller/error/api-error";
+import { createStoreApiKeyController } from "../controller/store-api-key-controller";
+import { createStoreApiKey } from "../service/store-api-key-service";
+import { insertDBStoreApiKey } from "../infra/store-api-key-repo";
 
 const app = new OpenAPIHono();
+
+app.use("/:storeId/*", (c, next) => {
+  const storeId = c.req.param("storeId");
+  const client = safeGetStoreClient(c);
+  const authUser = safeGetAuthUser(c);
+
+  // /stores/:storeId には API キー or セッションが必要
+  if (client.isErr() && authUser.isErr()) {
+    throw client.error;
+  }
+
+  if (
+    client.isOk() &&
+    authUser.isErr() &&
+    storeId !== client.value.store.publicId
+  ) {
+    throw toHTTPException(
+      HTTPErrorCarrier(StatusCode.Forbidden, {
+        message: "Permission denied: API key does not match store ID",
+        code: "store/wrong_store_id",
+        details: [
+          {
+            param: { storeId },
+            apiKey: { storeId: client.value.store.publicId },
+          },
+        ],
+      })
+    );
+  }
+
+  return next();
+});
 
 app.openapi(storesRoute.createStore, async (c) => {
   const { id } = c.req.valid("json");
@@ -72,7 +115,7 @@ app.openapi(storesRoute.inviteStaffToStore, async (c) => {
   const res = await inviteStaffToStoreController(
     inviteStaffToStore(
       runTransaction,
-      fetchDBStaffForStoreRoleById,
+      fetchDBStaffForStoreById,
       fetchDBStoreByPublicId,
       fetchDBStaffInvitationByEmailAndPending,
       insertDBStaffInvitation
@@ -154,6 +197,50 @@ app.openapi(storesRoute.getCustomersByStore, async (c) => {
   if (res.isErr()) {
     throw toHTTPException(res.error);
   }
+  return c.json(res.value, 200);
+});
+
+app.openapi(storesRoute.getStoreByMe, async (c) => {
+  const res = await fetchStoreByStoreClientController(
+    fetchStoreByStoreClient()(getStoreClient(c))
+  );
+
+  if (res.isErr()) {
+    throw toHTTPException(res.error);
+  }
+
+  return c.json(res.value, 200);
+});
+
+app.openapi(storesRoute.getStoreById, async (c) => {
+  const { storeId } = c.req.valid("param");
+
+  const res = await fetchStoreController(
+    fetchStore(fetchDBStoreByPublicId)(storeId)
+  );
+
+  if (res.isErr()) {
+    throw toHTTPException(res.error);
+  }
+
+  return c.json(res.value, 200);
+});
+
+app.openapi(storesRoute.createStoreApiKey, async (c) => {
+  const { storeId } = c.req.valid("param");
+
+  const res = await createStoreApiKeyController(
+    createStoreApiKey(
+      fetchDBStaffForStoreById,
+      fetchDBStoreByPublicId,
+      insertDBStoreApiKey
+    )(getAuthUser(c), storeId)
+  );
+
+  if (res.isErr()) {
+    throw toHTTPException(res.error);
+  }
+
   return c.json(res.value, 200);
 });
 

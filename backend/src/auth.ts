@@ -3,7 +3,7 @@ import { APIError } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { authDB } from "./db/db";
 import { authSchema } from "./db/schema";
-import { nextCookies } from "better-auth/next-js";
+// import { nextCookies } from "better-auth/next-js";
 import env from "./env";
 import { createStaff } from "./service/staff-service";
 import { insertDBStaff } from "./infra/staff-repo";
@@ -44,7 +44,7 @@ export const auth = betterAuth({
     enabled: true,
   },
   plugins: [
-    nextCookies(),
+    // nextCookies(),
     // /api/v1/auth/reference で OpenAPI Spec を取得する
     // openAPI(),
   ],

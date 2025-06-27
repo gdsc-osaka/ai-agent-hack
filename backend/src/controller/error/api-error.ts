@@ -8,6 +8,7 @@ export const ApiErrorCode = z
     "store/already_exists",
     "store/invalid_store_id",
     "store/invalid",
+    "store/wrong_store_id",
     "customer/already_exists",
     "customer/not_found",
     "customer/invalid",
@@ -19,6 +20,7 @@ export const ApiErrorCode = z
     "staff/invalid",
     "staff/invalid_role",
     "staff/already_exists_in_store",
+    "staff/is_not_admin",
     "staff_invitation/not_found",
     "staff_invitation/already_exists",
     "staff_invitation/duplicate",
@@ -28,6 +30,7 @@ export const ApiErrorCode = z
     "staff_invitation/wrong_email",
     "staff_invitation/invalid",
     "visit/not_found",
+    "store_api_key/already_exists",
   ])
   .openapi("ApiErrorCode");
 export type ApiErrorCode = z.infer<typeof ApiErrorCode>;

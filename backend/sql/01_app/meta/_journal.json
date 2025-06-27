@@ -64,6 +64,13 @@
       "when": 1750839626627,
       "tag": "0008_natural_the_hunter",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1750926341169,
+      "tag": "0009_bouncy_nextwave",
+      "breakpoints": true
     }
   ]
 }
