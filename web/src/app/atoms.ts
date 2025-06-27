@@ -1,6 +1,5 @@
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
-import api from "@/api";
 
 export type FaceRecognitionState = "no-face" | "face-detected";
 
