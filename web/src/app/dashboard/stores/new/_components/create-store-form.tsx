@@ -8,7 +8,7 @@ import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
 import api from '@/api';
 
 const createStoreFormSchema = z.object({
@@ -56,7 +56,6 @@ export default function() {
 
   return (
     <>
-      <Toaster richColors position="top-right" />
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
