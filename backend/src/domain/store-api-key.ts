@@ -4,7 +4,6 @@ import { z } from "@hono/zod-openapi";
 import { DBStore } from "./store";
 import { ok, Result } from "neverthrow";
 import { randomBytes } from "crypto";
-import { errorBuilder, InferError } from "../shared/error";
 
 export type DBStoreApiKey = typeof storeApiKeys.$inferSelect;
 export type DBStoreApiKeyForCreate = typeof storeApiKeys.$inferInsert;

@@ -10,6 +10,9 @@ import { Result } from "neverthrow";
 import { fetchDBStoreById } from "../../infra/store-repo";
 import { DBStore } from "../../domain/store";
 import { getCookie } from "hono/cookie";
+import { apiKeyHeaderKey } from "../../shared/const";
+import { toHTTPException } from "../shared/exception";
+import { HTTPErrorCarrier, StatusCode } from "../../controller/error/api-error";
 
 export interface StoreClient {
   apiKey: DBStoreApiKey;
@@ -23,7 +26,7 @@ const authorize = createMiddleware<{
     client: StoreClient | null;
   };
 }>(async (c, next) => {
-  const apiKeyHeader = c.req.header("X-Api-Key");
+  const apiKeyHeader = c.req.header(apiKeyHeaderKey);
   if (apiKeyHeader !== undefined) {
     const apiKey = await fetchDBStoreApiKeyByApiKey(db)(apiKeyHeader);
     if (apiKey.isOk()) {
@@ -55,7 +58,13 @@ const authorize = createMiddleware<{
 export const getAuthUser = (c: Context): AuthUser => {
   const authUser = c.get("user") as SessionUser | null;
   if (!authUser) {
-    throw new HTTPException(401, { message: "Unauthorized" });
+    throw toHTTPException(
+      HTTPErrorCarrier(StatusCode.Unauthorized, {
+        message: "Session not found or invalid",
+        code: "authorization/invalid_session",
+        details: [],
+      })
+    );
   }
   return convertToAuthUser(authUser);
 };
@@ -70,11 +79,17 @@ export const safeGetAuthUser = (
 };
 
 export const getStoreClient = (c: Context): StoreClient => {
-  const client = c.get("client");
+  const client = c.get("client") as StoreClient | null;
   if (!client) {
-    throw new HTTPException(401, { message: "Unauthorized" });
+    throw toHTTPException(
+      HTTPErrorCarrier(StatusCode.Unauthorized, {
+        message: "X-Api-Key not found or invalid",
+        code: "authorization/invalid_api_key",
+        details: [],
+      })
+    );
   }
-  return client as StoreClient;
+  return client;
 };
 
 export const safeGetStoreClient = (

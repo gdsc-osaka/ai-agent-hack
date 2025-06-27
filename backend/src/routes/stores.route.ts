@@ -264,8 +264,7 @@ const getStoreByMe = createDefaultRoute({
   tags: tags.stores,
   operationId: "getStoreByMe",
   description: "Get store by X-Api-Key",
-  request: {
-  },
+  request: {},
   responses: {
     200: {
       description: "Successful response",

@@ -4,6 +4,8 @@ export const ApiErrorCode = z
   .enum([
     "internal/database_error",
     "internal/firestore_error",
+    "authorization/invalid_session",
+    "authorization/invalid_api_key",
     "store/not_found",
     "store/already_exists",
     "store/invalid_store_id",

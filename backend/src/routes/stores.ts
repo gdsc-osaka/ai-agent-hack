@@ -1,14 +1,20 @@
 import {
-  getAuthUser, getStoreClient,
+  getAuthUser,
+  getStoreClient,
   safeGetAuthUser,
   safeGetStoreClient,
-} from './middleware/authorize';
+} from "./middleware/authorize";
 import { toHTTPException } from "./shared/exception";
 import {
-  createStoreController, fetchStoreByStoreClientController,
+  createStoreController,
+  fetchStoreByStoreClientController,
   fetchStoreController,
-} from '../controller/store-controller';
-import { createStore, fetchStore, fetchStoreByStoreClient } from '../service/store-service';
+} from "../controller/store-controller";
+import {
+  createStore,
+  fetchStore,
+  fetchStoreByStoreClient,
+} from "../service/store-service";
 import {
   fetchDBStoreById,
   fetchDBStoreByPublicId,

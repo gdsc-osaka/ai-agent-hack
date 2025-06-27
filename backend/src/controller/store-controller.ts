@@ -1,14 +1,22 @@
-import { CreateStore, FetchStore, FetchStoreByStoreClient, FetchStoresForStaff } from '../service/store-service';
-import { ResultAsync } from 'neverthrow';
-import { HTTPErrorCarrier, StatusCode } from './error/api-error';
-import { CreateNewStoreError, InvalidStoreError, Store } from '../domain/store';
-import { match } from 'ts-pattern';
-import { DBInternalError } from '../infra/shared/db-error';
-import { convertErrorToApiError } from './error/api-error-utils';
-import { DBStoreAlreadyExistsError, DBStoreNotFoundError } from '../infra/store-repo.error';
-import { DBStoreToStaffAlreadyExistsError } from '../infra/store-to-staff-repo.error';
-import { InvalidStaffError } from '../domain/staff';
-import { DBStaffNotFoundError } from '../infra/staff-repo.error';
+import {
+  CreateStore,
+  FetchStore,
+  FetchStoreByStoreClient,
+  FetchStoresForStaff,
+} from "../service/store-service";
+import { ResultAsync } from "neverthrow";
+import { HTTPErrorCarrier, StatusCode } from "./error/api-error";
+import { CreateNewStoreError, InvalidStoreError, Store } from "../domain/store";
+import { match } from "ts-pattern";
+import { DBInternalError } from "../infra/shared/db-error";
+import { convertErrorToApiError } from "./error/api-error-utils";
+import {
+  DBStoreAlreadyExistsError,
+  DBStoreNotFoundError,
+} from "../infra/store-repo.error";
+import { DBStoreToStaffAlreadyExistsError } from "../infra/store-to-staff-repo.error";
+import { InvalidStaffError } from "../domain/staff";
+import { DBStaffNotFoundError } from "../infra/staff-repo.error";
 
 export const createStoreController = (
   createStoreRes: ReturnType<CreateStore>

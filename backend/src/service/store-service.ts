@@ -26,8 +26,8 @@ import { assignAdminStaffToStore } from "../domain/store-staff";
 import { InsertDBStoreToStaff } from "../infra/store-to-staff-repo";
 import { DBStaffNotFoundError } from "../infra/staff-repo.error";
 import { DBStoreToStaffAlreadyExistsError } from "../infra/store-to-staff-repo.error";
-import { StoreClient } from '../routes/middleware/authorize';
-import { asyncify } from '../shared/func';
+import { StoreClient } from "../routes/middleware/authorize";
+import { asyncify } from "../shared/func";
 
 export type CreateStore = (
   authUser: AuthUser,
@@ -79,15 +79,11 @@ export const fetchStore =
 
 export type FetchStoreByStoreClient = (
   storeClient: StoreClient
-) => ResultAsync<
-  Store,
-  InvalidStoreError
->;
+) => ResultAsync<Store, InvalidStoreError>;
 
 export const fetchStoreByStoreClient =
-  (): FetchStoreByStoreClient =>
-  (storeClient: StoreClient) =>
-    asyncify(validateStore(storeClient.store))
+  (): FetchStoreByStoreClient => (storeClient: StoreClient) =>
+    asyncify(validateStore(storeClient.store));
 
 export type FetchStoresForStaff = (
   authUser: AuthUser
