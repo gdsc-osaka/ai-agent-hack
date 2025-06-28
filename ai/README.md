@@ -6,20 +6,26 @@ apt install cmake
 brew install cmake
 ```
 
-1. 仮想環境を作成
+2. 仮想環境を作成
 ```
 cd ai
 uv venv
+source .venv/bin/activate
 ```
 
-1. パッケージをインストール
+3. パッケージをインストール
 ```
 uv pip install '.[cpu]' # for CPU
 uv pip install '.[gpu]' # for GPU
 ```
 
-1. パッケージをsyncする
+4. パッケージをsyncする
 ```
 uv sync --extra cpu # for CPU
 uv sync --extra gpu # for GPU
+```
+
+5. 実行
+```
+uv run src/main.py
 ```
