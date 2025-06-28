@@ -33,6 +33,9 @@
     "ui": {
       "enabled": true
     },
+    "tasks": {
+      "port": 9899
+    },
     "singleProjectMode": true
   },
   "functions": [
