@@ -1,6 +1,13 @@
 import * as admin from "firebase-admin";
 import { app, firestore } from "firebase-admin";
 
+import DocumentReference = firestore.DocumentReference;
+import DocumentSnapshot = firestore.DocumentSnapshot;
+import WithFieldValue = firestore.WithFieldValue;
+import PartialWithFieldValue = firestore.PartialWithFieldValue;
+import UpdateData = firestore.UpdateData;
+import CollectionReference = firestore.CollectionReference;
+
 export default function (FIRE_SA: string): app.App {
   if (admin.apps.length > 0 && admin.apps[0]) {
     return admin.apps[0];
@@ -17,12 +24,6 @@ export type Firestore = firestore.Firestore;
 export type FirestoreTransaction = firestore.Transaction;
 type DocumentData = firestore.DocumentData;
 type SetOptions = firestore.SetOptions;
-import DocumentReference = firestore.DocumentReference;
-import DocumentSnapshot = firestore.DocumentSnapshot;
-import WithFieldValue = firestore.WithFieldValue;
-import PartialWithFieldValue = firestore.PartialWithFieldValue;
-import UpdateData = firestore.UpdateData;
-import CollectionReference = firestore.CollectionReference;
 
 export interface FirestoreOrTx {
   doc(path: string): DocumentReference;
@@ -121,5 +122,3 @@ export const firestoreTransaction = (
     },
   };
 };
-
-export type FirebaseApp = app.App;
