@@ -6,7 +6,9 @@ export const authClient = createAuthClient({
   // Preview 環境では API サーバーと同じオリジンで動作するため、window.location.origin を使用
   baseURL:
     process.env.NEXT_PUBLIC_API_URL ??
-    (typeof window !== "undefined" ? window.location.origin : undefined),
+    (typeof window !== "undefined"
+      ? window.location.origin
+      : "http://localhost:8080"),
   basePath: "/api/v1/auth",
   // plugins: [nextCookies()],
   // fetchOptions: {
