@@ -10,10 +10,12 @@ import FaceCameraSkeleton from '@/app/_components/FaceCameraSkeleton';
 import { useAtomValue } from 'jotai/react';
 import { apiKeyAtom } from '@/app/atoms';
 import { useQuery } from '@/api-client';
-import api from '@/api';
+import api, { bodySerializers } from '@/api';
 import Spinner from '@/components/ui/spinner';
 import { useRouter } from 'next/navigation';
 import { useConfirmDialog } from '@/lib/ui-hooks';
+import { useRecording } from '@/lib/recording-hooks';
+import { toast } from 'sonner';
 
 export default function Home() {
   // const [faceRecognition, setFaceRecognition] = useAtom(faceRecognitionAtom);
@@ -26,16 +28,39 @@ export default function Home() {
   const tosDialog = useConfirmDialog();
   const { authState, ...faceAuth } = useFaceAuthentication({
     storeId: store?.id,
-    openTosDialog: tosDialog.openAsync
-  })
+    openTosDialog: tosDialog.openAsync,
+  });
   const faceDetection = useFaceDetection({
     videoRef,
-    onFaceDetected: faceAuth.authenticateCustomer,
+    onFaceDetected: handleAuthenticateFace,
   });
+  const { startRecording, stopRecording, getAudio } = useRecording();
 
-  const handleRevokeFaceAuth = () => {
+  async function handleAuthenticateFace(image: Blob) {
+    await faceAuth.authenticateCustomer(image);
+    await startRecording();
+  }
+
+  async function handleRevokeFaceAuth() {
     faceDetection.reset();
     faceAuth.reset();
+    await stopRecording();
+
+    const { data, error } = await api().POST('/api/v1/profiles/generate-profile', {
+      body: {
+        file: await getAudio(),
+      },
+      bodySerializer: bodySerializers.form,
+    });
+
+    if (error) {
+      console.error('Error generating profile:', error);
+      toast.error(`プロフィールの生成に失敗しました: ${error.message}`);
+    }
+
+    if (data) {
+      toast.success(`プロフィールの生成を開始しました: ${data.profile}`);
+    }
   }
 
   function handleToggleCamera() {
@@ -103,27 +128,5 @@ export default function Home() {
         onDecline={tosDialog.handleCancel}
       />
     </main>
-    // TODO: 録音と顔認証機能を元に戻す
-    // <>
-    //   <div className={'m-auto'}>
-    //     <div>
-    //       Current Face Detection State: {faceRecognition}
-    //       <Button
-    //         onClick={() =>
-    //           setFaceRecognition(
-    //             faceRecognition === 'no-face' ? 'face-detected' : 'no-face'
-    //           )
-    //         }
-    //       >
-    //         {faceRecognition === 'no-face' ? 'Detect Face' : 'Reset Detection'}
-    //       </Button>
-    //       <FaceDetector />
-    //       <div className="mt-4">
-    //       </div>
-    //     </div>
-    //
-    //     <AudioRecorder faceRecognition={faceRecognition} />
-    //   </div>
-    // </>
   );
 }
