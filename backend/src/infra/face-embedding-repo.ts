@@ -1,4 +1,3 @@
-
 import { ok, ResultAsync } from "neverthrow";
 import { GoogleAuth } from "google-auth-library";
 import { FaceEmbeddingError } from "./face-embedding-repo.error";
@@ -17,8 +16,8 @@ export const getFaceEmbedding: GetFaceEmbedding = (image: File) =>
   ResultAsync.fromPromise(
     (async () => {
       // 開発環境でMLサーバーが利用できない場合のモック実装
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Using mock face embedding for development');
+      if (process.env.NODE_ENV === "development") {
+        console.log("Using mock face embedding for development");
         // ダミーの128次元ベクトルを返す
         return Array.from({ length: 128 }, () => Math.random() - 0.5);
       }
@@ -45,12 +44,19 @@ export const getFaceEmbedding: GetFaceEmbedding = (image: File) =>
         });
       });
 
-      if (!res.ok) {
+      // Response型とGaxiosResponse型を適切に処理
+      if ("ok" in res && !res.ok) {
         throw new Error(`ML server error: ${res.status} ${res.statusText}`);
       }
 
-      const result = (await res.json()) as EmbeddingResponse;
+      if ("status" in res && res.status >= 400) {
+        throw new Error(`ML server error: ${res.status}`);
+      }
+
+      const result = (
+        "json" in res ? await res.json() : res.data
+      ) as EmbeddingResponse;
       return result.embedding[0];
     })(),
-    FaceEmbeddingError.handle
+    (error: unknown) => FaceEmbeddingError.handle(error)
   ).andThen((embedding) => ok(embedding));
