@@ -18,12 +18,7 @@ app.openapi(profilesRoute.generateProfile, async (c) => {
     throw toHTTPException(res.error);
   }
 
-  return c.json(
-    {
-      profile: res.value,
-    },
-    200
-  );
+  return c.json(res.value, 200);
 });
 
 export default app;

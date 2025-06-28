@@ -1,8 +1,6 @@
 import { z } from "zod";
-import { Profile } from "../domain/profile";
 import { createDefaultRoute } from "./shared/default-route";
 import tags from "./shared/tags";
-import { ApiError } from "../controller/error/api-error";
 
 const generateProfile = createDefaultRoute({
   method: "post",
@@ -31,24 +29,11 @@ const generateProfile = createDefaultRoute({
       content: {
         "application/json": {
           schema: z.object({
-            profile: z.array(Profile),
+            message: z.string().describe("Success message"),
+            taskId: z
+              .string()
+              .describe("Task ID for tracking the profile generation"),
           }),
-        },
-      },
-    },
-    400: {
-      description: "Bad Request - Invalid input or missing file",
-      content: {
-        "application/json": {
-          schema: ApiError,
-        },
-      },
-    },
-    500: {
-      description: "Internal Server Error",
-      content: {
-        "application/json": {
-          schema: ApiError,
         },
       },
     },

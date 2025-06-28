@@ -35,6 +35,7 @@ export const ApiErrorCode = z
     "store_api_key/already_exists",
     "profile/invalid",
     "cloud_function/error",
+    "cloud_function/upload_audio_error",
   ])
   .openapi("ApiErrorCode");
 export type ApiErrorCode = z.infer<typeof ApiErrorCode>;
