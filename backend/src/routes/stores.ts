@@ -15,11 +15,7 @@ import {
   fetchStore,
   fetchStoreByStoreClient,
 } from "../service/store-service";
-import {
-  fetchDBStoreById,
-  fetchDBStoreByPublicId,
-  insertDBStore,
-} from "../infra/store-repo";
+import { fetchDBStoreByPublicId, insertDBStore } from "../infra/store-repo";
 import {
   fetchDBStaffByUserId,
   fetchDBStaffForStoreById,
@@ -140,7 +136,7 @@ app.openapi(storesRoute.authenticateCustomer, async (c) => {
   const res = await authenticateCustomerController(
     authenticateCustomer(
       runTransaction,
-      fetchDBStoreById,
+      fetchDBStoreByPublicId,
       getFaceEmbedding,
       findCustomerIdByFaceEmbedding,
       findDBCustomerById,
@@ -161,7 +157,7 @@ app.openapi(storesRoute.registerCustomer, async (c) => {
   const res = await registerCustomerController(
     registerCustomer(
       runTransaction,
-      fetchDBStoreById,
+      fetchDBStoreByPublicId,
       getFaceEmbedding,
       insertFaceEmbedding,
       insertDBCustomer,
