@@ -42,8 +42,8 @@ interface FaceDetectionState {
 export const useFaceDetection = ({
   videoRef,
   intervalMillis = 1000,
-  faceDetectionIntervalMillis = 5000,
-  faceTimeoutMillis = 60000,
+  faceDetectionIntervalMillis = 20000,
+  faceTimeoutMillis = 5000,
   onFaceDetected,
 }: {
   videoRef: React.RefObject<HTMLVideoElement | null>;
