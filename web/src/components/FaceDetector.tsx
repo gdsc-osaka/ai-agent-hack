@@ -4,6 +4,7 @@ import { useAtom } from 'jotai';
 import { useEffect, useRef, useState } from 'react';
 import { faceRecognitionAtom } from '@/app/atoms';
 import * as faceapi from 'face-api.js';
+import api from '@/api';
 
 // [本物] face-api.jsを使って、実際に顔が映っているか判定する関数
 async function detectFace(videoElement: HTMLVideoElement): Promise<boolean> {
@@ -23,35 +24,31 @@ async function detectFace(videoElement: HTMLVideoElement): Promise<boolean> {
 
 // [本物] バックエンドAPIを呼び出す関数 (storeIdを引数に追加)
 async function authenticateFace(imageData: FormData, storeId: string): Promise<boolean> {
-  // 正しいAPIエンドポイント
-  const API_ENDPOINT = `/api/v1/vector/face-auth`; 
-
   try {
-    console.log('（API呼び出し）顔認証を実行中...', API_ENDPOINT);
-    
     const imageBlob = imageData.get('faceImage');
     if (!imageBlob) {
         console.error("キャプチャした画像データがありません。");
         return false;
     }
     
-    const formDataForApi = new FormData();
-    formDataForApi.append('image', imageBlob);
-
-    const response = await fetch(API_ENDPOINT, {
-      method: 'POST',
-      body: formDataForApi,
+    const { data, error } = await api().POST('/api/v1/stores/{storeId}/customers/authenticate', {
+      params: {
+        path: {
+          storeId,
+        }
+      },
+      body: {
+        image: imageBlob
+      }
     });
     
-    if (response.ok) {
-      const customerData = await response.json();
-      console.log('API Response: 認証成功！', customerData);
-      return true;
-    } else {
-      const errorData = await response.json().catch(() => ({}));
-      console.log('API Response: 認証失敗', response.status, errorData);
+    if (error) {
+      console.log('API Response: 認証失敗', error);
       return false;
     }
+
+    console.log('API Response: 認証成功！', data);
+    return true;
   } catch (error) {
     console.error("API呼び出しでエラーが発生しました:", error);
     return false;
