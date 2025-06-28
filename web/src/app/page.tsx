@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { TermsOfServiceDialog } from '@/components/terms-of-service-dialog';
-import { useCamera, useFaceAuthentication, useFaceDetection } from '@/lib/face-detect';
+import { useCamera, useFaceAuthentication, useFaceDetection } from '@/lib/face-detect-hooks';
 import FaceCamera from '@/app/_components/FaceCamera';
 import { CameraToggleButton } from '@/components/CameraToggleButton';
 import FaceCameraSkeleton from '@/app/_components/FaceCameraSkeleton';
