@@ -20,10 +20,16 @@ export default function (FIRE_SA: string): app.App {
     throw new Error("FIRE_SA environment variable is not set");
   }
 
+  let serviceAccount;
+  try {
+    serviceAccount = JSON.parse(FIRE_SA) as admin.ServiceAccount;
+  } catch (error) {
+    console.error("Failed to parse FIRE_SA JSON:", error);
+    throw new Error("Invalid FIRE_SA JSON format");
+  }
+
   return admin.initializeApp({
-    credential: admin.credential.cert(
-      JSON.parse(FIRE_SA) as admin.ServiceAccount
-    ),
+    credential: admin.credential.cert(serviceAccount),
   });
 }
 
