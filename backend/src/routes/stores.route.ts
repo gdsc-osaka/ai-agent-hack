@@ -106,7 +106,10 @@ const authenticateCustomer = createDefaultRoute({
       content: {
         "multipart/form-data": {
           schema: z.object({
-            image: z.instanceof(File).describe("Image for face authentication"),
+            image: z
+              .instanceof(File)
+              .openapi({ type: "string", format: "binary" })
+              .describe("Image for face authentication"),
           }),
         },
       },
@@ -154,7 +157,10 @@ const registerCustomer = createDefaultRoute({
       content: {
         "multipart/form-data": {
           schema: z.object({
-            image: z.instanceof(File).describe("Image for face authentication"),
+            image: z
+              .instanceof(File)
+              .openapi({ type: "string", format: "binary" })
+              .describe("Image for face authentication"),
           }),
         },
       },
