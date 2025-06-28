@@ -24,6 +24,7 @@ export const asyncify = <T, E>(result: Result<T, E>): ResultAsync<T, E> => {
   );
 };
 
+/**
  * Immediately Invoked Function Expression: 即時実行関数式
  * if, try, switch 文などを即時実行し, 擬似的に式として扱うことができるようにする.
  * @param f
