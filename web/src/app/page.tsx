@@ -26,7 +26,7 @@ export default function Home() {
   const tosDialog = useConfirmDialog();
   const { authState, ...faceAuth } = useFaceAuthentication({
     storeId: store?.id,
-    openTosDialog: tosDialog.open
+    openTosDialog: tosDialog.openAsync
   })
   const faceDetection = useFaceDetection({
     videoRef,
@@ -88,7 +88,7 @@ export default function Home() {
       <div className={'flex flex-col gap-4 items-center'}>
         <CameraToggleButton isCameraOn={showCamera} onToggle={handleToggleCamera} />
         <div className={'flex gap-4'}>
-          <Button variant="outline" size={'sm'} onClick={() => setShowTermsDialog(true)}>
+          <Button variant="outline" size={'sm'} onClick={tosDialog.open}>
             利用規約を表示
           </Button>
           <Button variant="ghost" size={'sm'} onClick={handleRevokeFaceAuth}>

@@ -2,7 +2,8 @@ import { useRef, useState } from "react";
 
 interface ConfirmDialogState {
   isOpen: boolean;
-  open: () => Promise<boolean>;
+  open: () => void;
+  openAsync: () => Promise<boolean>;
   handleOk: () => void;
   handleCancel: () => void;
   handleClose: () => void;
@@ -13,7 +14,11 @@ export const useConfirmDialog = (): ConfirmDialogState => {
   const resolve = useRef<(bool: boolean) => void>(() => {});
   const reject = useRef<(reason?: unknown) => void>(() => {});
 
-  const open = (): Promise<boolean> => {
+  const open = () => {
+    setIsOpen(true);
+  }
+
+  const openAsync = (): Promise<boolean> => {
     setIsOpen(true);
     return new Promise((res, rej) => {
       resolve.current = res;
@@ -39,6 +44,7 @@ export const useConfirmDialog = (): ConfirmDialogState => {
   return {
     isOpen,
     open,
+    openAsync,
     handleOk: onOk,
     handleClose: onClose,
     handleCancel: onCancel,
