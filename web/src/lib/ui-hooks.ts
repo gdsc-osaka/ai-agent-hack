@@ -16,7 +16,7 @@ export const useConfirmDialog = (): ConfirmDialogState => {
 
   const open = () => {
     setIsOpen(true);
-  }
+  };
 
   const openAsync = (): Promise<boolean> => {
     setIsOpen(true);
