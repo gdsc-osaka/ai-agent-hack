@@ -36,7 +36,10 @@ import { CreateNewStoreError, InvalidStoreError } from "../../domain/store";
 import { InvalidStaffError, StaffIsNotAdminError } from "../../domain/staff";
 import { DBVisitNotFoundError } from "../../infra/visit-repo";
 import { DBStoreApiKeyAlreadyExistsError } from "../../infra/store-api-key-repo";
-import { CloudFunctionError } from "../../infra/cloud-function-repo.error";
+import {
+  CloudFunctionError,
+  UploadAudioError,
+} from "../../infra/cloud-function-repo.error";
 import { InvalidProfileError } from "../../domain/profile";
 
 export const errorCodeMap = {
@@ -77,6 +80,7 @@ export const errorCodeMap = {
   [DBStoreApiKeyAlreadyExistsError._tag]: "store_api_key/already_exists",
   // profile
   [CloudFunctionError._tag]: "cloud_function/error",
+  [UploadAudioError._tag]: "cloud_function/upload_audio_error",
   [InvalidProfileError._tag]: "profile/invalid",
 } satisfies Record<BaseTag, ApiErrorCode>;
 type ErrorCodeMap = typeof errorCodeMap;

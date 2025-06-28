@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { TermsOfServiceDialog } from '@/components/terms-of-service-dialog';
-import { useCamera, useFaceDetection } from '@/lib/face-detect';
+import { useCamera, useFaceAuthentication, useFaceDetection } from '@/lib/face-detect-hooks';
 import FaceCamera from '@/app/_components/FaceCamera';
 import { CameraToggleButton } from '@/components/CameraToggleButton';
 import FaceCameraSkeleton from '@/app/_components/FaceCameraSkeleton';
@@ -13,81 +13,57 @@ import { useQuery } from '@/api-client';
 import api, { bodySerializers } from '@/api';
 import Spinner from '@/components/ui/spinner';
 import { useRouter } from 'next/navigation';
+import { useConfirmDialog } from '@/lib/ui-hooks';
+import { useRecording } from '@/lib/recording-hooks';
+import { toast } from 'sonner';
 
 export default function Home() {
   // const [faceRecognition, setFaceRecognition] = useAtom(faceRecognitionAtom);
-  const [showTermsDialog, setShowTermsDialog] = useState(false);
   const [showCamera, setShowCamera] = useState(true);
   const apiKey = useAtomValue(apiKeyAtom);
 
   const { data: store, isLoading, error } = useQuery(api(apiKey))('/api/v1/stores/me');
   const router = useRouter();
   const videoRef = useCamera();
+  const tosDialog = useConfirmDialog();
+  const { authState, ...faceAuth } = useFaceAuthentication({
+    storeId: store?.id,
+    openTosDialog: tosDialog.openAsync,
+  });
   const faceDetection = useFaceDetection({
     videoRef,
-    onFaceDetected: handleAuthenticateCustomer,
+    onFaceDetected: handleAuthenticateFace,
   });
+  const { startRecording, stopRecording, getAudio } = useRecording();
 
-  async function handleAuthenticateCustomer(image: Blob): Promise<boolean> {
-    if (!store?.id) {
-      console.error('Store ID is not available.');
-      return false;
-    }
+  async function handleAuthenticateFace(image: Blob) {
+    await faceAuth.authenticateCustomer(image);
+    await startRecording();
+  }
 
-    const { data: customer, error } = await api().POST('/api/v1/stores/{storeId}/customers/authenticate', {
-      params: {
-        path: {
-          storeId: store.id,
-        }
-      },
+  async function handleRevokeFaceAuth() {
+    faceDetection.reset();
+    faceAuth.reset();
+    await stopRecording();
+
+    const { data, error } = await api(apiKey).POST('/api/v1/profiles/generate-profile', {
       body: {
-        image
+        file: await getAudio(),
       },
-      bodySerializer: bodySerializers.form
+      bodySerializer: bodySerializers.form,
     });
 
-    if (error && error.code === 'customer/face_auth_error') {
-      console.warn('Registering new customer...');
-      const { data: customer, error } = await api().POST('/api/v1/stores/{storeId}/customers', {
-        params: {
-          path: {
-            storeId: store.id,
-          }
-        },
-        body: {
-          image
-        },
-        bodySerializer: bodySerializers.form
-      });
-
-      if (error) {
-        console.error('Customer registration failed:', error);
-        return false;
-      }
-
-      console.log('Customer registered successfully:', customer);
-      return true;
-    }
-
     if (error) {
-      console.error('Authentication failed:', error);
-      return false;
+      console.error('Error generating profile:', error);
+      toast.error(`プロフィールの生成に失敗しました: ${error.message}`);
+      return;
     }
 
-    console.log('Authentication successful:', customer);
-    return true;
+    toast.success(`プロフィールの生成を開始しました: ${data.message}`);
   }
 
   function handleToggleCamera() {
     setShowCamera(prev => !prev);
-  }
-
-  function handleAcceptTerms() {
-    setShowTermsDialog(false);
-  }
-
-  function handleDeclineTerms() {
-    setShowTermsDialog(false);
   }
 
   useEffect(() => {
@@ -126,8 +102,8 @@ export default function Home() {
         <FaceCamera ref={videoRef} className={!showCamera ? 'hidden' : ''} />
         {!showCamera && <FaceCameraSkeleton />}
         <p className={'text-xs'}>
-          {faceDetection.error ? `顔認証に失敗しました\nエラー: ${faceDetection.error}`
-            : faceDetection.isFaceAuthenticated ? '顔認証に成功しました！'
+          {authState.error ? `顔認証に失敗しました\nエラー: ${authState.error}`
+            : authState.customerId ? `顔認証に成功しました！ ${authState.customerId}`
               : faceDetection.isFaceDetected ? '顔を検出しました。認証を開始します...'
                 : '顔を検出していません。カメラを確認してください'
           }
@@ -135,38 +111,21 @@ export default function Home() {
       </div>
       <div className={'flex flex-col gap-4 items-center'}>
         <CameraToggleButton isCameraOn={showCamera} onToggle={handleToggleCamera} />
-        <Button variant="secondary" size={'sm'} onClick={() => setShowTermsDialog(true)}>
-          利用規約を表示
-        </Button>
+        <div className={'flex gap-4'}>
+          <Button variant="outline" size={'sm'} onClick={tosDialog.open}>
+            利用規約を表示
+          </Button>
+          <Button variant="ghost" size={'sm'} onClick={handleRevokeFaceAuth}>
+            認証を破棄
+          </Button>
+        </div>
       </div>
       <TermsOfServiceDialog
-        isOpen={showTermsDialog}
-        onClose={() => setShowTermsDialog(false)}
-        onAccept={handleAcceptTerms}
-        onDecline={handleDeclineTerms}
+        isOpen={tosDialog.isOpen}
+        onClose={tosDialog.handleClose}
+        onAccept={tosDialog.handleOk}
+        onDecline={tosDialog.handleCancel}
       />
     </main>
-    // TODO: 録音と顔認証機能を元に戻す
-    // <>
-    //   <div className={'m-auto'}>
-    //     <div>
-    //       Current Face Detection State: {faceRecognition}
-    //       <Button
-    //         onClick={() =>
-    //           setFaceRecognition(
-    //             faceRecognition === 'no-face' ? 'face-detected' : 'no-face'
-    //           )
-    //         }
-    //       >
-    //         {faceRecognition === 'no-face' ? 'Detect Face' : 'Reset Detection'}
-    //       </Button>
-    //       <FaceDetector />
-    //       <div className="mt-4">
-    //       </div>
-    //     </div>
-    //
-    //     <AudioRecorder faceRecognition={faceRecognition} />
-    //   </div>
-    // </>
   );
 }

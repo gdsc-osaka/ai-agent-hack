@@ -17,14 +17,33 @@ import { profiles } from "backend/dist/db/schema/app/profiles";
 
 const region = process.env.GCP_REGION || "asia-northeast1";
 
-admin.initializeApp();
+admin.initializeApp(process.env.NODE_ENV === "development" ? {
+  credential: admin.credential.cert(
+    JSON.parse(process.env.FIRE_SA!) as admin.ServiceAccount
+  ),
+} : undefined);
+
+interface ApiError {
+  message: string;
+  code: string;
+  details: unknown[];
+}
+
+interface UploadAudioResponse {
+  message: string;
+  taskId: string;
+}
 
 // 音声をCloud Tasksに登録
 export const uploadAudio = onRequest(
   { region },
   async (req, res): Promise<void> => {
     if (req.method !== "POST") {
-      res.status(405).send("Method Not Allowed");
+      res.status(405).json({
+        message: "Method Not Allowed. Only POST requests are allowed.",
+        code: "method_not_allowed",
+        details: [],
+      } satisfies ApiError);
       return;
     }
 
@@ -32,19 +51,45 @@ export const uploadAudio = onRequest(
       const { buffer: audioBuffer, audioMime } = await parseAudio(req);
       const id = uuidv4();
 
-      const queue = getFunctions().taskQueue('generateProfile');
-      await queue.enqueue({
-        id,
-        audioMime,
-        audioBase64: audioBuffer.toString("base64"),
-      })
+      console.log(`Queuing audio file for processing with ID: ${id}`);
+      if (process.env.NODE_ENV === "development") {
+        // 開発環境では直接関数を呼び出す
+        generateProfile.run({
+          data: {
+            id,
+            audioMime,
+            audioBase64: audioBuffer.toString("base64"),
+          },
+          id: id,
+          queueName: 'generateProfile',
+          retryCount: 5,
+          executionCount: 0,
+          scheduledTime: new Date().toISOString(),
+        })
+      } else {
+        // 本番環境ではCloud Tasksを使用して非同期処理
+        const queue = getFunctions().taskQueue('generateProfile');
+        await queue.enqueue({
+          id,
+          audioMime,
+          audioBase64: audioBuffer.toString("base64"),
+        })
+      }
+      console.log(`✅ Audio file queued successfully with ID: ${id}`);
 
-      res.status(200).send(`Task queued (id=${id})`);
+      res.status(200).json({
+        message: "Audio file successfully uploaded and processing started.",
+        taskId: id,
+      } satisfies UploadAudioResponse);
     } catch (error) {
       console.error("uploadAudio error:", error);
-      res.status(500).send(
-        error instanceof Error ? error.message : String(error)
-      );
+      res.status(500).json({
+        message:
+          "An error occurred while processing the audio file on the server: " +
+          (error instanceof Error ? error.message : String(error)),
+        code: "server/error",
+        details: [],
+      });
     }
   }
 );
