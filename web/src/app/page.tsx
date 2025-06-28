@@ -46,7 +46,7 @@ export default function Home() {
     faceAuth.reset();
     await stopRecording();
 
-    const { data, error } = await api().POST('/api/v1/profiles/generate-profile', {
+    const { data, error } = await api(apiKey).POST('/api/v1/profiles/generate-profile', {
       body: {
         file: await getAudio(),
       },
@@ -56,11 +56,10 @@ export default function Home() {
     if (error) {
       console.error('Error generating profile:', error);
       toast.error(`プロフィールの生成に失敗しました: ${error.message}`);
+      return;
     }
 
-    if (data) {
-      toast.success(`プロフィールの生成を開始しました: ${data.profile}`);
-    }
+    toast.success(`プロフィールの生成を開始しました: ${data.message}`);
   }
 
   function handleToggleCamera() {
