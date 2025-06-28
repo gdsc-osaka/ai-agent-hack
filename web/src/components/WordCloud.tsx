@@ -1,5 +1,5 @@
 import React from 'react';
-import { ConversationTopic } from '@/lib/types';
+import { ConversationTopic } from '@/lib/types'
 
 interface WordCloudProps {
   topics: ConversationTopic[];
