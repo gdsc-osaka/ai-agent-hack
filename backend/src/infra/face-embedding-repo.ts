@@ -1,6 +1,8 @@
-import { ok, err, ResultAsync } from "neverthrow";
+import { ok, ResultAsync } from "neverthrow";
+import { GoogleAuth } from "google-auth-library";
 import { FaceEmbeddingError } from "./face-embedding-repo.error";
 import env from "../env";
+import { iife } from "../shared/func";
 
 export type GetFaceEmbedding = (
   image: File
@@ -13,24 +15,27 @@ type EmbeddingResponse = {
 export const getFaceEmbedding: GetFaceEmbedding = (image: File) =>
   ResultAsync.fromPromise(
     (async () => {
-      // 開発環境でMLサーバーが利用できない場合のモック実装
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Using mock face embedding for development');
-        // ダミーの128次元ベクトルを返す
-        return Array.from({ length: 128 }, () => Math.random() - 0.5);
-      }
-
       const forwardForm = new FormData();
       forwardForm.append("file", image, image.name);
 
-      const res = await fetch(`${env.ML_SERVER_URL}/face-embedding`, {
-        method: "POST",
-        body: forwardForm,
-      });
+      const res = await iife(async () => {
+        if (env.NODE_ENV === "development") {
+          // If ML server is running locally
+          return fetch(`${env.ML_SERVER_URL}/face-embedding`, {
+            method: "POST",
+            body: forwardForm,
+          });
+        }
 
-      if (!res.ok) {
-        throw new Error(`ML server error: ${res.status} ${res.statusText}`);
-      }
+        // If ML server is running on Google Cloud Run
+        const auth = new GoogleAuth();
+        const client = await auth.getIdTokenClient(env.ML_SERVER_URL);
+        return client.request({
+          url: `${env.ML_SERVER_URL}/face-embedding`,
+          method: "POST",
+          data: forwardForm,
+        });
+      });
 
       const result = (await res.json()) as EmbeddingResponse;
       return result.embedding[0];
