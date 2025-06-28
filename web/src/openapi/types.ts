@@ -800,8 +800,11 @@ export interface operations {
         requestBody?: {
             content: {
                 "multipart/form-data": {
-                    /** @description Audio file */
-                    file: unknown;
+                    /**
+                     * Format: binary
+                     * @description Audio file
+                     */
+                    file: Blob;
                 };
             };
         };

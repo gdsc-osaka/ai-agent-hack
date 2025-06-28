@@ -16,7 +16,7 @@ const generateProfile = createDefaultRoute({
       content: {
         "multipart/form-data": {
           schema: z.object({
-            file: z.instanceof(File).describe("Audio file"),
+            file: z.instanceof(File).openapi({type: 'string', format: 'binary'}).describe("Audio file"),
           }),
         },
       },
