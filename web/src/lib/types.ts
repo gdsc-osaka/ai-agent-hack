@@ -2,7 +2,7 @@ export interface Customer {
   id: string;
   name: string;
   avatar?: string;
-  visitFrequency: 'Regular' | 'Occasional' | 'New' | 'VIP';
+  visitFrequency: "Regular" | "Occasional" | "New" | "VIP";
   preferredDrinks: string[];
   lastVisit: string;
   totalVisits: number;
@@ -16,7 +16,13 @@ export interface Customer {
 export interface ConversationTopic {
   text: string;
   frequency: number;
-  category: 'personal' | 'business' | 'entertainment' | 'lifestyle' | 'food' | 'travel';
+  category:
+    | "personal"
+    | "business"
+    | "entertainment"
+    | "lifestyle"
+    | "food"
+    | "travel";
   lastMentioned: string;
 }
 
@@ -30,7 +36,7 @@ export interface Order {
 
 export interface OrderItem {
   name: string;
-  category: 'cocktail' | 'wine' | 'beer' | 'spirits' | 'non-alcoholic' | 'food';
+  category: "cocktail" | "wine" | "beer" | "spirits" | "non-alcoholic" | "food";
   price: number;
   quantity: number;
 }

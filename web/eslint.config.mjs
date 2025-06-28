@@ -67,7 +67,6 @@ const myRules = {
             {selector: 'parameter', format: ['camelCase']},
             {selector: 'function', format: ['camelCase', 'PascalCase']},
             {selector: 'variable', format: ['camelCase', 'PascalCase']},
-            {selector: 'const', format: ['camelCase', 'PascalCase', 'UPPER_CASE']},
         ],
         '@typescript-eslint/no-explicit-any': ['warn'],
         // FIXME: _ が無視されない

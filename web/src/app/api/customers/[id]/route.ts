@@ -1,5 +1,5 @@
-import { NextRequest } from 'next/server';
-import { mockCustomers } from '@/lib/data';
+import { NextRequest } from "next/server";
+import { mockCustomers } from "@/lib/data";
 
 export async function GET(
   request: NextRequest,
@@ -7,22 +7,22 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const customer = mockCustomers.find(c => c.id === id);
-    
+    const customer = mockCustomers.find((c) => c.id === id);
+
     if (!customer) {
       return Response.json(
-        { success: false, error: 'Customer not found' },
+        { success: false, error: "Customer not found" },
         { status: 404 }
       );
     }
-    
+
     return Response.json({
       success: true,
-      data: customer
+      data: customer,
     });
   } catch {
     return Response.json(
-      { success: false, error: 'Failed to fetch customer' },
+      { success: false, error: "Failed to fetch customer" },
       { status: 500 }
     );
   }
@@ -35,28 +35,28 @@ export async function PUT(
   try {
     const { id } = await params;
     const customerData = await request.json();
-    const customerIndex = mockCustomers.findIndex(c => c.id === id);
-    
+    const customerIndex = mockCustomers.findIndex((c) => c.id === id);
+
     if (customerIndex === -1) {
       return Response.json(
-        { success: false, error: 'Customer not found' },
+        { success: false, error: "Customer not found" },
         { status: 404 }
       );
     }
-    
+
     // In a real application, this would update the database
     const updatedCustomer = {
       ...mockCustomers[customerIndex],
-      ...customerData
+      ...customerData,
     };
-    
+
     return Response.json({
       success: true,
-      data: updatedCustomer
+      data: updatedCustomer,
     });
   } catch {
     return Response.json(
-      { success: false, error: 'Failed to update customer' },
+      { success: false, error: "Failed to update customer" },
       { status: 500 }
     );
   }
@@ -68,24 +68,24 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const customerIndex = mockCustomers.findIndex(c => c.id === id);
-    
+    const customerIndex = mockCustomers.findIndex((c) => c.id === id);
+
     if (customerIndex === -1) {
       return Response.json(
-        { success: false, error: 'Customer not found' },
+        { success: false, error: "Customer not found" },
         { status: 404 }
       );
     }
-    
+
     // In a real application, this would delete from the database
-    
+
     return Response.json({
       success: true,
-      message: 'Customer deleted successfully'
+      message: "Customer deleted successfully",
     });
   } catch {
     return Response.json(
-      { success: false, error: 'Failed to delete customer' },
+      { success: false, error: "Failed to delete customer" },
       { status: 500 }
     );
   }
