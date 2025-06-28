@@ -1,3 +1,5 @@
+import { errAsync, okAsync, Result, ResultAsync } from "neverthrow";
+
 /**
  * Picks the first `ResultAsync` from an array of `ResultAsync` instances.
  * @example
@@ -13,6 +15,13 @@ export const pickFirst = <T>([first]: [T, ...any[]]): T => {
 
 export const voidify = (): void => {
   return undefined;
+};
+
+export const asyncify = <T, E>(result: Result<T, E>): ResultAsync<T, E> => {
+  return result.match(
+    (ok) => okAsync(ok),
+    (err) => errAsync(err)
+  );
 };
 
 /**

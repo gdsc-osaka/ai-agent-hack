@@ -21,7 +21,7 @@ export const MyOpenAPIHono = (args: {
     },
     servers: [
       {
-        url: "https://recall-you.web.app",
+        url: "https://api.recall.gdsc-osaka.jp",
         description: "Production Server",
       },
       { url: "http://localhost:8080", description: "Local Server" },
@@ -30,6 +30,9 @@ export const MyOpenAPIHono = (args: {
       {
         session: [],
       },
+      {
+        apikey: [],
+      },
     ],
   });
 
@@ -37,6 +40,12 @@ export const MyOpenAPIHono = (args: {
     type: "apiKey",
     in: "cookie",
     name: "__session",
+  });
+
+  app.openAPIRegistry.registerComponent("securitySchemes", "apikey", {
+    type: "apiKey",
+    in: "header",
+    name: "X-Api-Key",
   });
 
   app.get(

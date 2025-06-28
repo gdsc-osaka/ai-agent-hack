@@ -33,8 +33,9 @@ import {
 import { InvalidStaffRoleError } from "../../domain/store-staff";
 import { DBStoreToStaffAlreadyExistsError } from "../../infra/store-to-staff-repo.error";
 import { CreateNewStoreError, InvalidStoreError } from "../../domain/store";
-import { InvalidStaffError } from "../../domain/staff";
+import { InvalidStaffError, StaffIsNotAdminError } from "../../domain/staff";
 import { DBVisitNotFoundError } from "../../infra/visit-repo";
+import { DBStoreApiKeyAlreadyExistsError } from "../../infra/store-api-key-repo";
 import { CloudFunctionError } from "../../infra/cloud-function-repo.error";
 import { InvalidProfileError } from "../../domain/profile";
 
@@ -59,6 +60,7 @@ export const errorCodeMap = {
   [InvalidStaffError._tag]: "staff/invalid",
   [InvalidStaffRoleError._tag]: "staff/invalid_role",
   [DBStoreToStaffAlreadyExistsError._tag]: "staff/already_exists_in_store",
+  [StaffIsNotAdminError._tag]: "staff/is_not_admin",
   // staff invitation
   [DBStaffInvitationNotFoundError._tag]: "staff_invitation/not_found",
   [DBStaffInvitationAlreadyExistsError._tag]: "staff_invitation/already_exists",
@@ -71,6 +73,8 @@ export const errorCodeMap = {
   [InvalidStaffInvitationError._tag]: "staff_invitation/invalid",
   // visit
   [DBVisitNotFoundError._tag]: "visit/not_found",
+  // store api key
+  [DBStoreApiKeyAlreadyExistsError._tag]: "store_api_key/already_exists",
   // profile
   [CloudFunctionError._tag]: "cloud_function/error",
   [InvalidProfileError._tag]: "profile/invalid",

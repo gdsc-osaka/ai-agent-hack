@@ -20,6 +20,6 @@ const authHandler = createMiddleware(async (c) => {
 // app.post("/sign-out", authHandler);
 
 // その他
-app.on(["GET", "POST"], "/**", authHandler);
+app.on(["GET", "POST"], "*", authHandler);
 
 export default app;

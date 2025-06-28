@@ -93,6 +93,7 @@ jobs:
           node-version: 22
           cache: 'pnpm'
           cache-dependency-path: 'backend/pnpm-lock.yaml'
+      # Install dependencies for backend/
       - name: cache-node-modules
         uses: actions/cache@v3
         id: cache-node
@@ -107,6 +108,23 @@ jobs:
             ${{ runner.os }}-
       - name: Install node modules
         if: ${{ steps.cache-node.outputs.cache-hit != 'true' }}
+        run: pnpm i
+      # Install dependencies for web/
+      - name: cache-node-modules
+        uses: actions/cache@v3
+        id: cache-node
+        env:
+          cache-name: cache-web
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-cache-web-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-cache-web-
+            ${{ runner.os }}-cache-
+            ${{ runner.os }}-
+      - name: Install node modules
+        if: ${{ steps.cache-node.outputs.cache-hit != 'true' }}
+        working-directory: web
         run: pnpm i
       # Generate openapi specs
       - name: Generate .env

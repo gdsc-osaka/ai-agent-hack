@@ -9,6 +9,7 @@ import stores from "./routes/stores";
 import staffs from "./routes/staffs";
 import invitations from "./routes/invitations";
 import customers from "./routes/customers";
+import { apiKeyHeaderKey } from "./shared/const";
 import profiles from "./routes/profiles";
 
 const app = MyOpenAPIHono({
@@ -25,7 +26,7 @@ app.use(
     origin: [env.TRUSTED_ORIGIN_WEB],
     credentials: true,
     allowMethods: ["GET", "POST", "OPTIONS"],
-    allowHeaders: ["Content-Type", "Authorization"],
+    allowHeaders: ["Content-Type", "Authorization", apiKeyHeaderKey],
     exposeHeaders: ["Content-Length"],
     maxAge: 600,
   })

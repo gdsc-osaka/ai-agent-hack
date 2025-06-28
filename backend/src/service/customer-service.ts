@@ -35,7 +35,7 @@ import type {
 import type { DBInternalError } from "../infra/shared/db-error";
 import { RunTransaction } from "../infra/transaction";
 import env from "../env";
-import { FetchDBStoreById } from "../infra/store-repo";
+import { FetchDBStoreByPublicId } from "../infra/store-repo";
 import { DBStoreNotFoundError } from "../infra/store-repo.error";
 import type { FaceAuthError } from "../infra/face-auth-repo.error";
 import {
@@ -72,7 +72,7 @@ export type RegisterCustomer = (
 export const registerCustomer =
   (
     runTransaction: RunTransaction,
-    fetchDBStoreById: FetchDBStoreById,
+    fetchDBStoreByPublicId: FetchDBStoreByPublicId,
     getFaceEmbedding: GetFaceEmbedding,
     insertFaceEmbedding: InsertFaceEmbedding,
     insertDBCustomer: InserttDBCustomer,
@@ -81,7 +81,7 @@ export const registerCustomer =
   (storeId, image: File) =>
     ResultAsync.combine([
       getFaceEmbedding(image),
-      fetchDBStoreById(db)(storeId).andThen(createVisitAndCustomer),
+      fetchDBStoreByPublicId(db)(storeId).andThen(createVisitAndCustomer),
     ]).andThen(([embedding, { customer, visit }]) =>
       insertFaceEmbedding(firestoreDB(firebase(env.FIRE_SA).firestore()))(
         customer,
@@ -116,7 +116,7 @@ export type AuthenticateCustomer = (
 export const authenticateCustomer =
   (
     runTransaction: RunTransaction,
-    fetchDBStoreById: FetchDBStoreById,
+    fetchDBStoreByPublicId: FetchDBStoreByPublicId,
     getFaceEmbedding: GetFaceEmbedding,
     findCustomerIdByFaceEmbedding: FindCustomerIdByFaceEmbedding,
     findDBCustomerById: FindDBCustomerById,
@@ -129,7 +129,7 @@ export const authenticateCustomer =
           firestoreDB(firebase(env.FIRE_SA).firestore())
         )
       ),
-      fetchDBStoreById(db)(storeId),
+      fetchDBStoreByPublicId(db)(storeId),
     ])
       .andThen(([customerId, store]) =>
         createVisit(store.id, customerId).map(

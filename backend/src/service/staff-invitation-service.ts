@@ -1,6 +1,6 @@
 import { AuthUser } from "../domain/auth";
 import db from "../db/db";
-import { Result, ResultAsync } from "neverthrow";
+import { okAsync, Result, ResultAsync } from "neverthrow";
 import { FetchDBStoreById, FetchDBStoreByPublicId } from "../infra/store-repo";
 import { RunTransaction } from "../infra/transaction";
 import {
@@ -75,14 +75,17 @@ export const inviteStaffToStore =
     targetRole: string
   ) =>
     runTransaction(db)((tx) =>
-      ResultAsync.combine([
-        fetchDBStaffForStoreById(tx)(authUser.uid),
-        fetchDBStoreByPublicId(tx)(storeId),
-        checkDuplicateStaffInvitation(
-          fetchDBStaffInvitationByEmailAndPending(tx)(storeId, targetEmail)
-        ),
-      ])
-        .andThen(([staff, store]) =>
+      fetchDBStoreByPublicId(tx)(storeId)
+        .andThen((store) =>
+          ResultAsync.combine([
+            okAsync(store),
+            fetchDBStaffForStoreById(tx)(authUser.uid, store.id),
+            checkDuplicateStaffInvitation(
+              fetchDBStaffInvitationByEmailAndPending(tx)(store.id, targetEmail)
+            ),
+          ])
+        )
+        .andThen(([store, staff]) =>
           validateStaffRole(targetRole).andThen((targetRole) =>
             createStaffInvitation(store, staff, targetEmail, targetRole)
           )
