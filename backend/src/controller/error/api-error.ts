@@ -28,6 +28,8 @@ export const ApiErrorCode = z
     "staff_invitation/wrong_email",
     "staff_invitation/invalid",
     "visit/not_found",
+    "profile/invalid",
+    "cloud_function/error",
   ])
   .openapi("ApiErrorCode");
 export type ApiErrorCode = z.infer<typeof ApiErrorCode>;
