@@ -14,3 +14,5 @@ export const pickFirst = <T>([first]: [T, ...any[]]): T => {
 export const voidify = (): void => {
   return undefined;
 };
+
+export const iife = <T>(f: () => T): T => f();
