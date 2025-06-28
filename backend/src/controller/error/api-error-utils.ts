@@ -36,6 +36,8 @@ import { CreateNewStoreError, InvalidStoreError } from "../../domain/store";
 import { InvalidStaffError, StaffIsNotAdminError } from "../../domain/staff";
 import { DBVisitNotFoundError } from "../../infra/visit-repo";
 import { DBStoreApiKeyAlreadyExistsError } from "../../infra/store-api-key-repo";
+import { CloudFunctionError } from "../../infra/cloud-function-repo.error";
+import { InvalidProfileError } from "../../domain/profile";
 
 export const errorCodeMap = {
   [DBInternalError._tag]: "internal/database_error",
@@ -73,6 +75,9 @@ export const errorCodeMap = {
   [DBVisitNotFoundError._tag]: "visit/not_found",
   // store api key
   [DBStoreApiKeyAlreadyExistsError._tag]: "store_api_key/already_exists",
+  // profile
+  [CloudFunctionError._tag]: "cloud_function/error",
+  [InvalidProfileError._tag]: "profile/invalid",
 } satisfies Record<BaseTag, ApiErrorCode>;
 type ErrorCodeMap = typeof errorCodeMap;
 

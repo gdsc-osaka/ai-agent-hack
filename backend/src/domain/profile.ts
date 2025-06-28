@@ -1,6 +1,5 @@
 import { profiles } from "../db/schema/app/profiles";
 import z from "zod";
-import "zod-openapi/extend";
 import { err, ok, Result } from "neverthrow";
 import { Timestamp, toTimestamp } from "./timestamp";
 import { FieldErrors, ForUpdate, OmitBrand } from "./shared/types";

@@ -4,4 +4,5 @@ export default {
   invitations: ["Invitations"],
   staffs: ["Staffs"],
   stores: ["Stores"],
+  profiles: ["Profiles"],
 };

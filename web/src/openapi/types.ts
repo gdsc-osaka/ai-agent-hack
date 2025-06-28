@@ -221,6 +221,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/profiles/generate-profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Generate profile data using Gemini */
+        post: operations["generateProfile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -764,6 +781,66 @@ export interface operations {
             };
             /** @description Bad Request - Invalid input or missing image */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    generateProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /** @description Audio file */
+                    file: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Successfully generated profile data */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        profile: {
+                            id: string;
+                            gender?: string;
+                            birthday?: string | null;
+                            birthplace?: string;
+                            business?: string;
+                            partner?: string;
+                            hobby?: string;
+                            news?: string;
+                            worry?: string;
+                            store?: string;
+                            createdAt: components["schemas"]["Timestamp"];
+                            updatedAt: components["schemas"]["Timestamp"];
+                        }[];
+                    };
+                };
+            };
+            /** @description Bad Request - Invalid input or missing image */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };
