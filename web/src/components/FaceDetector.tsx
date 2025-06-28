@@ -4,7 +4,7 @@ import { useAtom } from 'jotai';
 import { useEffect, useRef, useState } from 'react';
 import { faceRecognitionAtom } from '@/app/atoms';
 import * as faceapi from 'face-api.js';
-import api from '@/api';
+import api, { bodySerializers } from '@/api';
 
 // [本物] face-api.jsを使って、実際に顔が映っているか判定する関数
 async function detectFace(videoElement: HTMLVideoElement): Promise<boolean> {
@@ -26,11 +26,11 @@ async function detectFace(videoElement: HTMLVideoElement): Promise<boolean> {
 async function authenticateFace(imageData: FormData, storeId: string): Promise<boolean> {
   try {
     const imageBlob = imageData.get('faceImage');
-    if (!imageBlob) {
+    if (!imageBlob || typeof imageBlob === 'string') {
         console.error("キャプチャした画像データがありません。");
         return false;
     }
-    
+
     const { data, error } = await api().POST('/api/v1/stores/{storeId}/customers/authenticate', {
       params: {
         path: {
@@ -39,7 +39,8 @@ async function authenticateFace(imageData: FormData, storeId: string): Promise<b
       },
       body: {
         image: imageBlob
-      }
+      },
+      bodySerializer: bodySerializers.form
     });
     
     if (error) {

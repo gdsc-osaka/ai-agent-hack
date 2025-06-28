@@ -1,6 +1,7 @@
 import createClient from "openapi-fetch";
 import { components, paths } from "./openapi/types";
 import type { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
+import { OperationRequestBodyContent } from "openapi-typescript-helpers";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL;
 
@@ -33,5 +34,15 @@ const api = (
 
 export type Api = ReturnType<typeof api>;
 export type Store = components["schemas"]["Store"];
+
+export const bodySerializers = {
+  form: <T extends Record<string, string | Blob> | undefined>(body: T) => {
+    const fd = new FormData();
+    for (const name in body) {
+      fd.append(name, body[name]);
+    }
+    return fd;
+  },
+};
 
 export default api;
