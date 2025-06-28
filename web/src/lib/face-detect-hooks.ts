@@ -247,7 +247,7 @@ export const useFaceAuthentication = ({
       }
 
       const { data: customer, error } = await api(apiKey).POST(
-        "/api/v1/stores/{storeId}/customers/authenticate",
+        "/api/v1/stores/{storeId}/face-auth/login",
         {
           params: {
             path: {
@@ -282,7 +282,7 @@ export const useFaceAuthentication = ({
 
         console.warn("Registering new customer...");
         const { data: customer, error } = await api(apiKey).POST(
-          "/api/v1/stores/{storeId}/customers",
+          "/api/v1/stores/{storeId}/face-auth/signup",
           {
             params: {
               path: {
