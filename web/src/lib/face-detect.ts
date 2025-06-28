@@ -53,6 +53,8 @@ export const useFaceDetection = ({
   const [error, setError] = useState<unknown>();
 
   useEffect(() => {
+    loadFaceModels();
+
     const id = setInterval(async () => {
       if (!videoRef.current || videoRef.current.paused) {
         return;
@@ -131,12 +133,18 @@ export const useFaceDetection = ({
   };
 };
 
-const detectAllFaces = async (video: HTMLVideoElement) => {
+const loadFaceModels = async () => {
   if (!faceapi.nets.tinyFaceDetector.isLoaded) {
     await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
     console.log("Face detection model loaded");
   }
+};
 
+const detectAllFaces = async (video: HTMLVideoElement) => {
+  if (!faceapi.nets.tinyFaceDetector.isLoaded) {
+    console.warn("Face detection model not loaded, loading now...");
+    await loadFaceModels();
+  }
   return faceapi.detectAllFaces(
     video,
     new faceapi.TinyFaceDetectorOptions() // 高速な検出モデルを使用
