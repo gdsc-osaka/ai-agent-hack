@@ -77,6 +77,7 @@ app.use("/:storeId/*", (c, next) => {
   if (
     client.isOk() &&
     authUser.isErr() &&
+    storeId !== "me" &&
     storeId !== client.value.store.publicId
   ) {
     throw toHTTPException(
