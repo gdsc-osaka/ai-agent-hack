@@ -35,6 +35,8 @@ import { DBStoreToStaffAlreadyExistsError } from "../../infra/store-to-staff-rep
 import { CreateNewStoreError, InvalidStoreError } from "../../domain/store";
 import { InvalidStaffError } from "../../domain/staff";
 import { DBVisitNotFoundError } from "../../infra/visit-repo";
+import { CloudFunctionError } from "../../infra/cloud-function-repo.error";
+import { InvalidProfileError } from "../../domain/profile";
 
 export const errorCodeMap = {
   [DBInternalError._tag]: "internal/database_error",
@@ -69,6 +71,9 @@ export const errorCodeMap = {
   [InvalidStaffInvitationError._tag]: "staff_invitation/invalid",
   // visit
   [DBVisitNotFoundError._tag]: "visit/not_found",
+  // profile
+  [CloudFunctionError._tag]: "cloud_function/error",
+  [InvalidProfileError._tag]: "profile/invalid",
 } satisfies Record<BaseTag, ApiErrorCode>;
 type ErrorCodeMap = typeof errorCodeMap;
 
