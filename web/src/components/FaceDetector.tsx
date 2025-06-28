@@ -1,34 +1,82 @@
-// web/src/components/FaceDetector.tsx
 'use client';
 
 import { useAtom } from 'jotai';
 import { useEffect, useRef, useState } from 'react';
 import { faceRecognitionAtom } from '@/app/atoms';
+import * as faceapi from 'face-api.js';
+import api from '@/api';
 
-// 顔認証APIにリクエストを送る非同期関数（今後、中身を実装します）
-async function authenticateFace(imageData: FormData): Promise<boolean> {
-  // ↓ imageData を console.log で使用することで、未使用エラーを回避
-  console.log('（API呼び出し）顔認証を実行中...', imageData);
-  // これはダミーです。実際にはAPIを呼び出します。
-  return new Promise(resolve => setTimeout(() => resolve(true), 1000));
+// [本物] face-api.jsを使って、実際に顔が映っているか判定する関数
+async function detectFace(videoElement: HTMLVideoElement): Promise<boolean> {
+  if (!videoElement) return false;
+  
+  try {
+    const detections = await faceapi.detectAllFaces(
+      videoElement,
+      new faceapi.TinyFaceDetectorOptions() // 高速な検出モデルを使用
+    );
+    return detections.length > 0; // 1つでも顔が検出されたらtrueを返す
+  } catch (error) {
+    console.error("顔検出でエラー:", error);
+    return false;
+  }
 }
 
-// 顔検出ライブラリの処理（今後、中身を実装します）
-async function detectFace(videoElement: HTMLVideoElement): Promise<boolean> {
-  // ↓ videoElement を console.log で使用することで、未使用エラーを回避
-  console.log('（顔検出）カメラ映像から顔を探しています...', videoElement);
-  // ダミーの実装です。
-  return Math.random() > 0.5;
+// [本物] バックエンドAPIを呼び出す関数 (storeIdを引数に追加)
+async function authenticateFace(imageData: FormData, storeId: string): Promise<boolean> {
+  try {
+    const imageBlob = imageData.get('faceImage');
+    if (!imageBlob) {
+        console.error("キャプチャした画像データがありません。");
+        return false;
+    }
+    
+    const { data, error } = await api().POST('/api/v1/stores/{storeId}/customers/authenticate', {
+      params: {
+        path: {
+          storeId,
+        }
+      },
+      body: {
+        image: imageBlob
+      }
+    });
+    
+    if (error) {
+      console.log('API Response: 認証失敗', error);
+      return false;
+    }
+
+    console.log('API Response: 認証成功！', data);
+    return true;
+  } catch (error) {
+    console.error("API呼び出しでエラーが発生しました:", error);
+    return false;
+  }
 }
 
 
 export const FaceDetector = () => {
   const [faceState, setFaceState] = useAtom(faceRecognitionAtom);
   const [isProcessing, setIsProcessing] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null); // カメラ映像を表示するためのもの
+  const [modelsLoaded, setModelsLoaded] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    // ページが読み込まれたら、カメラへのアクセス許可を求める
+    const loadModels = async () => {
+      const MODEL_URL = '/models';
+      try {
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+        setModelsLoaded(true);
+        console.log('顔検出モデルの読み込み完了');
+      } catch (error) {
+        console.error("モデルの読み込みに失敗しました:", error);
+      }
+    };
+    loadModels();
+  }, []);
+
+  useEffect(() => {
     const setupCamera = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -41,9 +89,8 @@ export const FaceDetector = () => {
     };
     setupCamera();
 
-    // 5秒ごとに顔があるかチェックするループ処理
     const intervalId = setInterval(async () => {
-      if (!videoRef.current || videoRef.current.paused || videoRef.current.ended || isProcessing) {
+      if (!videoRef.current || videoRef.current.paused || !modelsLoaded || isProcessing) {
         return;
       }
 
@@ -63,7 +110,10 @@ export const FaceDetector = () => {
                 const formData = new FormData();
                 formData.append('faceImage', blob, 'face.jpg');
 
-                const isAuthenticated = await authenticateFace(formData);
+                // TODO: 本来はUIなどから動的に取得するstoreId。今はテスト用に固定値を入れます。
+                const storeId = 's-12345'; 
+                const isAuthenticated = await authenticateFace(formData, storeId);
+
                 if (isAuthenticated) {
                   console.log('認証成功！状態を"face-detected"に変更します。');
                   setFaceState('face-detected');
@@ -76,16 +126,16 @@ export const FaceDetector = () => {
         console.log('顔が見えなくなりました。状態を"no-face"に変更します。');
         setFaceState('no-face');
       }
-    }, 5000); // 5000ミリ秒 = 5秒ごと
+    }, 5000);
 
-    return () => clearInterval(intervalId); // ページを離れるときにループを停止する
-  }, [faceState, setFaceState, isProcessing]);
+    return () => clearInterval(intervalId);
+  }, [faceState, setFaceState, isProcessing, modelsLoaded]);
 
   return (
     <div>
       <h3>顔認証ステータス</h3>
       <p>現在の状態: <strong>{faceState}</strong></p>
-      {/* 動作確認のためにカメラ映像を表示します。不要ならこの行は削除できます */}
+      <p>モデル読込: {modelsLoaded ? '完了' : '読み込み中...'}</p>
       <video ref={videoRef} autoPlay muted style={{ width: '320px', height: '240px', border: '1px solid black', transform: 'scaleX(-1)' }} />
     </div>
   );
