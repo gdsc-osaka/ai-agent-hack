@@ -35,22 +35,28 @@ interface FaceDetectionState {
  * 顔が検出されなくなってから faceTimeoutMillis ミリ秒後に顔が存在しないと判断する
  * @param videoRef
  * @param intervalMillis
+ * @param faceDetectionIntervalMillis
  * @param faceTimeoutMillis
  * @param onFaceDetected
  */
 export const useFaceDetection = ({
   videoRef,
   intervalMillis = 1000,
+  faceDetectionIntervalMillis = 5000,
   faceTimeoutMillis = 60000,
   onFaceDetected,
 }: {
   videoRef: React.RefObject<HTMLVideoElement | null>;
   intervalMillis?: number;
+  faceDetectionIntervalMillis?: number;
   faceTimeoutMillis?: number;
-  onFaceDetected?: (image: Blob) => Promise<boolean>;
+  onFaceDetected?: (image: Blob) => Promise<void>;
 }): FaceDetectionState => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [lastFaceAuthenticatedTime, setLastFaceAuthenticatedTime] = useState<
+    number | undefined
+  >();
+  const [lastFaceDetectionTime, setLastFaceDetectionTime] = useState<
     number | undefined
   >();
   const [isFaceDetected, setIsFaceDetected] = useState(false);
@@ -72,10 +78,24 @@ export const useFaceDetection = ({
         return;
       }
 
+      const now = Date.now();
+
+      // 初回検出時はすぐに顔検出を行うために intervalMillis の間隔で実行するが、
+      // 顔検出後はデバイスの負荷軽減のために長めに待機する
+      if (
+        isFaceDetected &&
+        lastFaceDetectionTime &&
+        now - lastFaceDetectionTime < faceDetectionIntervalMillis
+      ) {
+        console.log("Skipping face detection, already detected recently.");
+        return;
+      }
+
       setIsProcessing(true);
 
       try {
         const detections = await detectAllFaces(videoRef.current);
+        setLastFaceDetectionTime(now);
 
         if (detections.length === 1) {
           // 1 Face detected
@@ -89,13 +109,11 @@ export const useFaceDetection = ({
             setLastFaceAuthenticatedTime(Date.now());
           } else {
             const image = await drawImage(videoRef.current);
-            const succeeded = await onFaceDetected?.(image);
+            await onFaceDetected?.(image);
 
-            if (succeeded) {
-              console.log("Face detected and authenticated successfully.");
-              setIsFaceDetected(true);
-              setLastFaceAuthenticatedTime(Date.now());
-            }
+            console.log("Face detected and authenticated successfully.");
+            setIsFaceDetected(true);
+            setLastFaceAuthenticatedTime(now);
           }
         } else if (detections.length > 1) {
           // More than 1 face detected
@@ -107,7 +125,7 @@ export const useFaceDetection = ({
           console.log("No face detected");
           if (
             lastFaceAuthenticatedTime &&
-            Date.now() - lastFaceAuthenticatedTime > faceTimeoutMillis
+            now - lastFaceAuthenticatedTime > faceTimeoutMillis
           ) {
             console.log("Face not detected for a while, resetting state.");
             setIsFaceDetected(false);
@@ -183,7 +201,7 @@ const drawImage = (video: HTMLVideoElement): Promise<Blob> => {
 };
 
 interface FaceAuthenticationState {
-  authenticateCustomer: (image: Blob) => Promise<boolean>;
+  authenticateCustomer: (image: Blob) => Promise<void>;
   authState: AuthState;
   reset: () => void;
 }
@@ -220,10 +238,12 @@ export const useFaceAuthentication = ({
   });
 
   const handleAuthenticateCustomer = useCallback(
-    async (image: Blob): Promise<boolean> => {
+    async (image: Blob): Promise<void> => {
       if (!storeId) {
         console.error("Store ID is not available.");
-        return false;
+        return Promise.reject(
+          new Error("Store ID is not available for authentication.")
+        );
       }
 
       const { data: customer, error } = await api(apiKey).POST(
@@ -257,7 +277,7 @@ export const useFaceAuthentication = ({
               details: [],
             },
           });
-          return false;
+          return Promise.reject(new Error("Terms of Service not accepted"));
         }
 
         console.warn("Registering new customer...");
@@ -283,7 +303,9 @@ export const useFaceAuthentication = ({
             isLoading: false,
             error: error,
           });
-          return false;
+          return Promise.reject(
+            new Error("Customer registration failed: " + error.message)
+          );
         }
 
         console.log("Customer registered successfully:", customer);
@@ -292,7 +314,7 @@ export const useFaceAuthentication = ({
           isLoading: false,
           error: undefined,
         });
-        return true;
+        return;
       }
 
       if (error) {
@@ -302,7 +324,9 @@ export const useFaceAuthentication = ({
           isLoading: false,
           error,
         });
-        return false;
+        return Promise.reject(
+          new Error("Authentication failed: " + error.message)
+        );
       }
 
       console.log("Authentication successful:", customer);
@@ -311,8 +335,6 @@ export const useFaceAuthentication = ({
         customerId: customer.id,
         error: undefined,
       });
-
-      return true;
     },
     [storeId, apiKey, openTosDialog]
   );
