@@ -8,11 +8,32 @@ type AudioRecorderProps = {
   faceRecognition: string;
 };
 
+type Profile = {
+  id: string;
+  gender?: string | null;
+  birthday?: string | null;
+  birthplace?: string | null;
+  business?: string | null;
+  partner?: string | null;
+  hobby?: string | null;
+  news?: string | null;
+  worry?: string | null;
+  store?: string | null;
+  createdAt: {
+    seconds: number;
+    nanoseconds: number;
+  };
+  updatedAt: {
+    seconds: number;
+    nanoseconds: number;
+  };
+};
+
 const AudioRecorder: React.FC<AudioRecorderProps> = ({ faceRecognition }) => {
   const [recording, setRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [profiles, setProfiles] = useState<any[]>([]);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunks = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
