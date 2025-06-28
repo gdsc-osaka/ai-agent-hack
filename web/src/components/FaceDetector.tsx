@@ -4,6 +4,7 @@ import { useAtom } from 'jotai';
 import { useEffect, useRef, useState } from 'react';
 import { faceRecognitionAtom } from '@/app/atoms';
 import * as faceapi from 'face-api.js';
+import api from '@/api';
 
 // [本物] face-api.jsを使って、実際に顔が映っているか判定する関数
 async function detectFace(videoElement: HTMLVideoElement): Promise<boolean> {
@@ -27,8 +28,6 @@ async function authenticateFace(imageData: FormData): Promise<boolean> {
   const API_ENDPOINT = `/api/v1/vector/face-auth`; 
 
   try {
-    console.log('（API呼び出し）顔認証を実行中...', API_ENDPOINT);
-    
     const imageBlob = imageData.get('faceImage');
     if (!imageBlob) {
         console.error("キャプチャした画像データがありません。");
@@ -42,16 +41,15 @@ async function authenticateFace(imageData: FormData): Promise<boolean> {
       method: 'POST',
       body: formDataForApi,
     });
-    
-    if (response.ok) {
-      const customerData = await response.json();
-      console.log('API Response: 認証成功！', customerData);
-      return true;
-    } else {
-      const errorData = await response.json().catch(() => ({}));
-      console.log('API Response: 認証失敗', response.status, errorData);
+
+    if (!response.ok) {
+      console.log('API Response: 認証失敗', response.status, response.statusText);
       return false;
     }
+
+    const data = await response.json();
+    console.log('API Response: 認証成功！', data);
+    return true;
   } catch (error) {
     console.error("API呼び出しでエラーが発生しました:", error);
     return false;

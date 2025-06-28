@@ -6,15 +6,6 @@ export default function (FIRE_SA: string): app.App {
     return admin.apps[0];
   }
 
-  // 開発環境でFirebase Emulatorを使用
-  if (process.env.NODE_ENV === "development") {
-    console.log("Using Firebase Emulator for development");
-    const firebaseApp = admin.initializeApp({
-      projectId: "recall-you-dev",
-    });
-    return firebaseApp;
-  }
-
   // FIRE_SAが設定されていない場合のエラーハンドリング
   if (!FIRE_SA) {
     throw new Error("FIRE_SA environment variable is not set");
