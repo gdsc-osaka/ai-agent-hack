@@ -59,24 +59,27 @@ const myRules = {
         // complexity: ['warn', 5], // 複雑度が5を超えると警告
         // indent: ['error', 4], // 4スペース以外のインデントはエラー
         // '@typescript-eslint/quotes': ['error', 'single'],
-        // '@typescript-eslint/naming-convention': [
-        //     'warn',
-        //     {selector: 'variableLike', format: ['camelCase']},
-        //     {selector: 'method', format: ['camelCase']},
-        //     {selector: 'typeLike', format: ['PascalCase']},
-        //     {selector: 'parameter', format: ['camelCase']},
-        // ],
-        // '@typescript-eslint/no-explicit-any': ['error'],
+        '@typescript-eslint/naming-convention': [
+            'warn',
+            {selector: 'variableLike', format: ['camelCase']},
+            {selector: 'method', format: ['camelCase']},
+            {selector: 'typeLike', format: ['PascalCase']},
+            {selector: 'parameter', format: ['camelCase']},
+            {selector: 'function', format: ['camelCase', 'PascalCase']},
+            {selector: 'variable', format: ['camelCase', 'PascalCase']},
+            {selector: 'const', format: ['camelCase', 'PascalCase', 'UPPER_CASE']},
+        ],
+        '@typescript-eslint/no-explicit-any': ['warn'],
         // FIXME: _ が無視されない
-        // '@typescript-eslint/no-unused-vars': [
-        //     'warn',
-        //     {
-        //         "argsIgnorePattern": "^_",
-        //         "varsIgnorePattern": "^_",
-        //         "caughtErrorsIgnorePattern": "^_",
-        //         "destructuredArrayIgnorePattern": "^_"
-        //     }
-        // ],
+        '@typescript-eslint/no-unused-vars': [
+            'warn',
+            {
+                "argsIgnorePattern": "^_",
+                "varsIgnorePattern": "^_",
+                "caughtErrorsIgnorePattern": "^_",
+                "destructuredArrayIgnorePattern": "^_"
+            }
+        ],
         // '@typescript-eslint/no-require-imports': ['error'],
         // '@typescript-eslint/ban-types': [
         //     "error",
@@ -89,6 +92,7 @@ const myRules = {
         // ],
         '@typescript-eslint/no-namespace': ['off'],
         'linebreak-style': ['error', 'unix'],
+        'prefer-spread': ['warn'],
     }
 };
 

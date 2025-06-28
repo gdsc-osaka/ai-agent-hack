@@ -34,11 +34,21 @@ export function DashboardOverview() {
     return `${Math.floor(diffDays / 30)}ヶ月前`;
   };
 
+  const onTabChange = (tab: string) => {
+    router.push(`/${tab}`);
+  };
+
+  const searchTerm = '';
+  const setSearchTerm = (term: string) => {
+    // Implementation of setSearchTerm
+  };
+
   return (
     <div className="min-h-screen bg-gray-900">
-      <Navigation 
-        activeTab="dashboard" 
-        onTabChange={(tab) => router.push(`/${tab}`)}
+      <Navigation
+        onTabChange={onTabChange}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
       />
       
       <div className="max-w-7xl mx-auto px-4 py-8">

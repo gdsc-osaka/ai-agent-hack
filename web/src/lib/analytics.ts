@@ -9,7 +9,7 @@ export const analytics = {
   },
 
   // Track user interactions
-  trackEvent: (eventName: string, properties?: Record<string, any>) => {
+  trackEvent: (eventName: string, properties?: Record<string, unknown>) => {
     if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
       console.log(`Event: ${eventName}`, properties)
     }
@@ -27,7 +27,7 @@ export const analytics = {
   },
 
   // Track errors
-  trackError: (error: Error, context?: Record<string, any>) => {
+  trackError: (error: Error, context?: Record<string, unknown>) => {
     if (typeof window !== 'undefined') {
       console.error('Tracked error:', error, context)
       // Send to error tracking service (Sentry, Bugsnag, etc.)
@@ -36,7 +36,7 @@ export const analytics = {
 }
 
 // Web Vitals integration
-export const reportWebVitals = (metric: any) => {
+export const reportWebVitals = (metric: { name: string; value: number }) => {
   analytics.trackPerformance({
     name: metric.name,
     value: metric.value,

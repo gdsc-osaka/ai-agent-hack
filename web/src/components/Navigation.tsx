@@ -5,14 +5,19 @@ import { Users, BarChart3, Settings as SettingsIcon, Search } from 'lucide-react
 import { useRouter, usePathname } from 'next/navigation';
 
 interface NavigationProps {
-  activeTab: string;
   onTabChange: (tab: string) => void;
   searchTerm?: string;
   onSearchChange?: (term: string) => void;
 }
 
+interface Tab {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  path: string;
+}
+
 export const Navigation: React.FC<NavigationProps> = ({ 
-  activeTab, 
   onTabChange, 
   searchTerm = '', 
   onSearchChange 
@@ -20,13 +25,13 @@ export const Navigation: React.FC<NavigationProps> = ({
   const router = useRouter();
   const pathname = usePathname();
 
-  const tabs = [
+  const tabs: Tab[] = [
     { id: 'customers', label: '顧客管理', icon: Users, path: '/customers' },
     { id: 'analytics', label: '分析', icon: BarChart3, path: '/analytics' },
     { id: 'settings', label: '設定', icon: SettingsIcon, path: '/settings' }
   ];
 
-  const handleTabClick = (tab: any) => {
+  const handleTabClick = (tab: Tab) => {
     router.push(tab.path);
     onTabChange(tab.id);
   };

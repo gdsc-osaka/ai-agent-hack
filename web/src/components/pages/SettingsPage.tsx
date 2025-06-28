@@ -1,21 +1,26 @@
+'use client'
+
+import React from 'react';
 import { Navigation } from '@/components/Navigation';
-import { Settings } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export function SettingsPage() {
+  const router = useRouter();
+
+  const onTabChange = (tab: string) => {
+    router.push(tab === 'settings' ? '/settings' : `/${tab}`);
+  };
+
   return (
     <div className="min-h-screen bg-gray-900">
-      <Navigation 
-        activeTab="settings" 
-        onTabChange={() => {}}
-      />
+      <Navigation onTabChange={onTabChange} />
       
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="text-center py-20">
-          <div className="w-20 h-20 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Settings className="w-10 h-10 text-gray-400" />
-          </div>
-          <h3 className="text-white text-xl font-semibold mb-2">設定</h3>
-          <p className="text-gray-400">システム設定とユーザー管理</p>
+        <h1 className="text-white text-3xl font-bold mb-8">設定</h1>
+        
+        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+          <h2 className="text-white text-xl font-semibold mb-4">アプリケーション設定</h2>
+          <p className="text-gray-400">設定画面の実装は開発中です。</p>
         </div>
       </div>
     </div>

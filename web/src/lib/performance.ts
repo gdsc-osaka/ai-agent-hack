@@ -18,28 +18,28 @@ export const performanceMetrics = {
   },
 
   // Debounce function for search inputs
-  debounce: <T extends (...args: any[]) => void>(func: T, delay: number): T => {
+  debounce: <T extends (...args: unknown[]) => void>(func: T, delay: number): T => {
     let timeoutId: NodeJS.Timeout
-    return ((...args: any[]) => {
+    return ((...args: unknown[]) => {
       clearTimeout(timeoutId)
-      timeoutId = setTimeout(() => func.apply(null, args), delay)
+      timeoutId = setTimeout(() => func(...args), delay)
     }) as T
   },
 
   // Throttle function for scroll events
-  throttle: <T extends (...args: any[]) => void>(func: T, delay: number): T => {
+  throttle: <T extends (...args: unknown[]) => void>(func: T, delay: number): T => {
     let timeoutId: NodeJS.Timeout | null = null
     let lastExecTime = 0
-    return ((...args: any[]) => {
+    return ((...args: unknown[]) => {
       const currentTime = Date.now()
       
       if (currentTime - lastExecTime > delay) {
-        func.apply(null, args)
+        func(...args)
         lastExecTime = currentTime
       } else {
         if (timeoutId) clearTimeout(timeoutId)
         timeoutId = setTimeout(() => {
-          func.apply(null, args)
+          func(...args)
           lastExecTime = Date.now()
         }, delay - (currentTime - lastExecTime))
       }
@@ -70,7 +70,7 @@ export const performanceMetrics = {
 }
 
 // Web Vitals reporting
-export const reportWebVitals = (metric: any) => {
+export const reportWebVitals = (metric: { name: string; value: number }) => {
   if (process.env.NODE_ENV === 'production') {
     // Send to analytics service
     console.log(metric)

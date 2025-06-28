@@ -21,8 +21,8 @@ async function detectFace(videoElement: HTMLVideoElement): Promise<boolean> {
   }
 }
 
-// [本物] バックエンドAPIを呼び出す関数 (storeIdを引数に追加)
-async function authenticateFace(imageData: FormData, storeId: string): Promise<boolean> {
+// [本物] バックエンドAPIを呼び出す関数
+async function authenticateFace(imageData: FormData): Promise<boolean> {
   // 正しいAPIエンドポイント
   const API_ENDPOINT = `/api/v1/vector/face-auth`; 
 
@@ -113,9 +113,7 @@ export const FaceDetector = () => {
                 const formData = new FormData();
                 formData.append('faceImage', blob, 'face.jpg');
 
-                // TODO: 本来はUIなどから動的に取得するstoreId。今はテスト用に固定値を入れます。
-                const storeId = 's-12345'; 
-                const isAuthenticated = await authenticateFace(formData, storeId);
+                const isAuthenticated = await authenticateFace(formData);
 
                 if (isAuthenticated) {
                   console.log('認証成功！状態を"face-detected"に変更します。');

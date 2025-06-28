@@ -37,6 +37,10 @@ export function CustomersPage() {
     });
   };
 
+  const onTabChange = (tab: string) => {
+    router.push(tab === 'customers' ? '/customers' : `/${tab}`);
+  };
+
   // Memoize statistics calculations
   const statistics = useMemo(() => ({
     totalCustomers: mockCustomers.length,
@@ -47,11 +51,10 @@ export function CustomersPage() {
 
   return (
     <div className="min-h-screen bg-gray-900">
-      <Navigation 
-        activeTab="customers" 
-        onTabChange={(tab) => router.push(tab === 'customers' ? '/customers' : `/${tab}`)}
+      <Navigation
+        onTabChange={onTabChange}
         searchTerm={searchTerm}
-        onSearchChange={debouncedSearch}
+        onSearchChange={setSearchTerm}
       />
       
       <div className="max-w-7xl mx-auto px-4 py-8">

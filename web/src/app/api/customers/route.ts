@@ -33,7 +33,7 @@ export async function GET() {
       data: data || [],
       total: data?.length || 0
     });
-  } catch (error) {
+  } catch {
     return Response.json(
       { success: false, error: 'Failed to fetch customers' },
       { status: 500 }
@@ -43,7 +43,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const customerData = await request.json();
+    await request.json();
     
     // In a real application, this would save to a database
     const newCustomer: Customer = {
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       success: true,
       data: newCustomer
     }, { status: 201 });
-  } catch (error) {
+  } catch {
     return Response.json(
       { success: false, error: 'Failed to create customer' },
       { status: 500 }

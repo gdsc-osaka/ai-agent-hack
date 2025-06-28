@@ -3,10 +3,11 @@ import { mockCustomers } from '@/lib/data';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const customer = mockCustomers.find(c => c.id === params.id);
+    const { id } = await params;
+    const customer = mockCustomers.find(c => c.id === id);
     
     if (!customer) {
       return Response.json(
@@ -19,7 +20,7 @@ export async function GET(
       success: true,
       data: customer
     });
-  } catch (error) {
+  } catch {
     return Response.json(
       { success: false, error: 'Failed to fetch customer' },
       { status: 500 }
@@ -29,11 +30,12 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const customerData = await request.json();
-    const customerIndex = mockCustomers.findIndex(c => c.id === params.id);
+    const customerIndex = mockCustomers.findIndex(c => c.id === id);
     
     if (customerIndex === -1) {
       return Response.json(
@@ -52,7 +54,7 @@ export async function PUT(
       success: true,
       data: updatedCustomer
     });
-  } catch (error) {
+  } catch {
     return Response.json(
       { success: false, error: 'Failed to update customer' },
       { status: 500 }
@@ -62,10 +64,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const customerIndex = mockCustomers.findIndex(c => c.id === params.id);
+    const { id } = await params;
+    const customerIndex = mockCustomers.findIndex(c => c.id === id);
     
     if (customerIndex === -1) {
       return Response.json(
@@ -80,7 +83,7 @@ export async function DELETE(
       success: true,
       message: 'Customer deleted successfully'
     });
-  } catch (error) {
+  } catch {
     return Response.json(
       { success: false, error: 'Failed to delete customer' },
       { status: 500 }

@@ -1,7 +1,5 @@
 import { MetadataRoute } from 'next'
-import { headers } from 'next/headers'
 import { mockCustomers } from '@/lib/data'
-import type { Customer } from '@/lib/types'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 環境変数からbaseUrlを取得、なければheadersから取得
