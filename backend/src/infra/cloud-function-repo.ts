@@ -18,18 +18,20 @@ export type CallCloudFunction = (
   file: File
 ) => ResultAsync<CloudFunctionProfileData[], CloudFunctionError>;
 
-export const callCloudFunction: CallCloudFunction =
-  (functionName, file) => {
-    const formData = new FormData();
-    formData.append('file', file);
+export const callCloudFunction: CallCloudFunction = (functionName, file) => {
+  const formData = new FormData();
+  formData.append("file", file);
 
-    return ResultAsync.fromPromise(
-      fetch(`https://asia-northeast1-recall-you.cloudfunctions.net/${functionName}`, {
-        method: 'POST',
+  return ResultAsync.fromPromise(
+    fetch(
+      `https://asia-northeast1-recall-you.cloudfunctions.net/${functionName}`,
+      {
+        method: "POST",
         body: formData,
-      })
-      .then(res => res.json())
+      }
+    )
+      .then((res) => res.json())
       .then((data: unknown) => data as CloudFunctionProfileData[]),
-      CloudFunctionError.handle
-    );
-  };
+    CloudFunctionError.handle
+  );
+};

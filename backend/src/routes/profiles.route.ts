@@ -50,8 +50,7 @@ const generateProfile = createDefaultRoute({
       },
     },
   },
-  },
-);
+});
 
 export default {
   generateProfile,
