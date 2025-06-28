@@ -2,7 +2,10 @@ import createClient from "openapi-fetch";
 import { components, paths } from "./openapi/types";
 import type { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 
-const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL ?? "http://localhost:8080";
+const baseUrl =
+  process.env.NEXT_PUBLIC_API_URL ??
+  process.env.API_URL ??
+  "http://localhost:8080";
 
 // サーバーサイドから呼び出す際は headers を渡す
 export default (
