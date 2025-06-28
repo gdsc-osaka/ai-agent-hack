@@ -47,7 +47,7 @@ jobs:
         uses: actions/cache@v3
         id: cache-node
         env:
-          cache-name: cache-node
+          cache-name: cache-web
         with:
           path: '**/node_modules'
           key: ${{ runner.os }}-cache-web-${{ hashFiles('**/pnpm-lock.yaml') }}
