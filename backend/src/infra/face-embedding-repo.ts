@@ -2,7 +2,6 @@ import { ok, ResultAsync } from "neverthrow";
 import { GoogleAuth } from "google-auth-library";
 import { FaceEmbeddingError } from "./face-embedding-repo.error";
 import env from "../env";
-import { iife } from "../shared/func";
 
 export type GetFaceEmbedding = (
   image: File
@@ -25,24 +24,24 @@ export const getFaceEmbedding: GetFaceEmbedding = (image: File) =>
       const forwardForm = new FormData();
       forwardForm.append("file", image, image.name);
 
-      const res = await iife(async () => {
-        if (env.NODE_ENV === "development") {
-          // If ML server is running locally
-          return fetch(`${env.ML_SERVER_URL}/face-embedding`, {
-            method: "POST",
-            body: forwardForm,
-          });
-        }
-
+      let res: Response | any;
+      
+      if (env.NODE_ENV === "development") {
+        // If ML server is running locally
+        res = await fetch(`${env.ML_SERVER_URL}/face-embedding`, {
+          method: "POST",
+          body: forwardForm,
+        });
+      } else {
         // If ML server is running on Google Cloud Run
         const auth = new GoogleAuth();
         const client = await auth.getIdTokenClient(env.ML_SERVER_URL);
-        return client.request({
+        res = await client.request({
           url: `${env.ML_SERVER_URL}/face-embedding`,
           method: "POST",
           data: forwardForm,
         });
-      });
+      }
 
       // Response型とGaxiosResponse型を適切に処理
       if ("ok" in res && !res.ok) {
