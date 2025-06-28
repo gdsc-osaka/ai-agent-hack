@@ -116,15 +116,22 @@ export default function Home() {
   }
 
   return (
-    <main className={'flex flex-col gap-16 items-center justify-center h-screen'}>
+    <main className={'flex flex-col gap-8 items-center justify-center h-screen'}>
       <div className={'bg-card px-4 py-2 rounded-md'}>
         <p className={'text-card-foreground'}>
           店舗: {store?.id}
         </p>
       </div>
-      <div className={`px-48 w-full`}>
+      <div className={`px-48 w-full flex flex-col items-center gap-8`}>
         <FaceCamera ref={videoRef} className={!showCamera ? 'hidden' : ''} />
         {!showCamera && <FaceCameraSkeleton />}
+        <p className={'text-xs'}>
+          {faceDetection.error ? `顔認証に失敗しました\nエラー: ${faceDetection.error}`
+            : faceDetection.isFaceAuthenticated ? '顔認証に成功しました！'
+              : faceDetection.isFaceDetected ? '顔を検出しました。認証を開始します...'
+                : '顔を検出していません。カメラを確認してください'
+          }
+        </p>
       </div>
       <div className={'flex flex-col gap-4 items-center'}>
         <CameraToggleButton isCameraOn={showCamera} onToggle={handleToggleCamera} />
