@@ -129,11 +129,7 @@ export const useFaceDetection = ({
       setIsProcessing(false);
       console.log("Face detection interval cleared.");
     };
-  }, [
-    isFaceDetected,
-    lastFaceAuthenticatedTime,
-    onFaceDetected,
-  ]);
+  }, [isFaceDetected, lastFaceAuthenticatedTime, onFaceDetected, isProcessing]);
 
   return {
     isFaceAuthenticated: lastFaceAuthenticatedTime
@@ -209,9 +205,13 @@ type AuthState =
       error: undefined;
     };
 
-export const useFaceAuthentication = (
-  storeId: string | undefined
-): FaceAuthenticationState => {
+export const useFaceAuthentication = ({
+  storeId,
+  openTosDialog,
+}: {
+  storeId: string | undefined;
+  openTosDialog: () => Promise<boolean>;
+}): FaceAuthenticationState => {
   const apiKey = useAtomValue(apiKeyAtom);
   const [authState, setAuthState] = useState<AuthState>({
     customerId: undefined,
@@ -242,6 +242,24 @@ export const useFaceAuthentication = (
       );
 
       if (error && error.code === "customer/face_auth_error") {
+        console.log("Opening TOS dialog for registering new customer...");
+
+        const accepted = await openTosDialog();
+
+        if (!accepted) {
+          console.warn("User declined TOS, authentication aborted.");
+          setAuthState({
+            customerId: undefined,
+            isLoading: false,
+            error: {
+              message: "Terms of Service not accepted",
+              code: "customer/invalid",
+              details: [],
+            },
+          });
+          return false;
+        }
+
         console.warn("Registering new customer...");
         const { data: customer, error } = await api(apiKey).POST(
           "/api/v1/stores/{storeId}/customers",
@@ -296,7 +314,7 @@ export const useFaceAuthentication = (
 
       return true;
     },
-    [storeId]
+    [storeId, apiKey, openTosDialog]
   );
 
   return {

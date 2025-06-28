@@ -13,17 +13,21 @@ import { useQuery } from '@/api-client';
 import api from '@/api';
 import Spinner from '@/components/ui/spinner';
 import { useRouter } from 'next/navigation';
+import { useConfirmDialog } from '@/lib/ui-hooks';
 
 export default function Home() {
   // const [faceRecognition, setFaceRecognition] = useAtom(faceRecognitionAtom);
-  const [showTermsDialog, setShowTermsDialog] = useState(false);
   const [showCamera, setShowCamera] = useState(true);
   const apiKey = useAtomValue(apiKeyAtom);
 
   const { data: store, isLoading, error } = useQuery(api(apiKey))('/api/v1/stores/me');
   const router = useRouter();
   const videoRef = useCamera();
-  const { authState, ...faceAuth } = useFaceAuthentication(store?.id);
+  const tosDialog = useConfirmDialog();
+  const { authState, ...faceAuth } = useFaceAuthentication({
+    storeId: store?.id,
+    openTosDialog: tosDialog.open
+  })
   const faceDetection = useFaceDetection({
     videoRef,
     onFaceDetected: faceAuth.authenticateCustomer,
@@ -36,14 +40,6 @@ export default function Home() {
 
   function handleToggleCamera() {
     setShowCamera(prev => !prev);
-  }
-
-  function handleAcceptTerms() {
-    setShowTermsDialog(false);
-  }
-
-  function handleDeclineTerms() {
-    setShowTermsDialog(false);
   }
 
   useEffect(() => {
@@ -101,10 +97,10 @@ export default function Home() {
         </div>
       </div>
       <TermsOfServiceDialog
-        isOpen={showTermsDialog}
-        onClose={() => setShowTermsDialog(false)}
-        onAccept={handleAcceptTerms}
-        onDecline={handleDeclineTerms}
+        isOpen={tosDialog.isOpen}
+        onClose={tosDialog.handleClose}
+        onAccept={tosDialog.handleOk}
+        onDecline={tosDialog.handleCancel}
       />
     </main>
     // TODO: 録音と顔認証機能を元に戻す
