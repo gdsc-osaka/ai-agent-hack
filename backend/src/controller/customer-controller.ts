@@ -51,7 +51,7 @@ export const authenticateCustomerController = (
     HTTPErrorCarrier(
       match(err)
         .with(FaceEmbeddingError.is, () => StatusCode.InternalServerError)
-        .with(FaceAuthError.is, () => StatusCode.InternalServerError)
+        .with(FaceAuthError.is, () => StatusCode.Unauthorized)
         .with(FirestoreInternalError.is, () => StatusCode.InternalServerError)
         .with(CustomerNotFoundError.is, () => StatusCode.NotFound)
         .with(DBInternalError.is, () => StatusCode.InternalServerError)
