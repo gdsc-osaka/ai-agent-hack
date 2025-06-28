@@ -3,14 +3,14 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { TermsOfServiceDialog } from '@/components/terms-of-service-dialog';
-import { useCamera, useFaceDetection } from '@/lib/face-detect';
+import { useCamera, useFaceAuthentication, useFaceDetection } from '@/lib/face-detect';
 import FaceCamera from '@/app/_components/FaceCamera';
 import { CameraToggleButton } from '@/components/CameraToggleButton';
 import FaceCameraSkeleton from '@/app/_components/FaceCameraSkeleton';
 import { useAtomValue } from 'jotai/react';
 import { apiKeyAtom } from '@/app/atoms';
 import { useQuery } from '@/api-client';
-import api, { bodySerializers } from '@/api';
+import api from '@/api';
 import Spinner from '@/components/ui/spinner';
 import { useRouter } from 'next/navigation';
 
@@ -23,59 +23,15 @@ export default function Home() {
   const { data: store, isLoading, error } = useQuery(api(apiKey))('/api/v1/stores/me');
   const router = useRouter();
   const videoRef = useCamera();
+  const { authState, ...faceAuth } = useFaceAuthentication(store?.id);
   const faceDetection = useFaceDetection({
     videoRef,
-    onFaceDetected: handleAuthenticateCustomer,
+    onFaceDetected: faceAuth.authenticateCustomer,
   });
 
-  async function handleAuthenticateCustomer(image: Blob): Promise<boolean> {
-    if (!store?.id) {
-      console.error('Store ID is not available.');
-      return false;
-    }
-
-    const { data: customer, error } = await api().POST('/api/v1/stores/{storeId}/customers/authenticate', {
-      params: {
-        path: {
-          storeId: store.id,
-        }
-      },
-      body: {
-        image
-      },
-      bodySerializer: bodySerializers.form
-    });
-
-    if (error && error.code === 'customer/face_auth_error') {
-      console.warn('Registering new customer...');
-      const { data: customer, error } = await api().POST('/api/v1/stores/{storeId}/customers', {
-        params: {
-          path: {
-            storeId: store.id,
-          }
-        },
-        body: {
-          image
-        },
-        bodySerializer: bodySerializers.form
-      });
-
-      if (error) {
-        console.error('Customer registration failed:', error);
-        return false;
-      }
-
-      console.log('Customer registered successfully:', customer);
-      return true;
-    }
-
-    if (error) {
-      console.error('Authentication failed:', error);
-      return false;
-    }
-
-    console.log('Authentication successful:', customer);
-    return true;
+  const handleRevokeFaceAuth = () => {
+    faceDetection.reset();
+    faceAuth.reset();
   }
 
   function handleToggleCamera() {
@@ -126,8 +82,8 @@ export default function Home() {
         <FaceCamera ref={videoRef} className={!showCamera ? 'hidden' : ''} />
         {!showCamera && <FaceCameraSkeleton />}
         <p className={'text-xs'}>
-          {faceDetection.error ? `顔認証に失敗しました\nエラー: ${faceDetection.error}`
-            : faceDetection.isFaceAuthenticated ? '顔認証に成功しました！'
+          {authState.error ? `顔認証に失敗しました\nエラー: ${authState.error}`
+            : authState.customerId ? `顔認証に成功しました！ ${authState.customerId}`
               : faceDetection.isFaceDetected ? '顔を検出しました。認証を開始します...'
                 : '顔を検出していません。カメラを確認してください'
           }
@@ -135,9 +91,14 @@ export default function Home() {
       </div>
       <div className={'flex flex-col gap-4 items-center'}>
         <CameraToggleButton isCameraOn={showCamera} onToggle={handleToggleCamera} />
-        <Button variant="secondary" size={'sm'} onClick={() => setShowTermsDialog(true)}>
-          利用規約を表示
-        </Button>
+        <div className={'flex gap-4'}>
+          <Button variant="outline" size={'sm'} onClick={() => setShowTermsDialog(true)}>
+            利用規約を表示
+          </Button>
+          <Button variant="ghost" size={'sm'} onClick={handleRevokeFaceAuth}>
+            認証を破棄
+          </Button>
+        </div>
       </div>
       <TermsOfServiceDialog
         isOpen={showTermsDialog}

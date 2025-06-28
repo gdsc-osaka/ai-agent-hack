@@ -1,5 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import * as faceapi from "face-api.js";
+import api, { ApiError, bodySerializers } from "@/api";
+import { useAtomValue } from "jotai/react";
+import { apiKeyAtom } from "@/app/atoms";
 
 const MODEL_URL = "/models";
 
@@ -25,6 +28,7 @@ interface FaceDetectionState {
   isFaceDetected: boolean;
   isFaceAuthenticated?: boolean;
   error?: unknown;
+  reset: () => void;
 }
 
 /**
@@ -36,7 +40,7 @@ interface FaceDetectionState {
  */
 export const useFaceDetection = ({
   videoRef,
-  intervalMillis = 5000,
+  intervalMillis = 1000,
   faceTimeoutMillis = 60000,
   onFaceDetected,
 }: {
@@ -52,15 +56,19 @@ export const useFaceDetection = ({
   const [isFaceDetected, setIsFaceDetected] = useState(false);
   const [error, setError] = useState<unknown>();
 
+  // const onFaceDetectedRef = useLatest(onFaceDetected);
+
   useEffect(() => {
     loadFaceModels();
 
     const id = setInterval(async () => {
       if (!videoRef.current || videoRef.current.paused) {
+        console.log("Skipping face detection, video not ready.");
         return;
       }
 
       if (isProcessing) {
+        console.log("Skipping face detection, already processing.");
         return;
       }
 
@@ -68,9 +76,9 @@ export const useFaceDetection = ({
 
       try {
         const detections = await detectAllFaces(videoRef.current);
-        const hasFace = detections.length > 0;
 
-        if (hasFace) {
+        if (detections.length === 1) {
+          // 1 Face detected
           console.log(
             "Face detected.",
             isFaceDetected,
@@ -89,12 +97,14 @@ export const useFaceDetection = ({
               setLastFaceAuthenticatedTime(Date.now());
             }
           }
+        } else if (detections.length > 1) {
+          // More than 1 face detected
+          console.warn("Too many faces detected, discarding detection.");
+          setIsFaceDetected(false);
+          setLastFaceAuthenticatedTime(undefined);
         } else {
-          console.log(
-            "No face detected",
-            isFaceDetected,
-            lastFaceAuthenticatedTime
-          );
+          // No face detected
+          console.log("No face detected");
           if (
             lastFaceAuthenticatedTime &&
             Date.now() - lastFaceAuthenticatedTime > faceTimeoutMillis
@@ -114,13 +124,14 @@ export const useFaceDetection = ({
       }
     }, intervalMillis);
 
-    return () => clearInterval(id);
+    return () => {
+      clearInterval(id);
+      setIsProcessing(false);
+      console.log("Face detection interval cleared.");
+    };
   }, [
     isFaceDetected,
     lastFaceAuthenticatedTime,
-    videoRef,
-    intervalMillis,
-    faceTimeoutMillis,
     onFaceDetected,
   ]);
 
@@ -128,6 +139,12 @@ export const useFaceDetection = ({
     isFaceAuthenticated: lastFaceAuthenticatedTime
       ? Date.now() - lastFaceAuthenticatedTime < faceTimeoutMillis
       : undefined,
+    reset: () => {
+      setIsFaceDetected(false);
+      setLastFaceAuthenticatedTime(undefined);
+      setError(undefined);
+      console.log("Face detection state reset.");
+    },
     isFaceDetected,
     error,
   };
@@ -167,4 +184,131 @@ const drawImage = (video: HTMLVideoElement): Promise<Blob> => {
       reject(new Error("Failed to convert canvas to Blob"));
     }, "image/jpeg");
   });
+};
+
+interface FaceAuthenticationState {
+  authenticateCustomer: (image: Blob) => Promise<boolean>;
+  authState: AuthState;
+  reset: () => void;
+}
+
+type AuthState =
+  | {
+      isLoading: false;
+      customerId: string;
+      error: undefined;
+    }
+  | {
+      isLoading: false;
+      customerId: undefined;
+      error: ApiError;
+    }
+  | {
+      isLoading: true;
+      customerId: undefined;
+      error: undefined;
+    };
+
+export const useFaceAuthentication = (
+  storeId: string | undefined
+): FaceAuthenticationState => {
+  const apiKey = useAtomValue(apiKeyAtom);
+  const [authState, setAuthState] = useState<AuthState>({
+    customerId: undefined,
+    isLoading: true,
+    error: undefined,
+  });
+
+  const handleAuthenticateCustomer = useCallback(
+    async (image: Blob): Promise<boolean> => {
+      if (!storeId) {
+        console.error("Store ID is not available.");
+        return false;
+      }
+
+      const { data: customer, error } = await api(apiKey).POST(
+        "/api/v1/stores/{storeId}/customers/authenticate",
+        {
+          params: {
+            path: {
+              storeId,
+            },
+          },
+          body: {
+            image,
+          },
+          bodySerializer: bodySerializers.form,
+        }
+      );
+
+      if (error && error.code === "customer/face_auth_error") {
+        console.warn("Registering new customer...");
+        const { data: customer, error } = await api(apiKey).POST(
+          "/api/v1/stores/{storeId}/customers",
+          {
+            params: {
+              path: {
+                storeId,
+              },
+            },
+            body: {
+              image,
+            },
+            bodySerializer: bodySerializers.form,
+          }
+        );
+
+        if (error) {
+          console.error("Customer registration failed:", error);
+          setAuthState({
+            customerId: undefined,
+            isLoading: false,
+            error: error,
+          });
+          return false;
+        }
+
+        console.log("Customer registered successfully:", customer);
+        setAuthState({
+          customerId: customer.id,
+          isLoading: false,
+          error: undefined,
+        });
+        return true;
+      }
+
+      if (error) {
+        console.error("Authentication failed:", error);
+        setAuthState({
+          customerId: undefined,
+          isLoading: false,
+          error,
+        });
+        return false;
+      }
+
+      console.log("Authentication successful:", customer);
+      setAuthState({
+        isLoading: false,
+        customerId: customer.id,
+        error: undefined,
+      });
+
+      return true;
+    },
+    [storeId]
+  );
+
+  return {
+    authState,
+    authenticateCustomer: handleAuthenticateCustomer,
+    reset: () => {
+      setAuthState({
+        customerId: undefined,
+        isLoading: true,
+        error: undefined,
+      });
+      console.log("Authentication state reset.");
+    },
+  };
 };
