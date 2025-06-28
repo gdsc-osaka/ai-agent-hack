@@ -377,7 +377,7 @@ export interface operations {
                      * Format: binary
                      * @description Image for face authentication
                      */
-                    image: File;
+                    image: Blob;
                 };
             };
         };
@@ -458,8 +458,11 @@ export interface operations {
         requestBody?: {
             content: {
                 "multipart/form-data": {
-                    /** @description Image for face authentication */
-                    image: unknown;
+                    /**
+                     * Format: binary
+                     * @description Image for face authentication
+                     */
+                    image: Blob;
                 };
             };
         };

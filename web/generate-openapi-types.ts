@@ -3,8 +3,8 @@ import path from 'node:path'
 import openapiTS, { astToString } from 'openapi-typescript'
 import { factory } from 'typescript'
 
-const File = factory.createTypeReferenceNode(
-  factory.createIdentifier('File'),
+const Blob = factory.createTypeReferenceNode(
+  factory.createIdentifier('Blob'),
 )
 
 async function generateTypes(schemaPth: string, outputPth: string) {
@@ -16,7 +16,7 @@ async function generateTypes(schemaPth: string, outputPth: string) {
       transform(schemaObject) {
         // binary format の場合、FormData型に変換
         if (schemaObject.format === 'binary') {
-          return File
+          return Blob
         }
       },
     },
