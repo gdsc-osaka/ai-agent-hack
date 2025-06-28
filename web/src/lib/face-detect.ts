@@ -46,7 +46,7 @@ export const useFaceDetection = ({
   onFaceDetected?: (image: Blob) => Promise<boolean>;
 }): FaceDetectionState => {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [lastFaceDetectedTime, setLastFaceDetectedTime] = useState<
+  const [lastFaceAuthenticatedTime, setLastFaceAuthenticatedTime] = useState<
     number | undefined
   >();
   const [isFaceDetected, setIsFaceDetected] = useState(false);
@@ -69,10 +69,14 @@ export const useFaceDetection = ({
         const hasFace = detections.length > 0;
 
         if (hasFace) {
-          console.log("Face detected.", isFaceDetected, lastFaceDetectedTime);
+          console.log(
+            "Face detected.",
+            isFaceDetected,
+            lastFaceAuthenticatedTime
+          );
           if (isFaceDetected) {
             console.log("Face already detected, no action needed.");
-            setLastFaceDetectedTime(Date.now());
+            setLastFaceAuthenticatedTime(Date.now());
           } else {
             const image = await drawImage(videoRef.current);
             const succeeded = await onFaceDetected?.(image);
@@ -80,17 +84,22 @@ export const useFaceDetection = ({
             if (succeeded) {
               console.log("Face detected and authenticated successfully.");
               setIsFaceDetected(true);
-              setLastFaceDetectedTime(Date.now());
+              setLastFaceAuthenticatedTime(Date.now());
             }
           }
         } else {
-          console.log("No face detected", isFaceDetected, lastFaceDetectedTime);
+          console.log(
+            "No face detected",
+            isFaceDetected,
+            lastFaceAuthenticatedTime
+          );
           if (
-            lastFaceDetectedTime &&
-            Date.now() - lastFaceDetectedTime > faceTimeoutMillis
+            lastFaceAuthenticatedTime &&
+            Date.now() - lastFaceAuthenticatedTime > faceTimeoutMillis
           ) {
             console.log("Face not detected for a while, resetting state.");
             setIsFaceDetected(false);
+            setLastFaceAuthenticatedTime(undefined);
           }
         }
 
@@ -106,7 +115,7 @@ export const useFaceDetection = ({
     return () => clearInterval(id);
   }, [
     isFaceDetected,
-    lastFaceDetectedTime,
+    lastFaceAuthenticatedTime,
     videoRef,
     intervalMillis,
     faceTimeoutMillis,
@@ -114,6 +123,9 @@ export const useFaceDetection = ({
   ]);
 
   return {
+    isFaceAuthenticated: lastFaceAuthenticatedTime
+      ? Date.now() - lastFaceAuthenticatedTime < faceTimeoutMillis
+      : undefined,
     isFaceDetected,
     error,
   };
