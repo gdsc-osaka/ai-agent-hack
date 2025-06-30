@@ -37,13 +37,13 @@ export default function Home() {
   const { startRecording, stopRecording, getAudio } = useRecording();
 
   async function handleAuthenticateFace(image: Blob) {
-    await faceAuth.authenticateCustomer(image);
+    await faceAuth.signIn(image);
     await startRecording();
   }
 
   async function handleRevokeFaceAuth() {
     faceDetection.reset();
-    faceAuth.reset();
+    faceAuth.signOut();
     await stopRecording();
 
     const { data, error } = await api(apiKey).POST('/api/v1/profiles/generate-profile', {

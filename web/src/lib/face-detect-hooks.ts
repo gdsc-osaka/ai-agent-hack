@@ -201,9 +201,9 @@ const drawImage = (video: HTMLVideoElement): Promise<Blob> => {
 };
 
 interface FaceAuthenticationState {
-  authenticateCustomer: (image: Blob) => Promise<void>;
+  signIn: (image: Blob) => Promise<void>;
+  signOut: () => void;
   authState: AuthState;
-  reset: () => void;
 }
 
 type AuthState =
@@ -237,7 +237,7 @@ export const useFaceAuthentication = ({
     error: undefined,
   });
 
-  const handleAuthenticateCustomer = useCallback(
+  const signIn = useCallback(
     async (image: Blob): Promise<void> => {
       if (!storeId) {
         console.error("Store ID is not available.");
@@ -339,16 +339,18 @@ export const useFaceAuthentication = ({
     [storeId, apiKey, openTosDialog]
   );
 
+  const signOut = () => {
+    setAuthState({
+      customerId: undefined,
+      isLoading: true,
+      error: undefined,
+    });
+    console.log("Sign out called, resetting authentication state.");
+  }
+
   return {
     authState,
-    authenticateCustomer: handleAuthenticateCustomer,
-    reset: () => {
-      setAuthState({
-        customerId: undefined,
-        isLoading: true,
-        error: undefined,
-      });
-      console.log("Authentication state reset.");
-    },
+    signIn,
+    signOut,
   };
 };
