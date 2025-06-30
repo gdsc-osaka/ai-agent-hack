@@ -1,9 +1,8 @@
 import { ok, ResultAsync } from "neverthrow";
-import { GoogleAuth } from "google-auth-library";
 import { FaceEmbeddingError } from "./face-embedding-repo.error";
 import env from "../env";
 import { iife } from "../shared/func";
-import { infraLogger } from '../logger';
+import { infraLogger } from "../logger";
 
 export type GetFaceEmbedding = (
   image: File
@@ -20,16 +19,16 @@ export const getFaceEmbedding: GetFaceEmbedding = (image: File) =>
       forwardForm.append("file", image, image.name);
 
       infraLogger("getFaceEmbedding").debug("Forwarding image to ML server", {
-        url: `${env.ML_SERVER_URL}/face-embedding`
+        url: `${env.ML_SERVER_URL}/face-embedding`,
       });
 
       const res = await iife(async () => {
         // if (env.NODE_ENV === "development") {
-          // If ML server is running locally
-          return fetch(`${env.ML_SERVER_URL}/face-embedding`, {
-            method: "POST",
-            body: forwardForm,
-          });
+        // If ML server is running locally
+        return fetch(`${env.ML_SERVER_URL}/face-embedding`, {
+          method: "POST",
+          body: forwardForm,
+        });
         // }
 
         // If ML server is running on Google Cloud Run
@@ -47,5 +46,6 @@ export const getFaceEmbedding: GetFaceEmbedding = (image: File) =>
       return result.embedding[0];
     })(),
     FaceEmbeddingError.handle
-  ).andThen((embedding) => ok(embedding))
+  )
+    .andThen((embedding) => ok(embedding))
     .orTee(infraLogger("getFaceEmbedding").error);
