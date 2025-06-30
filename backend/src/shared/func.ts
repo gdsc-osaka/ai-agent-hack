@@ -25,6 +25,14 @@ export const asyncify = <T, E>(result: Result<T, E>): ResultAsync<T, E> => {
 };
 
 /**
+ * Unpacks a tuple of two elements and applies a function to them.
+ * @param func
+ */
+export const unpack2 = <T, U, V>(func: (arg1: T, arg2: U) => V) => ([param1, param2]: [T, U, ...unknown[]]): V => {
+  return func(param1, param2);
+}
+
+/**
  * Immediately Invoked Function Expression: 即時実行関数式
  * if, try, switch 文などを即時実行し, 擬似的に式として扱うことができるようにする.
  * @param f

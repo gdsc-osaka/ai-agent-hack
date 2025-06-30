@@ -7,6 +7,7 @@ import tags from "./shared/tags";
 import { StaffRole } from "../domain/store-staff";
 import { StaffInvitation } from "../domain/staff-invitation";
 import { StoreApiKey } from "../domain/store-api-key";
+import { CustomerSession } from '../domain/customer-session';
 
 const createStore = createDefaultRoute({
   method: "post",
@@ -120,20 +121,12 @@ const authenticateCustomer = createDefaultRoute({
       description: "Successful authenticated response",
       content: {
         "application/json": {
-          schema: Customer,
+          schema: CustomerSession,
         },
       },
     },
     403: {
       description: "Forbidden - User not authenticated",
-      content: {
-        "application/json": {
-          schema: ApiError,
-        },
-      },
-    },
-    400: {
-      description: "Bad Request - Invalid input or missing image",
       content: {
         "application/json": {
           schema: ApiError,
@@ -171,15 +164,7 @@ const registerCustomer = createDefaultRoute({
       description: "Successful response",
       content: {
         "application/json": {
-          schema: Customer,
-        },
-      },
-    },
-    400: {
-      description: "Bad Request - Invalid input or missing image",
-      content: {
-        "application/json": {
-          schema: ApiError,
+          schema: CustomerSession,
         },
       },
     },

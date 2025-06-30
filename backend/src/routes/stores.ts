@@ -61,6 +61,7 @@ import { HTTPErrorCarrier, StatusCode } from "../controller/error/api-error";
 import { createStoreApiKeyController } from "../controller/store-api-key-controller";
 import { createStoreApiKey } from "../service/store-api-key-service";
 import { insertDBStoreApiKey } from "../infra/store-api-key-repo";
+import { insertDBCustomerSession } from '../infra/customer-session-repo';
 
 const app = new OpenAPIHono();
 
@@ -141,7 +142,8 @@ app.openapi(storesRoute.authenticateCustomer, async (c) => {
       getFaceEmbedding,
       findCustomerIdByFaceEmbedding,
       findDBCustomerById,
-      insertDBVisit
+      insertDBVisit,
+      insertDBCustomerSession,
     )(storeId, image)
   );
 
@@ -162,7 +164,8 @@ app.openapi(storesRoute.registerCustomer, async (c) => {
       getFaceEmbedding,
       insertFaceEmbedding,
       insertDBCustomer,
-      insertDBVisit
+      insertDBVisit,
+      insertDBCustomerSession,
     )(storeId, image)
   );
 

@@ -17,6 +17,7 @@ export const ApiErrorCode = z
     "customer/not_belongs_to_store",
     "customer/tos_already_accepted",
     "customer/face_auth_error",
+    "customer_session/already_exists",
     "face_embedding/error",
     "staff/not_found",
     "staff/invalid",

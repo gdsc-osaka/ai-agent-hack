@@ -41,6 +41,7 @@ import {
   UploadAudioError,
 } from "../../infra/cloud-function-repo.error";
 import { InvalidProfileError } from "../../domain/profile";
+import { DBCustomerSessionAlreadyExistsError } from '../../infra/customer-session-repo';
 
 export const errorCodeMap = {
   [DBInternalError._tag]: "internal/database_error",
@@ -58,6 +59,8 @@ export const errorCodeMap = {
   [CustomerTosAlreadyAcceptedError._tag]: "customer/tos_already_accepted",
   [FaceAuthError._tag]: "customer/face_auth_error",
   [FaceEmbeddingError._tag]: "face_embedding/error",
+  // customer_session
+  [DBCustomerSessionAlreadyExistsError._tag]: "customer_session/already_exists",
   // staff
   [DBStaffNotFoundError._tag]: "staff/not_found",
   [InvalidStaffError._tag]: "staff/invalid",
