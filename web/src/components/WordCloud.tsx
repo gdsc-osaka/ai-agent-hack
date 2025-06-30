@@ -1,5 +1,5 @@
-import React from 'react';
-import { ConversationTopic } from '@/lib/types'
+import React from "react";
+import { ConversationTopic } from "@/lib/types";
 
 interface WordCloudProps {
   topics: ConversationTopic[];
@@ -8,13 +8,20 @@ interface WordCloudProps {
 export const WordCloud: React.FC<WordCloudProps> = ({ topics }) => {
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'personal': return 'text-blue-400';
-      case 'business': return 'text-green-400';
-      case 'entertainment': return 'text-purple-400';
-      case 'lifestyle': return 'text-amber-400';
-      case 'food': return 'text-red-400';
-      case 'travel': return 'text-indigo-400';
-      default: return 'text-gray-400';
+      case "personal":
+        return "text-blue-400";
+      case "business":
+        return "text-green-400";
+      case "entertainment":
+        return "text-purple-400";
+      case "lifestyle":
+        return "text-amber-400";
+      case "food":
+        return "text-red-400";
+      case "travel":
+        return "text-indigo-400";
+      default:
+        return "text-gray-400";
     }
   };
 
@@ -25,38 +32,52 @@ export const WordCloud: React.FC<WordCloudProps> = ({ topics }) => {
     return Math.floor(minSize + (maxSize - minSize) * ratio);
   };
 
-  const maxFrequency = Math.max(...topics.map(t => t.frequency));
+  const maxFrequency = Math.max(...topics.map((t) => t.frequency));
 
   const getCategoryLabel = (category: string) => {
     switch (category) {
-      case 'personal': return '個人';
-      case 'business': return 'ビジネス';
-      case 'entertainment': return 'エンタメ';
-      case 'lifestyle': return 'ライフスタイル';
-      case 'food': return '飲食';
-      case 'travel': return '旅行';
-      default: return 'その他';
+      case "personal":
+        return "個人";
+      case "business":
+        return "ビジネス";
+      case "entertainment":
+        return "エンタメ";
+      case "lifestyle":
+        return "ライフスタイル";
+      case "food":
+        return "飲食";
+      case "travel":
+        return "旅行";
+      default:
+        return "その他";
     }
   };
 
-  const groupedTopics = topics.reduce((acc, topic) => {
-    if (!acc[topic.category]) {
-      acc[topic.category] = [];
-    }
-    acc[topic.category].push(topic);
-    return acc;
-  }, {} as Record<string, ConversationTopic[]>);
+  const groupedTopics = topics.reduce(
+    (acc, topic) => {
+      if (!acc[topic.category]) {
+        acc[topic.category] = [];
+      }
+      acc[topic.category].push(topic);
+      return acc;
+    },
+    {} as Record<string, ConversationTopic[]>
+  );
 
   return (
     <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
       <h3 className="text-white font-semibold text-lg mb-6">会話トピック</h3>
-      
+
       {/* Category Legend */}
       <div className="flex flex-wrap gap-4 mb-6">
-        {Object.keys(groupedTopics).map(category => (
+        {Object.keys(groupedTopics).map((category) => (
           <div key={category} className="flex items-center space-x-2">
-            <div className={`w-3 h-3 rounded-full ${getCategoryColor(category).replace('text-', 'bg-')}`}></div>
-            <span className="text-gray-400 text-sm">{getCategoryLabel(category)}</span>
+            <div
+              className={`w-3 h-3 rounded-full ${getCategoryColor(category).replace("text-", "bg-")}`}
+            ></div>
+            <span className="text-gray-400 text-sm">
+              {getCategoryLabel(category)}
+            </span>
           </div>
         ))}
       </div>
@@ -69,9 +90,9 @@ export const WordCloud: React.FC<WordCloudProps> = ({ topics }) => {
             <span
               key={index}
               className={`${getCategoryColor(topic.category)} font-medium hover:opacity-75 transition-opacity cursor-pointer`}
-              style={{ 
+              style={{
                 fontSize: `${getFontSize(topic.frequency, maxFrequency)}px`,
-                lineHeight: 1.2
+                lineHeight: 1.2,
               }}
               title={`${topic.text} (${topic.frequency}回, ${getCategoryLabel(topic.category)})`}
             >
@@ -84,7 +105,9 @@ export const WordCloud: React.FC<WordCloudProps> = ({ topics }) => {
       <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
         {Object.entries(groupedTopics).map(([category, categoryTopics]) => (
           <div key={category} className="bg-gray-700/30 rounded-lg p-3">
-            <div className={`text-sm font-medium ${getCategoryColor(category)}`}>
+            <div
+              className={`text-sm font-medium ${getCategoryColor(category)}`}
+            >
               {getCategoryLabel(category)}
             </div>
             <div className="text-white text-lg font-semibold">

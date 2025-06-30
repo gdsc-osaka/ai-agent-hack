@@ -1,27 +1,42 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react';
-import { Customer } from '@/lib/types';
-import { OrderHistory } from './OrderHistory';
-import { WordCloud } from './WordCloud';
-import { ArrowLeft, User, Calendar, TrendingUp, Award, MessageSquare, Clock, DollarSign, Edit, Save, X } from 'lucide-react';
+import React, { useState } from "react";
+import { Customer } from "@/lib/types";
+import { OrderHistory } from "./OrderHistory";
+import { WordCloud } from "./WordCloud";
+import {
+  ArrowLeft,
+  User,
+  Calendar,
+  TrendingUp,
+  Award,
+  MessageSquare,
+  Clock,
+  DollarSign,
+  Edit,
+  Save,
+  X,
+} from "lucide-react";
 
 interface CustomerDetailProps {
   customer: Customer;
   onBack: () => void;
 }
 
-export const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, onBack }) => {
+export const CustomerDetail: React.FC<CustomerDetailProps> = ({
+  customer,
+  onBack,
+}) => {
   const [isEditingNotes, setIsEditingNotes] = useState(false);
-  const [notes, setNotes] = useState(customer.notes || '');
+  const [notes, setNotes] = useState(customer.notes || "");
 
   const formatLastVisit = (date: string) => {
     const visitDate = new Date(date);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - visitDate.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 1) return '昨日';
+
+    if (diffDays === 1) return "昨日";
     if (diffDays < 7) return `${diffDays}日前`;
     if (diffDays < 30) return `${Math.floor(diffDays / 7)}週間前`;
     return `${Math.floor(diffDays / 30)}ヶ月前`;
@@ -29,11 +44,16 @@ export const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, onBack
 
   const getFrequencyColor = (frequency: string) => {
     switch (frequency) {
-      case 'VIP': return 'bg-amber-500 text-gray-900';
-      case 'Regular': return 'bg-green-500 text-white';
-      case 'Occasional': return 'bg-blue-500 text-white';
-      case 'New': return 'bg-purple-500 text-white';
-      default: return 'bg-gray-500 text-white';
+      case "VIP":
+        return "bg-amber-500 text-gray-900";
+      case "Regular":
+        return "bg-green-500 text-white";
+      case "Occasional":
+        return "bg-blue-500 text-white";
+      case "New":
+        return "bg-purple-500 text-white";
+      default:
+        return "bg-gray-500 text-white";
     }
   };
 
@@ -43,7 +63,7 @@ export const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, onBack
   };
 
   const handleCancelEdit = () => {
-    setNotes(customer.notes || '');
+    setNotes(customer.notes || "");
     setIsEditingNotes(false);
   };
 
@@ -53,18 +73,20 @@ export const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, onBack
       <div className="bg-gray-800 border-b border-gray-700">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
-            <button 
+            <button
               onClick={onBack}
               className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
               <span>顧客一覧に戻る</span>
             </button>
-            
+
             <div className="flex items-center space-x-4">
               <div className="flex items-center text-amber-500">
                 <Award className="w-5 h-5 mr-2" />
-                <span className="font-semibold">{customer.loyaltyPoints}pt</span>
+                <span className="font-semibold">
+                  {customer.loyaltyPoints}pt
+                </span>
               </div>
             </div>
           </div>
@@ -81,10 +103,14 @@ export const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, onBack
                   {customer.name.charAt(0)}
                 </span>
               </div>
-              
+
               <div>
-                <h1 className="text-white text-3xl font-bold mb-2">{customer.name}</h1>
-                <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getFrequencyColor(customer.visitFrequency)}`}>
+                <h1 className="text-white text-3xl font-bold mb-2">
+                  {customer.name}
+                </h1>
+                <span
+                  className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getFrequencyColor(customer.visitFrequency)}`}
+                >
                   {customer.visitFrequency} Customer
                 </span>
               </div>
@@ -95,31 +121,39 @@ export const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, onBack
                 <div className="flex items-center justify-center text-gray-400 mb-2">
                   <Calendar className="w-4 h-4 mr-1" />
                 </div>
-                <div className="text-white font-semibold">{formatLastVisit(customer.lastVisit)}</div>
+                <div className="text-white font-semibold">
+                  {formatLastVisit(customer.lastVisit)}
+                </div>
                 <div className="text-gray-400 text-sm">最終来店</div>
               </div>
-              
+
               <div className="text-center">
                 <div className="flex items-center justify-center text-gray-400 mb-2">
                   <Clock className="w-4 h-4 mr-1" />
                 </div>
-                <div className="text-white font-semibold">{customer.totalVisits}回</div>
+                <div className="text-white font-semibold">
+                  {customer.totalVisits}回
+                </div>
                 <div className="text-gray-400 text-sm">来店回数</div>
               </div>
-              
+
               <div className="text-center">
                 <div className="flex items-center justify-center text-gray-400 mb-2">
                   <DollarSign className="w-4 h-4 mr-1" />
                 </div>
-                <div className="text-white font-semibold">¥{customer.averageSpend.toLocaleString()}</div>
+                <div className="text-white font-semibold">
+                  ¥{customer.averageSpend.toLocaleString()}
+                </div>
                 <div className="text-gray-400 text-sm">平均消費</div>
               </div>
-              
+
               <div className="text-center">
                 <div className="flex items-center justify-center text-gray-400 mb-2">
                   <TrendingUp className="w-4 h-4 mr-1" />
                 </div>
-                <div className="text-white font-semibold">{customer.loyaltyPoints}</div>
+                <div className="text-white font-semibold">
+                  {customer.loyaltyPoints}
+                </div>
                 <div className="text-gray-400 text-sm">ポイント</div>
               </div>
             </div>
@@ -134,7 +168,7 @@ export const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, onBack
           </h3>
           <div className="flex flex-wrap gap-3">
             {customer.preferredDrinks.map((drink, index) => (
-              <span 
+              <span
                 key={index}
                 className="bg-amber-500/20 text-amber-400 px-4 py-2 rounded-full text-sm font-medium border border-amber-500/30"
               >
@@ -178,7 +212,7 @@ export const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, onBack
               </div>
             )}
           </div>
-          
+
           {isEditingNotes ? (
             <textarea
               value={notes}
@@ -192,7 +226,9 @@ export const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, onBack
               {notes ? (
                 <p className="text-gray-300 leading-relaxed">{notes}</p>
               ) : (
-                <p className="text-gray-500 italic">メモはまだありません。編集ボタンをクリックして追加してください。</p>
+                <p className="text-gray-500 italic">
+                  メモはまだありません。編集ボタンをクリックして追加してください。
+                </p>
               )}
             </div>
           )}
@@ -202,7 +238,7 @@ export const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, onBack
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Word Cloud */}
           <WordCloud topics={customer.conversationTopics} />
-          
+
           {/* Order History */}
           <OrderHistory orders={customer.orders} />
         </div>

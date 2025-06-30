@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown from "react-markdown";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -63,9 +63,10 @@ export function TermsOfServiceDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl h-[80vh] grid grid-rows-[auto_1fr_auto] gap-4 p-6">
-        
         <DialogHeader className="p-0">
-          <DialogTitle className="text-xl font-bold">ご利用にあたって</DialogTitle>
+          <DialogTitle className="text-xl font-bold">
+            ご利用にあたって
+          </DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue="terms" className="flex flex-col overflow-hidden">
@@ -73,7 +74,7 @@ export function TermsOfServiceDialog({
             <TabsTrigger value="terms">利用規約</TabsTrigger>
             <TabsTrigger value="privacy">プライバシーポリシー</TabsTrigger>
           </TabsList>
-          
+
           <div className="flex-1 mt-4 border rounded overflow-hidden">
             <TabsContent value="terms" className="h-full m-0">
               {renderContent(termsContent)}
@@ -83,7 +84,7 @@ export function TermsOfServiceDialog({
             </TabsContent>
           </div>
         </Tabs>
-        
+
         <div className="flex gap-4 justify-end">
           <Button
             variant="outline"
@@ -92,10 +93,7 @@ export function TermsOfServiceDialog({
           >
             同意しない
           </Button>
-          <Button
-            onClick={onAccept}
-            className="min-w-[100px]"
-          >
+          <Button onClick={onAccept} className="min-w-[100px]">
             同意する
           </Button>
         </div>

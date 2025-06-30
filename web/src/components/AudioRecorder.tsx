@@ -18,7 +18,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ faceRecognition }) => {
   const startRecording = async () => {
     if (recording) return;
     setAudioUrl(null); // Clear old audio URL
-    try{
+    try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       const mediaRecorder = new MediaRecorder(stream);
@@ -41,7 +41,9 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ faceRecognition }) => {
       setRecording(true);
     } catch (error) {
       console.error("Error accessing microphone:", error);
-      alert("Unable to access microphone. Please check your permissions and try again.");
+      alert(
+        "Unable to access microphone. Please check your permissions and try again."
+      );
     }
   };
 
@@ -72,9 +74,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ faceRecognition }) => {
 
   return (
     <div>
-      <div>
-        Recording state: {recording ? "now recording" : "stopped"}
-      </div>
+      <div>Recording state: {recording ? "now recording" : "stopped"}</div>
       {audioUrl && (
         <div>
           <audio src={audioUrl} controls />

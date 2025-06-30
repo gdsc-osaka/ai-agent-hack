@@ -25,7 +25,7 @@ export const getFaceEmbedding: GetFaceEmbedding = (image: File) =>
       forwardForm.append("file", image, image.name);
 
       let res: Response | any;
-      
+
       if (env.NODE_ENV === "development") {
         // If ML server is running locally
         res = await fetch(`${env.ML_SERVER_URL}/face-embedding`, {

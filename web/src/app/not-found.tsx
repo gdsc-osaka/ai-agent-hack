@@ -1,5 +1,5 @@
-import Link from 'next/link'
-import { Home, ArrowLeft } from 'lucide-react'
+import Link from "next/link";
+import { Home, ArrowLeft } from "lucide-react";
 
 export default function NotFound() {
   return (
@@ -8,12 +8,14 @@ export default function NotFound() {
         <div className="w-24 h-24 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-8">
           <span className="text-gray-300 text-4xl font-bold">404</span>
         </div>
-        
-        <h1 className="text-white text-3xl font-bold mb-4">ページが見つかりません</h1>
+
+        <h1 className="text-white text-3xl font-bold mb-4">
+          ページが見つかりません
+        </h1>
         <p className="text-gray-400 text-lg mb-8 max-w-md mx-auto">
           お探しのページは存在しないか、移動された可能性があります。
         </p>
-        
+
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
             href="/"
@@ -22,7 +24,7 @@ export default function NotFound() {
             <Home className="w-5 h-5" />
             <span>ホームに戻る</span>
           </Link>
-          
+
           <Link
             href="/customers"
             className="flex items-center justify-center space-x-2 bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-600 transition-colors"
@@ -33,5 +35,5 @@ export default function NotFound() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useAtom } from 'jotai';
-import { useState } from 'react';
-import AudioRecorder from '../components/AudioRecorder';
-import { Button } from '../components/ui/button';
-import { faceRecognitionAtom } from './atoms';
-import { FaceDetector } from '@/components/FaceDetector';
-import { TermsOfServiceDialog } from '../components/terms-of-service-dialog';
+import { useAtom } from "jotai";
+import { useState } from "react";
+import AudioRecorder from "../components/AudioRecorder";
+import { Button } from "../components/ui/button";
+import { faceRecognitionAtom } from "./atoms";
+import { FaceDetector } from "@/components/FaceDetector";
+import { TermsOfServiceDialog } from "../components/terms-of-service-dialog";
 
 export default function Home() {
   const [faceRecognition, setFaceRecognition] = useAtom(faceRecognitionAtom);
@@ -14,21 +14,19 @@ export default function Home() {
 
   return (
     <>
-      <div className={'m-auto'}>
+      <div className={"m-auto"}>
         <div>
           Current Face Detection State: {faceRecognition}
           <Button
             onClick={() =>
               setFaceRecognition(
-                faceRecognition === 'no-face' ? 'face-detected' : 'no-face'
+                faceRecognition === "no-face" ? "face-detected" : "no-face"
               )
             }
           >
-            {faceRecognition === 'no-face' ? 'Detect Face' : 'Reset Detection'}
+            {faceRecognition === "no-face" ? "Detect Face" : "Reset Detection"}
           </Button>
-
           <FaceDetector />
-
           <div className="mt-4">
             <Button variant="outline" onClick={() => setShowTermsDialog(true)}>
               利用規約を表示

@@ -1,20 +1,28 @@
-import React from 'react';
-import { Customer } from '@/lib/types';
-import { Calendar, TrendingUp, Award, Clock } from 'lucide-react';
+import React from "react";
+import { Customer } from "@/lib/types";
+import { Calendar, TrendingUp, Award, Clock } from "lucide-react";
 
 interface CustomerCardProps {
   customer: Customer;
   onClick: () => void;
 }
 
-export const CustomerCard: React.FC<CustomerCardProps> = ({ customer, onClick }) => {
+export const CustomerCard: React.FC<CustomerCardProps> = ({
+  customer,
+  onClick,
+}) => {
   const getFrequencyColor = (frequency: string) => {
     switch (frequency) {
-      case 'VIP': return 'bg-amber-500 text-gray-900';
-      case 'Regular': return 'bg-green-500 text-white';
-      case 'Occasional': return 'bg-blue-500 text-white';
-      case 'New': return 'bg-purple-500 text-white';
-      default: return 'bg-gray-500 text-white';
+      case "VIP":
+        return "bg-amber-500 text-gray-900";
+      case "Regular":
+        return "bg-green-500 text-white";
+      case "Occasional":
+        return "bg-blue-500 text-white";
+      case "New":
+        return "bg-purple-500 text-white";
+      default:
+        return "bg-gray-500 text-white";
     }
   };
 
@@ -23,15 +31,15 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({ customer, onClick })
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - visitDate.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 1) return '昨日';
+
+    if (diffDays === 1) return "昨日";
     if (diffDays < 7) return `${diffDays}日前`;
     if (diffDays < 30) return `${Math.floor(diffDays / 7)}週間前`;
     return `${Math.floor(diffDays / 30)}ヶ月前`;
   };
 
   return (
-    <div 
+    <div
       onClick={onClick}
       className="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-amber-500 transition-all duration-200 cursor-pointer hover:shadow-lg hover:shadow-amber-500/10"
     >
@@ -43,8 +51,12 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({ customer, onClick })
             </span>
           </div>
           <div>
-            <h3 className="text-white font-semibold text-lg">{customer.name}</h3>
-            <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getFrequencyColor(customer.visitFrequency)}`}>
+            <h3 className="text-white font-semibold text-lg">
+              {customer.name}
+            </h3>
+            <span
+              className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getFrequencyColor(customer.visitFrequency)}`}
+            >
               {customer.visitFrequency}
             </span>
           </div>
@@ -63,15 +75,19 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({ customer, onClick })
             <Calendar className="w-4 h-4 mr-1" />
             最終来店
           </div>
-          <div className="text-white font-medium">{formatLastVisit(customer.lastVisit)}</div>
+          <div className="text-white font-medium">
+            {formatLastVisit(customer.lastVisit)}
+          </div>
         </div>
-        
+
         <div className="bg-gray-700/50 rounded-lg p-3">
           <div className="flex items-center text-gray-400 text-sm mb-1">
             <TrendingUp className="w-4 h-4 mr-1" />
             平均消費
           </div>
-          <div className="text-white font-medium">¥{customer.averageSpend.toLocaleString()}</div>
+          <div className="text-white font-medium">
+            ¥{customer.averageSpend.toLocaleString()}
+          </div>
         </div>
       </div>
 
