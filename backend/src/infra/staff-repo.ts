@@ -60,11 +60,12 @@ export const fetchDBStaffByStoreIdAndEmail: FetchDBStaffByStoreIdAndEmail =
 export type FetchDBStaffForStoreById = (
   db: DBorTx
 ) => (
-  userId: Uid
+  userId: Uid,
+  storeId: string
 ) => ResultAsync<DBStaffForStore, DBInternalError | DBStaffNotFoundError>;
 
-export const fetchDBStaffForStoreRoleById: FetchDBStaffForStoreById =
-  (db) => (userId) =>
+export const fetchDBStaffForStoreById: FetchDBStaffForStoreById =
+  (db) => (userId, storeId) =>
     ResultAsync.fromPromise(
       db
         .select({
@@ -73,7 +74,9 @@ export const fetchDBStaffForStoreRoleById: FetchDBStaffForStoreById =
         })
         .from(storesToStaffs)
         .innerJoin(staffs, eq(storesToStaffs.staffId, staffs.id))
-        .where(eq(staffs.userId, userId))
+        .where(
+          and(eq(staffs.userId, userId), eq(storesToStaffs.storeId, storeId))
+        )
         .limit(1),
       DBInternalError.handle
     ).andThen((records) =>

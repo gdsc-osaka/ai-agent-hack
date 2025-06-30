@@ -6,6 +6,8 @@ import { Customer, CustomerId } from "../domain/customer";
 import tags from "./shared/tags";
 import { StaffRole } from "../domain/store-staff";
 import { StaffInvitation } from "../domain/staff-invitation";
+import { StoreApiKey } from "../domain/store-api-key";
+import { CustomerSession } from "../domain/customer-session";
 
 const createStore = createDefaultRoute({
   method: "post",
@@ -92,7 +94,7 @@ const inviteStaffToStore = createDefaultRoute({
 
 const authenticateCustomer = createDefaultRoute({
   method: "post",
-  path: "/{storeId}/customers/authenticate",
+  path: "/{storeId}/face-auth/login",
   tags: tags.customers,
   validateResponse: true,
   operationId: "authenticateCustomer",
@@ -105,7 +107,10 @@ const authenticateCustomer = createDefaultRoute({
       content: {
         "multipart/form-data": {
           schema: z.object({
-            image: z.instanceof(File).describe("Image for face authentication"),
+            image: z
+              .instanceof(File)
+              .openapi({ type: "string", format: "binary" })
+              .describe("Image for face authentication"),
           }),
         },
       },
@@ -116,7 +121,7 @@ const authenticateCustomer = createDefaultRoute({
       description: "Successful authenticated response",
       content: {
         "application/json": {
-          schema: Customer,
+          schema: CustomerSession,
         },
       },
     },
@@ -128,20 +133,12 @@ const authenticateCustomer = createDefaultRoute({
         },
       },
     },
-    400: {
-      description: "Bad Request - Invalid input or missing image",
-      content: {
-        "application/json": {
-          schema: ApiError,
-        },
-      },
-    },
   },
 });
 
 const registerCustomer = createDefaultRoute({
   method: "post",
-  path: "/{storeId}/customers",
+  path: "/{storeId}/face-auth/signup",
   tags: tags.customers,
   operationId: "registerCustomer",
   description: "Register a user's face for authentication",
@@ -153,7 +150,10 @@ const registerCustomer = createDefaultRoute({
       content: {
         "multipart/form-data": {
           schema: z.object({
-            image: z.instanceof(File).describe("Image for face authentication"),
+            image: z
+              .instanceof(File)
+              .openapi({ type: "string", format: "binary" })
+              .describe("Image for face authentication"),
           }),
         },
       },
@@ -164,15 +164,7 @@ const registerCustomer = createDefaultRoute({
       description: "Successful response",
       content: {
         "application/json": {
-          schema: Customer,
-        },
-      },
-    },
-    400: {
-      description: "Bad Request - Invalid input or missing image",
-      content: {
-        "application/json": {
-          schema: ApiError,
+          schema: CustomerSession,
         },
       },
     },
@@ -208,6 +200,44 @@ const checkoutCustomer = createDefaultRoute({
   },
 });
 
+const generateProfile = createDefaultRoute({
+  method: "post",
+  path: "/{storeId}/customers/me/profiles",
+  tags: tags.profiles,
+  validateResponse: true,
+  operationId: "generateProfile",
+  description: "Generate profile data using Gemini",
+  request: {
+    body: {
+      content: {
+        "multipart/form-data": {
+          schema: z.object({
+            file: z
+              .instanceof(File)
+              .openapi({ type: "string", format: "binary" })
+              .describe("Audio file"),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Successfully generated profile data",
+      content: {
+        "application/json": {
+          schema: z.object({
+            message: z.string().describe("Success message"),
+            taskId: z
+              .string()
+              .describe("Task ID for tracking the profile generation"),
+          }),
+        },
+      },
+    },
+  },
+});
+
 const getCustomersByStore = createDefaultRoute({
   method: "get",
   path: "/{storeId}/customers",
@@ -234,11 +264,80 @@ const getCustomersByStore = createDefaultRoute({
   },
 });
 
+const getStoreById = createDefaultRoute({
+  method: "get",
+  path: "/{storeId}",
+  tags: tags.stores,
+  operationId: "getStoreById",
+  description: "Get store by ID",
+  request: {
+    params: z.object({
+      storeId: StoreId.describe("ID of the store to invite staff to"),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Successful response",
+      content: {
+        "application/json": {
+          schema: Store.describe("Store details by ID"),
+        },
+      },
+    },
+  },
+});
+
+const getStoreByMe = createDefaultRoute({
+  method: "get",
+  path: "/me",
+  tags: tags.stores,
+  operationId: "getStoreByMe",
+  description: "Get store by X-Api-Key",
+  request: {},
+  responses: {
+    200: {
+      description: "Successful response",
+      content: {
+        "application/json": {
+          schema: Store.describe("Store details by X-Api-Key"),
+        },
+      },
+    },
+  },
+});
+
+const createStoreApiKey = createDefaultRoute({
+  method: "post",
+  path: "/{storeId}/api-keys",
+  tags: tags.stores,
+  operationId: "createStoreApiKey",
+  description: "Create an API key for the store",
+  request: {
+    params: z.object({
+      storeId: StoreId.describe("ID of the store to invite staff to"),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Successful response",
+      content: {
+        "application/json": {
+          schema: StoreApiKey.describe("API key for the store"),
+        },
+      },
+    },
+  },
+});
+
 export default {
   createStore,
   inviteStaffToStore,
   authenticateCustomer,
   registerCustomer,
   checkoutCustomer,
+  generateProfile,
   getCustomersByStore,
+  createStoreApiKey,
+  getStoreById,
+  getStoreByMe,
 };

@@ -26,10 +26,12 @@ import { FaceAuthError } from "../infra/face-auth-repo.error";
 import { DBStoreNotFoundError } from "../infra/store-repo.error";
 import { convertErrorToApiError } from "./error/api-error-utils";
 import { DBVisitNotFoundError } from "../infra/visit-repo";
+import { CustomerSession } from "../domain/customer-session";
+import { DBCustomerSessionAlreadyExistsError } from "../infra/customer-session-repo";
 
 export const registerCustomerController = (
   registerCustomerRes: ReturnType<RegisterCustomer>
-): ResultAsync<Customer, HTTPErrorCarrier> =>
+): ResultAsync<CustomerSession, HTTPErrorCarrier> =>
   registerCustomerRes.mapErr((err) =>
     HTTPErrorCarrier(
       match(err)
@@ -38,6 +40,10 @@ export const registerCustomerController = (
         .with(DBInternalError.is, () => StatusCode.InternalServerError)
         .with(DBStoreNotFoundError.is, () => StatusCode.NotFound)
         .with(CustomerAlreadyExistsError.is, () => StatusCode.Conflict)
+        .with(
+          DBCustomerSessionAlreadyExistsError.is,
+          () => StatusCode.BadRequest
+        )
         .with(InvalidCustomerError.is, () => StatusCode.BadRequest)
         .exhaustive(),
       convertErrorToApiError(err)
@@ -46,17 +52,21 @@ export const registerCustomerController = (
 
 export const authenticateCustomerController = (
   faceAuthRes: ReturnType<AuthenticateCustomer>
-): ResultAsync<Customer, HTTPErrorCarrier> =>
+): ResultAsync<CustomerSession, HTTPErrorCarrier> =>
   faceAuthRes.mapErr((err) =>
     HTTPErrorCarrier(
       match(err)
         .with(FaceEmbeddingError.is, () => StatusCode.InternalServerError)
-        .with(FaceAuthError.is, () => StatusCode.InternalServerError)
+        .with(FaceAuthError.is, () => StatusCode.Unauthorized)
         .with(FirestoreInternalError.is, () => StatusCode.InternalServerError)
         .with(CustomerNotFoundError.is, () => StatusCode.NotFound)
         .with(DBInternalError.is, () => StatusCode.InternalServerError)
         .with(InvalidCustomerError.is, () => StatusCode.BadRequest)
         .with(DBStoreNotFoundError.is, () => StatusCode.NotFound)
+        .with(
+          DBCustomerSessionAlreadyExistsError.is,
+          () => StatusCode.BadRequest
+        )
         .with(CustomerNotBelongsToStoreError.is, () => StatusCode.Forbidden)
         .exhaustive(),
       convertErrorToApiError(err)

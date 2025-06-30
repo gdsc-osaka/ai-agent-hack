@@ -33,8 +33,15 @@ import {
 import { InvalidStaffRoleError } from "../../domain/store-staff";
 import { DBStoreToStaffAlreadyExistsError } from "../../infra/store-to-staff-repo.error";
 import { CreateNewStoreError, InvalidStoreError } from "../../domain/store";
-import { InvalidStaffError } from "../../domain/staff";
+import { InvalidStaffError, StaffIsNotAdminError } from "../../domain/staff";
 import { DBVisitNotFoundError } from "../../infra/visit-repo";
+import { DBStoreApiKeyAlreadyExistsError } from "../../infra/store-api-key-repo";
+import {
+  CloudFunctionError,
+  UploadAudioError,
+} from "../../infra/cloud-function-repo.error";
+import { InvalidProfileError } from "../../domain/profile";
+import { DBCustomerSessionAlreadyExistsError } from "../../infra/customer-session-repo";
 
 export const errorCodeMap = {
   [DBInternalError._tag]: "internal/database_error",
@@ -52,11 +59,14 @@ export const errorCodeMap = {
   [CustomerTosAlreadyAcceptedError._tag]: "customer/tos_already_accepted",
   [FaceAuthError._tag]: "customer/face_auth_error",
   [FaceEmbeddingError._tag]: "face_embedding/error",
+  // customer_session
+  [DBCustomerSessionAlreadyExistsError._tag]: "customer_session/already_exists",
   // staff
   [DBStaffNotFoundError._tag]: "staff/not_found",
   [InvalidStaffError._tag]: "staff/invalid",
   [InvalidStaffRoleError._tag]: "staff/invalid_role",
   [DBStoreToStaffAlreadyExistsError._tag]: "staff/already_exists_in_store",
+  [StaffIsNotAdminError._tag]: "staff/is_not_admin",
   // staff invitation
   [DBStaffInvitationNotFoundError._tag]: "staff_invitation/not_found",
   [DBStaffInvitationAlreadyExistsError._tag]: "staff_invitation/already_exists",
@@ -69,6 +79,12 @@ export const errorCodeMap = {
   [InvalidStaffInvitationError._tag]: "staff_invitation/invalid",
   // visit
   [DBVisitNotFoundError._tag]: "visit/not_found",
+  // store api key
+  [DBStoreApiKeyAlreadyExistsError._tag]: "store_api_key/already_exists",
+  // profile
+  [CloudFunctionError._tag]: "cloud_function/error",
+  [UploadAudioError._tag]: "cloud_function/upload_audio_error",
+  [InvalidProfileError._tag]: "profile/invalid",
 } satisfies Record<BaseTag, ApiErrorCode>;
 type ErrorCodeMap = typeof errorCodeMap;
 

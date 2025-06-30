@@ -1,6 +1,7 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { swaggerUI } from "@hono/swagger-ui";
 import env from "./env";
+import { apiKeyHeaderKey, customerSessionHeaderKey } from "./shared/const";
 
 export const MyOpenAPIHono = (args: {
   docPath: string;
@@ -21,7 +22,7 @@ export const MyOpenAPIHono = (args: {
     },
     servers: [
       {
-        url: "https://recall-you.web.app",
+        url: "https://api.recall.gdsc-osaka.jp",
         description: "Production Server",
       },
       { url: "http://localhost:8080", description: "Local Server" },
@@ -30,6 +31,12 @@ export const MyOpenAPIHono = (args: {
       {
         session: [],
       },
+      {
+        apikey: [],
+      },
+      {
+        customerSession: [],
+      },
     ],
   });
 
@@ -37,6 +44,18 @@ export const MyOpenAPIHono = (args: {
     type: "apiKey",
     in: "cookie",
     name: "__session",
+  });
+
+  app.openAPIRegistry.registerComponent("securitySchemes", "apikey", {
+    type: "apiKey",
+    in: "header",
+    name: apiKeyHeaderKey,
+  });
+
+  app.openAPIRegistry.registerComponent("securitySchemes", "customerSession", {
+    type: "apiKey",
+    in: "header",
+    name: customerSessionHeaderKey,
   });
 
   app.get(

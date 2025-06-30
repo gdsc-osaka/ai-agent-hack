@@ -44,6 +44,7 @@ export const findCustomerIdByFaceEmbedding: FindCustomerIdByFaceEmbedding =
           queryVector: FieldValue.vector(embedding),
           limit: 1,
           distanceMeasure: "COSINE",
+          distanceThreshold: 4,
         })
         .get(),
       FirestoreInternalError.handle

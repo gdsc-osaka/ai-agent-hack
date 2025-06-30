@@ -1,4 +1,4 @@
-import { Result, ResultAsync } from "neverthrow";
+import { okAsync, Result, ResultAsync } from "neverthrow";
 import { GetFaceEmbedding } from "../infra/face-embedding-repo";
 import {
   DeleteFaceEmbedding,
@@ -19,13 +19,14 @@ import type { FirestoreInternalError } from "../infra/shared/firestore-error";
 import {
   checkCustomerBelongsToStore,
   checkTosNotAccepted,
+  createCustomer,
   createCustomerWithTosAccepted,
   Customer,
   CustomerId,
   CustomerNotBelongsToStoreError,
   CustomerTosAlreadyAcceptedError,
+  DBCustomer,
   InvalidCustomerError,
-  validateCustomer,
   validateCustomers,
 } from "../domain/customer";
 import type {
@@ -35,7 +36,7 @@ import type {
 import type { DBInternalError } from "../infra/shared/db-error";
 import { RunTransaction } from "../infra/transaction";
 import env from "../env";
-import { FetchDBStoreById } from "../infra/store-repo";
+import { FetchDBStoreByPublicId } from "../infra/store-repo";
 import { DBStoreNotFoundError } from "../infra/store-repo.error";
 import type { FaceAuthError } from "../infra/face-auth-repo.error";
 import {
@@ -44,13 +45,19 @@ import {
   InsertDBVisit,
   UpdateDBVisit,
 } from "../infra/visit-repo";
-import {
-  createVisit,
-  createVisitAndCustomer,
-  createVisitForCheckout,
-} from "../domain/visit";
-import { pickFirst, voidify } from "../shared/func";
+import { createVisit, createVisitForCheckout } from "../domain/visit";
+import { unpack2, iife, voidify } from "../shared/func";
 import { StoreId } from "../domain/store";
+import {
+  DBCustomerSessionAlreadyExistsError,
+  InsertDBCustomerSession,
+} from "../infra/customer-session-repo";
+import {
+  createCustomerSession,
+  CustomerSession,
+  DBCustomerSession,
+  validateCustomerSession,
+} from "../domain/customer-session";
 
 // =============
 // == Command ==
@@ -60,67 +67,85 @@ export type RegisterCustomer = (
   storeId: string,
   image: File
 ) => ResultAsync<
-  Customer,
+  CustomerSession,
   | FaceEmbeddingError
   | FirestoreInternalError
   | DBInternalError
   | DBStoreNotFoundError
   | CustomerAlreadyExistsError
+  | DBCustomerSessionAlreadyExistsError
   | InvalidCustomerError
 >;
 
 export const registerCustomer =
   (
     runTransaction: RunTransaction,
-    fetchDBStoreById: FetchDBStoreById,
+    fetchDBStoreByPublicId: FetchDBStoreByPublicId,
     getFaceEmbedding: GetFaceEmbedding,
     insertFaceEmbedding: InsertFaceEmbedding,
     insertDBCustomer: InserttDBCustomer,
-    insertDBVisit: InsertDBVisit
+    insertDBVisit: InsertDBVisit,
+    insertDBCustomerSession: InsertDBCustomerSession
   ): RegisterCustomer =>
-  (storeId, image: File) =>
-    ResultAsync.combine([
+  (storeId, image: File) => {
+    return ResultAsync.combine([
       getFaceEmbedding(image),
-      fetchDBStoreById(db)(storeId).andThen(createVisitAndCustomer),
-    ]).andThen(([embedding, { customer, visit }]) =>
+      fetchDBStoreByPublicId(db)(storeId).andThen(createCustomer),
+    ]).andThen(([embedding, customer]) =>
       insertFaceEmbedding(firestoreDB(firebase(env.FIRE_SA).firestore()))(
         customer,
         embedding
       )
         .andThen(() =>
           runTransaction(db)((tx) =>
-            ResultAsync.combine([
-              insertDBCustomer(tx)(customer),
-              insertDBVisit(tx)(visit),
-            ])
+            // customer を先に insert しないと foregin key violation になるので注意
+            insertDBCustomer(tx)(customer).andThen((customer) =>
+              ResultAsync.combine([
+                okAsync(customer),
+                createCustomerSession(customer).asyncAndThen(
+                  insertDBCustomerSession(tx)
+                ),
+                createVisit(customer.storeId, customer.id).asyncAndThen(
+                  insertDBVisit(tx)
+                ),
+              ])
+            )
           )
         )
-        .map(pickFirst)
-        .andThen(validateCustomer)
+        .andThen(unpack2(validateCustomerSession))
     );
+  };
 
 export type AuthenticateCustomer = (
   storeId: string,
   image: File
 ) => ResultAsync<
-  Customer,
+  CustomerSession,
   | FaceEmbeddingError
   | FaceAuthError
   | FirestoreInternalError
   | CustomerNotFoundError
   | DBInternalError
   | DBStoreNotFoundError
+  | DBCustomerSessionAlreadyExistsError
   | InvalidCustomerError
   | CustomerNotBelongsToStoreError
 >;
+type CustomerSessionErrors =
+  | DBInternalError
+  | CustomerNotFoundError
+  | CustomerNotBelongsToStoreError
+  | DBCustomerSessionAlreadyExistsError
+  | InvalidCustomerError;
 export const authenticateCustomer =
   (
     runTransaction: RunTransaction,
-    fetchDBStoreById: FetchDBStoreById,
+    fetchDBStoreByPublicId: FetchDBStoreByPublicId,
     getFaceEmbedding: GetFaceEmbedding,
     findCustomerIdByFaceEmbedding: FindCustomerIdByFaceEmbedding,
     findDBCustomerById: FindDBCustomerById,
-    insertDBVisit: InsertDBVisit
+    insertDBVisit: InsertDBVisit,
+    insertDBCustomerSession: InsertDBCustomerSession
   ): AuthenticateCustomer =>
   (storeId, image) =>
     ResultAsync.combine([
@@ -129,7 +154,7 @@ export const authenticateCustomer =
           firestoreDB(firebase(env.FIRE_SA).firestore())
         )
       ),
-      fetchDBStoreById(db)(storeId),
+      fetchDBStoreByPublicId(db)(storeId),
     ])
       .andThen(([customerId, store]) =>
         createVisit(store.id, customerId).map(
@@ -138,16 +163,30 @@ export const authenticateCustomer =
       )
       .andThen(([customerId, store, visit]) =>
         runTransaction(db)((tx) =>
-          ResultAsync.combine([
-            findDBCustomerById(tx)(customerId).andThen((customer) =>
-              checkCustomerBelongsToStore(customer, store)
-            ),
-            insertDBVisit(tx)(visit),
-          ])
+          // TODO: Refactor this code
+          iife((): ResultAsync<CustomerSession, CustomerSessionErrors> => {
+            console.debug(customerId);
+            const customer: ResultAsync<DBCustomer, CustomerSessionErrors> =
+              findDBCustomerById(tx)(customerId).andThen((customer) =>
+                checkCustomerBelongsToStore(customer, store)
+              );
+
+            const session: ResultAsync<
+              DBCustomerSession,
+              CustomerSessionErrors
+            > = customer.andThen((customer) =>
+              createCustomerSession(customer).asyncAndThen(
+                insertDBCustomerSession(tx)
+              )
+            );
+
+            return ResultAsync.combine([customer, session]).andThen(
+              ([customer, session]) =>
+                validateCustomerSession(customer, session)
+            );
+          }).andThen((session) => insertDBVisit(tx)(visit).map(() => session))
         )
-      )
-      .map(pickFirst)
-      .andThen(validateCustomer);
+      );
 
 export type CheckoutCustomer = (
   customerId: CustomerId,

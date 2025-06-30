@@ -106,6 +106,18 @@ export const validateStaffForStore: ValidateStaffForStore = (
   );
 };
 
+export const StaffIsNotAdminError = errorBuilder("StaffIsNotAdminError");
+export type StaffIsNotAdminError = InferError<typeof StaffIsNotAdminError>;
+
+export const checkStaffIsAdmin = (
+  staff: DBStaffForStore
+): Result<void, StaffIsNotAdminError> => {
+  if (staff.role !== "ADMIN") {
+    return err(StaffIsNotAdminError("Staff is not admin"));
+  }
+  return ok(undefined);
+};
+
 export const CreateNewStaffError = errorBuilder(
   "CreateNewStaffError",
   z.object({

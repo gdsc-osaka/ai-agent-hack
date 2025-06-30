@@ -1,4 +1,3 @@
-import { CloudTasksClient, protos } from "@google-cloud/tasks";
 import { GoogleGenAI, Type } from "@google/genai";
 import Busboy from "busboy";
 import {
@@ -9,51 +8,90 @@ import {
   onTaskDispatched,
   Request as TasksRequest,
 } from "firebase-functions/v2/tasks";
+import { getFunctions } from 'firebase-admin/functions';
+import admin from 'firebase-admin';
+import { logger } from 'firebase-functions';
 import { v4 as uuidv4 } from "uuid";
 import db from "backend/dist/db/db";
 import { profiles } from "backend/dist/db/schema/app/profiles";
 
-const tasksClient = new CloudTasksClient();
-const projectId = process.env.GCP_PROJECT_ID || "recall-you";
 const region = process.env.GCP_REGION || "asia-northeast1";
-const queue = process.env.TASK_QUEUE || "profile-queue";
+
+admin.initializeApp(process.env.NODE_ENV === "development" ? {
+  credential: admin.credential.cert(
+    JSON.parse(process.env.FIRE_SA!) as admin.ServiceAccount
+  ),
+} : undefined);
+
+interface ApiError {
+  message: string;
+  code: string;
+  details: unknown[];
+}
+
+interface UploadAudioResponse {
+  message: string;
+  taskId: string;
+}
 
 // 音声をCloud Tasksに登録
 export const uploadAudio = onRequest(
   { region },
   async (req, res): Promise<void> => {
     if (req.method !== "POST") {
-      res.status(405).send("Method Not Allowed");
+      res.status(405).json({
+        message: "Method Not Allowed. Only POST requests are allowed.",
+        code: "method_not_allowed",
+        details: [],
+      } satisfies ApiError);
       return;
     }
 
     try {
-      const { buffer: audioBuffer, audioMime } = await parseAudio(req);
+      const { buffer: audioBuffer, audioMime, customerId } = await parseAudio(req);
       const id = uuidv4();
-      const payload = {
-        id,
-        audioMime,
-        audioBase64: audioBuffer.toString("base64"),
-      };
 
-      const parent = tasksClient.queuePath(projectId, region, queue);
-      const url = `https://${region}-${projectId}.cloudfunctions.net/generateProfile`;
-      const task: protos.google.cloud.tasks.v2.ITask = {
-        httpRequest: {
-          httpMethod: protos.google.cloud.tasks.v2.HttpMethod.POST,
-          url,
-          headers: { "Content-Type": "application/json" },
-          body: Buffer.from(JSON.stringify(payload)).toString("base64"),
-        },
-      };
-      await tasksClient.createTask({ parent, task });
+      console.log(`Queuing audio file for processing with ID: ${id}`);
+      if (process.env.NODE_ENV === "development") {
+        // 開発環境では直接関数を呼び出す
+        generateProfile.run({
+          data: {
+            id,
+            audioMime,
+            audioBase64: audioBuffer.toString("base64"),
+            customerId,
+          },
+          id: id,
+          queueName: 'generateProfile',
+          retryCount: 5,
+          executionCount: 0,
+          scheduledTime: new Date().toISOString(),
+        })
+      } else {
+        // 本番環境ではCloud Tasksを使用して非同期処理
+        const queue = getFunctions().taskQueue('generateProfile');
+        await queue.enqueue({
+          id,
+          audioMime,
+          audioBase64: audioBuffer.toString("base64"),
+          customerId
+        })
+      }
+      console.log(`✅ Audio file queued successfully with ID: ${id}`);
 
-      res.status(200).send(`Task queued (id=${id})`);
+      res.status(200).json({
+        message: "Audio file successfully uploaded and processing started.",
+        taskId: id,
+      } satisfies UploadAudioResponse);
     } catch (error) {
       console.error("uploadAudio error:", error);
-      res.status(500).send(
-        error instanceof Error ? error.message : String(error)
-      );
+      res.status(500).json({
+        message:
+          "An error occurred while processing the audio file on the server: " +
+          (error instanceof Error ? error.message : String(error)),
+        code: "server/error",
+        details: [],
+      });
     }
   }
 );
@@ -61,7 +99,7 @@ export const uploadAudio = onRequest(
 // multipart/form-dataで音声ファイルを抽出
 function parseAudio(
   req: HttpsRequest
-): Promise<{ buffer: Buffer; audioMime: string }> {
+): Promise<{ buffer: Buffer; audioMime: string, customerId: string }> {
   return new Promise((resolve, reject) => {
     // eslint-disable-next-line new-cap
     const busboy = Busboy({
@@ -72,29 +110,68 @@ function parseAudio(
         fields: 0,
       },
     });
-    const chunks: Buffer[] = [];
-    let audioMime = "";
-    let fileReceived = false;
+    let audioBuffer: Buffer | null = null;
+    let audioMimeType: string | null = null;
+    let customerId: string | null = null;
 
-    busboy.on("file", (_field, file, info) => {
-      fileReceived = true;
-      audioMime = info.mimeType;
-      if (!audioMime.startsWith("audio/")) {
-        reject(new Error(`Unsupported MIME type: ${audioMime}`));
+    busboy.on("file", (field, file, info) => {
+      if (field === 'recording' && info.mimeType === 'audio/webm') {
+        const fileBufferChunks: Buffer[] = [];
+        file.on('data', (data: Buffer) => {
+          fileBufferChunks.push(data);
+        });
+
+        file.on('end', () => {
+          audioBuffer = Buffer.concat(fileBufferChunks);
+          audioMimeType = info.mimeType;
+          console.log(`Audio file [${file}] processed. Size: ${audioBuffer.length} bytes`);
+        });
+
+        file.on('error', (err: Error) => {
+          console.error(`Error processing file [${file}]:`, err);
+          reject(err);
+        });
+      } else {
+        // 他のフィールドは無視
+        console.warn(`Ignoring field: ${field}, MIME type: ${info.mimeType}`);
+        file.resume();
         return;
       }
-      file.on("data", (data: Buffer) => chunks.push(data));
-    });
-    busboy.on("error", reject);
-    busboy.on("finish", () => {
-      if (!fileReceived) return reject(new Error("No file uploaded"));
-      if (chunks.length === 0) {
-        return reject(new Error("Received file is empty"));
-      }
-      resolve({ buffer: Buffer.concat(chunks), audioMime });
     });
 
-    req.pipe(busboy);
+    // get customerId
+    busboy.on("field", (fieldname, val) => {
+      if (fieldname === 'customerId') {
+        if (typeof val === 'string' && val.trim() !== '') {
+          customerId = val.trim();
+          console.log(`Customer ID received: ${customerId}`);
+        } else {
+          console.warn(`Invalid or missing customerId field: ${val}`);
+        }
+      }
+    });
+
+    busboy.on('error', (err: Error) => {
+      console.error('Busboy parsing error:', err);
+      reject(err);
+    });
+
+    busboy.on("finish", () => {
+      if (!audioBuffer || !audioMimeType) return reject(new Error("No audio/webm file found with key \"recording\" in the request."));
+      if (audioBuffer.length === 0) return reject(new Error("Empty file uploaded"));
+      if (!customerId) return reject(new Error("Missing customerId field in the request."));
+
+      resolve({ buffer: audioBuffer, audioMime: audioMimeType, customerId: customerId });
+    });
+
+    // Firebase Functionsではreq.rawBodyを使用する
+    // rawBodyはBufferまたはundefinedの可能性があるため、Bufferであることを保証する必要があります。
+    // req.rawBodyがundefinedの場合、Busboy.end()に空のBufferを渡すか、エラーをスローするなど考慮が必要です。
+    if (req.rawBody) {
+      busboy.end(req.rawBody);
+    } else {
+      reject(new Error('Request body is empty or not available.'));
+    }
   });
 }
 
@@ -108,24 +185,31 @@ export const generateProfile = onTaskDispatched(
     id: string;
     audioMime: string;
     audioBase64: string;
+    customerId: string;
   }>) => {
     try {
-      const { audioMime, audioBase64 } = req.data;
+      logger.log(`🚀 Processing audio file for task ID: ${req.data.id}`, req);
+
+      const { audioMime, audioBase64, customerId } = req.data;
       const buffer = Buffer.from(audioBase64, "base64");
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const blob = new Blob([buffer], { type: audioMime });
+
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+      logger.log("Uploading audio file to Gemini API...");
       const file = await ai.files.upload({ file: blob });
 
-      const request = {
+      logger.log("Sending request to Gemini API with file:", file.uri);
+      const response = await ai.models.generateContent({
         model: "gemini-2.0-flash",
         contents: [
           {
             role: "user",
             parts: [
               {
-                file_data: {
-                  file_uri: file.uri,
-                  mime_type: audioMime,
+                fileData: {
+                  fileUri: file.uri,
+                  mimeType: audioMime,
                 },
               },
               {
@@ -156,10 +240,8 @@ export const generateProfile = onTaskDispatched(
             },
           },
         },
-      };
-
-      const response = await ai.models.generateContent(request);
-      const profileData = await response.text;
+      });
+      const profileData = response.text;
       if (!profileData) {
         throw new Error("No profile data returned from Gemini API");
       }
@@ -174,15 +256,33 @@ export const generateProfile = onTaskDispatched(
         worry: string;
         store: string;
       }> = JSON.parse(profileData);
-      const normalizedProfiles = profileList.map((p) => ({
-        ...p,
-        birthday: new Date(p.birthday),
-      }));
-      console.log("Generated profiles:", normalizedProfiles);
-      await db.insert(profiles).values(normalizedProfiles);
+
+      logger.log("Profile data received from Gemini API:", profileList);
+
+      if (profileList.length === 0) {
+        throw new Error("No profile data found in the response");
+      }
+
+      const profile: typeof profiles.$inferInsert = {
+        ...profileList[0],
+        customerId,
+        birthday: iife(() => {
+          const date = new Date(profileList[0].birthday);
+          if (isNaN(date.getTime())) { // 日付が無効な場合
+            return undefined;
+          }
+          return date;
+        })
+      }
+
+      logger.log("Trying to insert profile data:", profile);
+
+      await db.insert(profiles).values(profile);
+
+      logger.log("✅ Profile data successfully inserted into the database.");
       return;
     } catch (error) {
-      console.error("Error occurred during audio file processing:", error);
+      logger.error("Error occurred during audio file processing:", error);
       const errMsg =
         "An error occurred while processing the audio file on the server: " +
         (error instanceof Error ? error.message : String(error));
@@ -190,3 +290,20 @@ export const generateProfile = onTaskDispatched(
     }
   }
 );
+
+/**
+ * Immediately Invoked Function Expression: 即時実行関数式
+ * if, try, switch 文などを即時実行し, 擬似的に式として扱うことができるようにする.
+ * @param f
+ * @example
+ * ```typescript
+ * const result = iife(() => {
+ *   if (condition) {
+ *     return "foo";
+ *   } else {
+ *     return "bar";
+ *   }
+ * }
+ * ```
+ */
+export const iife = <T>(f: () => T): T => f();

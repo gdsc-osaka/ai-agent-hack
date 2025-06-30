@@ -20,6 +20,7 @@ env:
   GCP_SERVICE_ACCOUNT: 'github-action-994212429@recall-you.iam.gserviceaccount.com'
   GCP_WORKLOAD_IDENTITY_PROVIDER: 'projects/966744275445/locations/global/workloadIdentityPools/gh-pool/providers/gh-repo-provider'
   REPO_NAME: 'cloud-run-source-deploy'
+  ML_SERVICE_URL: 'https://recall-you-ml-prod-gpu-966744275445.asia-southeast1.run.app'
 permissions:
   checks: write
   contents: read
@@ -167,6 +168,7 @@ jobs:
               --set-env-vars="AUTH_SECRET=${{ secrets.AUTH_SECRET }}" \
               --set-env-vars="AUTH_DATABASE_URL=postgresql://user:password@localhost:5432/auth_db" \
               --set-env-vars="TRUSTED_ORIGIN_WEB=${{ needs.setup-env.outputs.hosting_url }}" \
+              --set-env-vars="ML_SERVICE_URL=${{ env.ML_SERVICE_URL }}" \
             --container db \
               --image=$IMAGE_TAG_DB \
               --set-env-vars="PULL_REQUEST_NUMBER=$PR_NUMBER" \

@@ -1,3 +1,5 @@
+import { errAsync, okAsync, Result, ResultAsync } from "neverthrow";
+
 /**
  * Picks the first `ResultAsync` from an array of `ResultAsync` instances.
  * @example
@@ -14,6 +16,23 @@ export const pickFirst = <T>([first]: [T, ...any[]]): T => {
 export const voidify = (): void => {
   return undefined;
 };
+
+export const asyncify = <T, E>(result: Result<T, E>): ResultAsync<T, E> => {
+  return result.match(
+    (ok) => okAsync(ok),
+    (err) => errAsync(err)
+  );
+};
+
+/**
+ * Unpacks a tuple of two elements and applies a function to them.
+ * @param func
+ */
+export const unpack2 =
+  <T, U, V>(func: (arg1: T, arg2: U) => V) =>
+  ([param1, param2]: [T, U, ...unknown[]]): V => {
+    return func(param1, param2);
+  };
 
 /**
  * Immediately Invoked Function Expression: 即時実行関数式
