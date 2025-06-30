@@ -84,6 +84,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stores/{storeId}/customers/me/profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Generate profile data using Gemini */
+        post: operations["generateProfile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/stores/{storeId}/customers": {
         parameters: {
             query?: never;
@@ -231,23 +248,6 @@ export interface paths {
         put?: never;
         /** @description Decline the Terms of Service for a customer and delete their data. */
         post: operations["declineCustomerTos"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/profiles/generate-profile": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** @description Generate profile data using Gemini */
-        post: operations["generateProfile"];
         delete?: never;
         options?: never;
         head?: never;
@@ -511,6 +511,50 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Bad Request - Invalid input or missing image */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    generateProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * Format: binary
+                     * @description Audio file
+                     */
+                    file: Blob;
+                };
+            };
+        };
+        responses: {
+            /** @description Successfully generated profile data */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Success message */
+                        message: string;
+                        /** @description Task ID for tracking the profile generation */
+                        taskId: string;
+                    };
+                };
             };
             /** @description Bad Request - Invalid input or missing image */
             400: {
@@ -799,50 +843,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-            /** @description Bad Request - Invalid input or missing image */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiError"];
-                };
-            };
-        };
-    };
-    generateProfile: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "multipart/form-data": {
-                    /**
-                     * Format: binary
-                     * @description Audio file
-                     */
-                    file: Blob;
-                };
-            };
-        };
-        responses: {
-            /** @description Successfully generated profile data */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Success message */
-                        message: string;
-                        /** @description Task ID for tracking the profile generation */
-                        taskId: string;
-                    };
-                };
             };
             /** @description Bad Request - Invalid input or missing image */
             400: {
