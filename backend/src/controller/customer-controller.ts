@@ -7,7 +7,6 @@ import {
   CustomerNotFoundError,
 } from "../infra/customer-repo.error";
 import {
-  Customer,
   CustomerNotBelongsToStoreError,
   CustomerTosAlreadyAcceptedError,
   InvalidCustomerError,
@@ -28,6 +27,7 @@ import { convertErrorToApiError } from "./error/api-error-utils";
 import { DBVisitNotFoundError } from "../infra/visit-repo";
 import { CustomerSession } from "../domain/customer-session";
 import { DBCustomerSessionAlreadyExistsError } from "../infra/customer-session-repo";
+import { CustomerWithProfiles, InvalidProfileError } from "../domain/profile";
 
 export const registerCustomerController = (
   registerCustomerRes: ReturnType<RegisterCustomer>
@@ -117,13 +117,15 @@ export const declineCustomerTosController = (
 
 export const fetchVisitingCustomersController = (
   res: ReturnType<FetchVisitingCustomers>
-): ResultAsync<Customer[], HTTPErrorCarrier> =>
+): ResultAsync<CustomerWithProfiles[], HTTPErrorCarrier> =>
   res.mapErr((err) =>
     HTTPErrorCarrier(
       match(err)
         .with(DBInternalError.is, () => StatusCode.InternalServerError)
         .with(InvalidCustomerError.is, () => StatusCode.InternalServerError)
+        .with(InvalidProfileError.is, () => StatusCode.InternalServerError)
         .with(CustomerNotFoundError.is, () => StatusCode.NotFound)
+        .with(DBStoreNotFoundError.is, () => StatusCode.NotFound)
         .exhaustive(),
       convertErrorToApiError(err)
     )

@@ -34,6 +34,7 @@ export const ApiErrorCode = z
     "staff_invitation/invalid",
     "visit/not_found",
     "store_api_key/already_exists",
+    "store_api_key/not_found",
     "profile/invalid",
     "cloud_function/error",
     "cloud_function/upload_audio_error",

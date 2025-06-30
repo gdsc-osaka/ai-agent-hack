@@ -159,7 +159,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** @description Get API keys for the store */
+        get: operations["getStoreApiKeys"];
         put?: never;
         /** @description Create an API key for the store */
         post: operations["createStoreApiKey"];
@@ -268,7 +269,7 @@ export interface components {
             updatedAt: components["schemas"]["Timestamp"];
         };
         /** @enum {string} */
-        ApiErrorCode: "internal/database_error" | "internal/firestore_error" | "authorization/invalid_session" | "authorization/invalid_api_key" | "store/not_found" | "store/already_exists" | "store/invalid_store_id" | "store/invalid" | "store/wrong_store_id" | "customer/already_exists" | "customer/not_found" | "customer/invalid" | "customer/not_belongs_to_store" | "customer/tos_already_accepted" | "customer/face_auth_error" | "customer_session/already_exists" | "face_embedding/error" | "staff/not_found" | "staff/invalid" | "staff/invalid_role" | "staff/already_exists_in_store" | "staff/is_not_admin" | "staff_invitation/not_found" | "staff_invitation/already_exists" | "staff_invitation/duplicate" | "staff_invitation/permission_error" | "staff_invitation/expired" | "staff_invitation/not_pending" | "staff_invitation/wrong_email" | "staff_invitation/invalid" | "visit/not_found" | "store_api_key/already_exists" | "profile/invalid" | "cloud_function/error" | "cloud_function/upload_audio_error";
+        ApiErrorCode: "internal/database_error" | "internal/firestore_error" | "authorization/invalid_session" | "authorization/invalid_api_key" | "store/not_found" | "store/already_exists" | "store/invalid_store_id" | "store/invalid" | "store/wrong_store_id" | "customer/already_exists" | "customer/not_found" | "customer/invalid" | "customer/not_belongs_to_store" | "customer/tos_already_accepted" | "customer/face_auth_error" | "customer_session/already_exists" | "face_embedding/error" | "staff/not_found" | "staff/invalid" | "staff/invalid_role" | "staff/already_exists_in_store" | "staff/is_not_admin" | "staff_invitation/not_found" | "staff_invitation/already_exists" | "staff_invitation/duplicate" | "staff_invitation/permission_error" | "staff_invitation/expired" | "staff_invitation/not_pending" | "staff_invitation/wrong_email" | "staff_invitation/invalid" | "visit/not_found" | "store_api_key/already_exists" | "store_api_key/not_found" | "profile/invalid" | "cloud_function/error" | "cloud_function/upload_audio_error";
         ApiError: {
             message: string;
             code: components["schemas"]["ApiErrorCode"];
@@ -306,9 +307,28 @@ export interface components {
             token: string;
             expiresAt: components["schemas"]["Timestamp"];
         };
+        Profile: {
+            id: string;
+            gender?: string;
+            birthday?: string | null;
+            birthplace?: string;
+            business?: string;
+            partner?: string;
+            hobby?: string;
+            news?: string;
+            worry?: string;
+            store?: string;
+            createdAt: components["schemas"]["Timestamp"];
+            updatedAt: components["schemas"]["Timestamp"];
+        };
+        CustomerWithProfiles: {
+            customer: components["schemas"]["Customer"];
+            profiles: components["schemas"]["Profile"][];
+        };
         /** @description API key for the store */
         StoreApiKey: {
             apiKey: string;
+            createdAt: components["schemas"]["Timestamp"];
         };
     };
     responses: never;
@@ -587,7 +607,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Customer"][];
+                    "application/json": components["schemas"]["CustomerWithProfiles"][];
                 };
             };
             /** @description Bad Request - Invalid input or missing image */
@@ -649,6 +669,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Store"] & unknown;
+                };
+            };
+            /** @description Bad Request - Invalid input or missing image */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getStoreApiKeys: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description ID of the store to invite staff to */
+                storeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description List of API keys for the store */
+                        apiKeys: components["schemas"]["StoreApiKey"][];
+                    };
                 };
             };
             /** @description Bad Request - Invalid input or missing image */

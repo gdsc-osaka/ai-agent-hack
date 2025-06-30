@@ -20,11 +20,11 @@ export const createVisit = (
   });
 };
 
-export const createVisitForCheckout = (
-  visit: DBVisit
-): Result<DBVisitForUpdate, never> => {
+export const createVisitForCheckout = (): Result<
+  Pick<DBVisitForUpdate, "checkoutAt">,
+  never
+> => {
   return ok({
-    id: visit.id,
     checkoutAt: new Date(),
   });
 };

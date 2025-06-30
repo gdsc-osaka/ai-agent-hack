@@ -43,25 +43,31 @@ import {
 } from "../infra/customer-repo";
 import {
   authenticateCustomerController,
-  checkoutCustomerController,
   fetchVisitingCustomersController,
   registerCustomerController,
 } from "../controller/customer-controller";
 import {
   authenticateCustomer,
-  checkoutCustomer,
   fetchVisitingCustomers,
   registerCustomer,
 } from "../service/customer-service";
 import {
-  fetchDBVisitByStoreIdAndCustomerId,
   insertDBVisit,
-  updateDBVisit,
+  updateDBVisitByStoreIdAndCustomerId,
 } from "../infra/visit-repo";
 import { HTTPErrorCarrier, StatusCode } from "../controller/error/api-error";
-import { createStoreApiKeyController } from "../controller/store-api-key-controller";
-import { createStoreApiKey } from "../service/store-api-key-service";
-import { insertDBStoreApiKey } from "../infra/store-api-key-repo";
+import {
+  createStoreApiKeyController,
+  fetchStoreApiKeysByStoreIdController,
+} from "../controller/store-api-key-controller";
+import {
+  createStoreApiKey,
+  fetchStoreApiKeysByStoreId,
+} from "../service/store-api-key-service";
+import {
+  fetchDBStoreApiKeysByStoreId,
+  insertDBStoreApiKey,
+} from "../infra/store-api-key-repo";
 import { insertDBCustomerSession } from "../infra/customer-session-repo";
 import { generateProfileController } from "../controller/profiles-controller";
 import { generateProfile } from "../service/profiles-service";
@@ -147,7 +153,8 @@ app.openapi(storesRoute.authenticateCustomer, async (c) => {
       findCustomerIdByFaceEmbedding,
       findDBCustomerById,
       insertDBVisit,
-      insertDBCustomerSession
+      insertDBCustomerSession,
+      updateDBVisitByStoreIdAndCustomerId
     )(storeId, image)
   );
 
@@ -179,22 +186,23 @@ app.openapi(storesRoute.registerCustomer, async (c) => {
   return c.json(res.value, 201);
 });
 
-app.openapi(storesRoute.checkoutCustomer, async (c) => {
-  const { storeId, customerId } = c.req.valid("param");
-
-  const res = await checkoutCustomerController(
-    checkoutCustomer(
-      runTransaction,
-      fetchDBVisitByStoreIdAndCustomerId,
-      updateDBVisit
-    )(customerId, storeId)
-  );
-
-  if (res.isErr()) {
-    throw toHTTPException(res.error);
-  }
-  return c.text("ok", 201);
-});
+// face auth の signOut に集約する
+// app.openapi(storesRoute.checkoutCustomer, async (c) => {
+//   const { storeId, customerId } = c.req.valid("param");
+//
+//   const res = await checkoutCustomerController(
+//     checkoutCustomer(
+//       runTransaction,
+//       fetchDBVisitByStoreIdAndCustomerId,
+//       updateDBVisitById
+//     )(customerId, storeId)
+//   );
+//
+//   if (res.isErr()) {
+//     throw toHTTPException(res.error);
+//   }
+//   return c.text("ok", 201);
+// });
 
 app.openapi(storesRoute.generateProfile, async (c) => {
   const { file } = c.req.valid("form");
@@ -215,7 +223,10 @@ app.openapi(storesRoute.getCustomersByStore, async (c) => {
   // const { status } = c.req.valid("query");
 
   const res = await fetchVisitingCustomersController(
-    fetchVisitingCustomers(findVisitingDBCustomersByStoreId)(storeId)
+    fetchVisitingCustomers(
+      fetchDBStoreByPublicId,
+      findVisitingDBCustomersByStoreId
+    )(storeId)
   );
 
   if (res.isErr()) {
@@ -266,6 +277,28 @@ app.openapi(storesRoute.createStoreApiKey, async (c) => {
   }
 
   return c.json(res.value, 200);
+});
+
+app.openapi(storesRoute.getStoreApiKeys, async (c) => {
+  const { storeId } = c.req.valid("param");
+
+  const res = await fetchStoreApiKeysByStoreIdController(
+    fetchStoreApiKeysByStoreId(
+      fetchDBStoreApiKeysByStoreId,
+      fetchDBStoreByPublicId
+    )(storeId)
+  );
+
+  if (res.isErr()) {
+    throw toHTTPException(res.error);
+  }
+
+  return c.json(
+    {
+      apiKeys: res.value,
+    },
+    200
+  );
 });
 
 export default app;

@@ -1,4 +1,4 @@
-import { okAsync, Result, ResultAsync } from "neverthrow";
+import { errAsync, okAsync, Result, ResultAsync } from "neverthrow";
 import { GetFaceEmbedding } from "../infra/face-embedding-repo";
 import {
   DeleteFaceEmbedding,
@@ -21,13 +21,11 @@ import {
   checkTosNotAccepted,
   createCustomer,
   createCustomerWithTosAccepted,
-  Customer,
   CustomerId,
   CustomerNotBelongsToStoreError,
   CustomerTosAlreadyAcceptedError,
   DBCustomer,
   InvalidCustomerError,
-  validateCustomers,
 } from "../domain/customer";
 import type {
   CustomerAlreadyExistsError,
@@ -41,12 +39,11 @@ import { DBStoreNotFoundError } from "../infra/store-repo.error";
 import type { FaceAuthError } from "../infra/face-auth-repo.error";
 import {
   DBVisitNotFoundError,
-  FetchDBVisitByStoreIdAndCustomerId,
   InsertDBVisit,
-  UpdateDBVisit,
+  UpdateDBVisitByStoreIdAndCustomerId,
 } from "../infra/visit-repo";
 import { createVisit, createVisitForCheckout } from "../domain/visit";
-import { unpack2, iife, voidify } from "../shared/func";
+import { iife, unpack2 } from "../shared/func";
 import { StoreId } from "../domain/store";
 import {
   DBCustomerSessionAlreadyExistsError,
@@ -58,6 +55,12 @@ import {
   DBCustomerSession,
   validateCustomerSession,
 } from "../domain/customer-session";
+import {
+  CustomerWithProfiles,
+  InvalidProfileError,
+  validateCustomerWithProfilesList,
+} from "../domain/profile";
+import { match } from "ts-pattern";
 
 // =============
 // == Command ==
@@ -145,7 +148,8 @@ export const authenticateCustomer =
     findCustomerIdByFaceEmbedding: FindCustomerIdByFaceEmbedding,
     findDBCustomerById: FindDBCustomerById,
     insertDBVisit: InsertDBVisit,
-    insertDBCustomerSession: InsertDBCustomerSession
+    insertDBCustomerSession: InsertDBCustomerSession,
+    updateDBVisitByStoreIdAndCustomerId: UpdateDBVisitByStoreIdAndCustomerId
   ): AuthenticateCustomer =>
   (storeId, image) =>
     ResultAsync.combine([
@@ -165,13 +169,12 @@ export const authenticateCustomer =
         runTransaction(db)((tx) =>
           // TODO: Refactor this code
           iife((): ResultAsync<CustomerSession, CustomerSessionErrors> => {
-            console.debug(customerId);
             const customer: ResultAsync<DBCustomer, CustomerSessionErrors> =
               findDBCustomerById(tx)(customerId).andThen((customer) =>
                 checkCustomerBelongsToStore(customer, store)
               );
 
-            const session: ResultAsync<
+            const dbSession: ResultAsync<
               DBCustomerSession,
               CustomerSessionErrors
             > = customer.andThen((customer) =>
@@ -180,11 +183,28 @@ export const authenticateCustomer =
               )
             );
 
-            return ResultAsync.combine([customer, session]).andThen(
-              ([customer, session]) =>
-                validateCustomerSession(customer, session)
-            );
-          }).andThen((session) => insertDBVisit(tx)(visit).map(() => session))
+            const session: ResultAsync<CustomerSession, CustomerSessionErrors> =
+              ResultAsync.combine([customer, dbSession]).andThen(
+                ([customer, session]) =>
+                  validateCustomerSession(customer, session)
+              );
+
+            const updateVisit = createVisitForCheckout()
+              .asyncAndThen((visit) =>
+                updateDBVisitByStoreIdAndCustomerId(tx)(
+                  store.id,
+                  customerId,
+                  visit
+                ).orElse((err) =>
+                  match(err)
+                    .with(DBVisitNotFoundError.is, () => okAsync())
+                    .otherwise((err) => errAsync(err))
+                )
+              )
+              .andThen(() => insertDBVisit(tx)(visit));
+
+            return session.andThen((session) => updateVisit.map(() => session));
+          })
         )
       );
 
@@ -193,19 +213,19 @@ export type CheckoutCustomer = (
   storeId: StoreId
 ) => ResultAsync<void, DBInternalError | DBVisitNotFoundError>;
 
-export const checkoutCustomer =
-  (
-    runTransaction: RunTransaction,
-    findVisitByCustomerIdAndStoreId: FetchDBVisitByStoreIdAndCustomerId,
-    updateDBVisit: UpdateDBVisit
-  ): CheckoutCustomer =>
-  (customerId, storeId) =>
-    runTransaction(db)((tx) =>
-      // fetch the visit is enough because of the foreign key constraint of customer and store
-      findVisitByCustomerIdAndStoreId(tx)(storeId, customerId)
-        .andThen(createVisitForCheckout)
-        .andThen(updateDBVisit(tx))
-    ).map(voidify);
+// export const checkoutCustomer =
+//   (
+//     runTransaction: RunTransaction,
+//     findVisitByCustomerIdAndStoreId: FetchDBVisitByStoreIdAndCustomerId,
+//     updateDBVisit: UpdateDBVisitById
+//   ): CheckoutCustomer =>
+//   (customerId, storeId) =>
+//     runTransaction(db)((tx) =>
+//       // fetch the visit is enough because of the foreign key constraint of customer and store
+//       findVisitByCustomerIdAndStoreId(tx)(storeId, customerId)
+//         .andThen(createVisitForCheckout)
+//         .andThen(updateDBVisit(tx))
+//     ).map(voidify);
 
 export type AcceptCustomerTos = (
   customerId: CustomerId
@@ -269,13 +289,21 @@ export const declineCustomerTos =
 export type FetchVisitingCustomers = (
   storeId: StoreId
 ) => ResultAsync<
-  Customer[],
-  DBInternalError | CustomerNotFoundError | InvalidCustomerError
+  CustomerWithProfiles[],
+  | DBInternalError
+  | CustomerNotFoundError
+  | InvalidCustomerError
+  | InvalidProfileError
+  | DBStoreNotFoundError
 >;
 
 export const fetchVisitingCustomers =
   (
+    fetchDBStoreByPublicId: FetchDBStoreByPublicId,
     findVisitingDBCustomersByStoreId: FindVisitingDBCustomersByStoreId
   ): FetchVisitingCustomers =>
   (storeId) =>
-    findVisitingDBCustomersByStoreId(db)(storeId).andThen(validateCustomers);
+    fetchDBStoreByPublicId(db)(storeId)
+      .map((store) => store.id)
+      .andThen(findVisitingDBCustomersByStoreId(db))
+      .andThen(validateCustomerWithProfilesList);
