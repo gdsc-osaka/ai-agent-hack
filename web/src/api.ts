@@ -6,7 +6,11 @@ const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL;
 
 // サーバーサイドから呼び出す際は headers を渡す
 const api = (
-  authorization?: Headers | (() => Promise<ReadonlyHeaders>) | string | CustomerSession
+  authorization?:
+    | Headers
+    | (() => Promise<ReadonlyHeaders>)
+    | string
+    | CustomerSession
 ) =>
   createClient<paths>({
     baseUrl,
@@ -16,11 +20,14 @@ const api = (
           ? await authorization()
           : authorization;
       const mergedHeaders = new Headers(req.headers);
-      if (typeof headerOrApiKey === "string") { /* API Key */
+      if (typeof headerOrApiKey === "string") {
+        /* API Key */
         mergedHeaders.set("X-Api-Key", headerOrApiKey);
-      } else if (headerOrApiKey && 'token' in headerOrApiKey) { /* CustomerSession */
+      } else if (headerOrApiKey && "token" in headerOrApiKey) {
+        /* CustomerSession */
         mergedHeaders.set("X-Session-Token", headerOrApiKey.token);
-      } else { /* Headers that passed from server-side */
+      } else {
+        /* Headers that passed from server-side */
         headerOrApiKey?.forEach((value, key) => {
           mergedHeaders.set(key, value);
         });

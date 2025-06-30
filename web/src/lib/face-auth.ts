@@ -83,7 +83,11 @@ export const useFaceAuthentication = ({
         }
       );
 
-      if (error && (error.code === "customer/not_found" || error.code === "customer/face_auth_error")) {
+      if (
+        error &&
+        (error.code === "customer/not_found" ||
+          error.code === "customer/face_auth_error")
+      ) {
         console.log("Opening TOS dialog for registering new customer...");
 
         const accepted = await openTosDialog();
