@@ -26,7 +26,12 @@ app.use(
     origin: [env.TRUSTED_ORIGIN_WEB],
     credentials: true,
     allowMethods: ["GET", "POST", "OPTIONS"],
-    allowHeaders: ["Content-Type", "Authorization", apiKeyHeaderKey],
+    allowHeaders: [
+      "Content-Type",
+      "Authorization",
+      apiKeyHeaderKey,
+      customerSessionHeaderKey,
+    ],
     exposeHeaders: ["Content-Length"],
     maxAge: 600,
   })

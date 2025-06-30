@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import * as faceapi from "face-api.js";
-import api, { ApiError, bodySerializers } from "@/api";
+import api, { ApiError, bodySerializers, CustomerSession } from "@/api";
 import { useAtomValue } from "jotai/react";
 import { apiKeyAtom } from "@/app/atoms";
 
@@ -201,25 +201,25 @@ const drawImage = (video: HTMLVideoElement): Promise<Blob> => {
 };
 
 interface FaceAuthenticationState {
-  authenticateCustomer: (image: Blob) => Promise<void>;
+  signIn: (image: Blob) => Promise<void>;
+  signOut: () => void;
   authState: AuthState;
-  reset: () => void;
 }
 
 type AuthState =
   | {
       isLoading: false;
-      customerId: string;
+      session: CustomerSession;
       error: undefined;
     }
   | {
       isLoading: false;
-      customerId: undefined;
+      session: undefined;
       error: ApiError;
     }
   | {
       isLoading: true;
-      customerId: undefined;
+      session: undefined;
       error: undefined;
     };
 
@@ -232,12 +232,12 @@ export const useFaceAuthentication = ({
 }): FaceAuthenticationState => {
   const apiKey = useAtomValue(apiKeyAtom);
   const [authState, setAuthState] = useState<AuthState>({
-    customerId: undefined,
+    session: undefined,
     isLoading: true,
     error: undefined,
   });
 
-  const handleAuthenticateCustomer = useCallback(
+  const signIn = useCallback(
     async (image: Blob): Promise<void> => {
       if (!storeId) {
         console.error("Store ID is not available.");
@@ -246,8 +246,8 @@ export const useFaceAuthentication = ({
         );
       }
 
-      const { data: customer, error } = await api(apiKey).POST(
-        "/api/v1/stores/{storeId}/customers/authenticate",
+      const { data: session, error } = await api(apiKey).POST(
+        "/api/v1/stores/{storeId}/face-auth/login",
         {
           params: {
             path: {
@@ -269,7 +269,7 @@ export const useFaceAuthentication = ({
         if (!accepted) {
           console.warn("User declined TOS, authentication aborted.");
           setAuthState({
-            customerId: undefined,
+            session: undefined,
             isLoading: false,
             error: {
               message: "Terms of Service not accepted",
@@ -281,8 +281,8 @@ export const useFaceAuthentication = ({
         }
 
         console.warn("Registering new customer...");
-        const { data: customer, error } = await api(apiKey).POST(
-          "/api/v1/stores/{storeId}/customers",
+        const { data: session, error } = await api(apiKey).POST(
+          "/api/v1/stores/{storeId}/face-auth/signup",
           {
             params: {
               path: {
@@ -299,7 +299,7 @@ export const useFaceAuthentication = ({
         if (error) {
           console.error("Customer registration failed:", error);
           setAuthState({
-            customerId: undefined,
+            session: undefined,
             isLoading: false,
             error: error,
           });
@@ -308,9 +308,9 @@ export const useFaceAuthentication = ({
           );
         }
 
-        console.log("Customer registered successfully:", customer);
+        console.log("Customer registered successfully:", session);
         setAuthState({
-          customerId: customer.id,
+          session,
           isLoading: false,
           error: undefined,
         });
@@ -320,7 +320,7 @@ export const useFaceAuthentication = ({
       if (error) {
         console.error("Authentication failed:", error);
         setAuthState({
-          customerId: undefined,
+          session: undefined,
           isLoading: false,
           error,
         });
@@ -329,26 +329,28 @@ export const useFaceAuthentication = ({
         );
       }
 
-      console.log("Authentication successful:", customer);
+      console.log("Authentication successful:", session);
       setAuthState({
         isLoading: false,
-        customerId: customer.id,
+        session,
         error: undefined,
       });
     },
     [storeId, apiKey, openTosDialog]
   );
 
+  const signOut = () => {
+    setAuthState({
+      session: undefined,
+      isLoading: true,
+      error: undefined,
+    });
+    console.log("Sign out called, resetting authentication state.");
+  };
+
   return {
     authState,
-    authenticateCustomer: handleAuthenticateCustomer,
-    reset: () => {
-      setAuthState({
-        customerId: undefined,
-        isLoading: true,
-        error: undefined,
-      });
-      console.log("Authentication state reset.");
-    },
+    signIn,
+    signOut,
   };
 };
