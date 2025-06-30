@@ -8,7 +8,13 @@ type PageProps = {
   params: { id: string };
 };
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export function generateStaticParams() {
+  return mockCustomers.map((customer) => ({
+    id: customer.id,
+  }));
+}
+
+export async function generateMetadata({ params }: { params: { id: string } }) {
   const customer = mockCustomers.find((c) => c.id === params.id);
 
   if (!customer) {
@@ -29,14 +35,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export async function generateStaticParams() {
-  return mockCustomers.map((customer) => ({
-    id: customer.id,
-  }));
-}
-
 // Pageコンポーネントの型定義を修正
-export default function Page({ params }: PageProps) {
+export default function Page({ params }: { params: { id: string } }) {
   const customer = mockCustomers.find((c) => c.id === params.id);
 
   if (!customer) {
