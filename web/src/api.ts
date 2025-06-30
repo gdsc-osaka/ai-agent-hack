@@ -17,6 +17,7 @@ const api = (
   createClient<paths>({
     baseUrl,
     fetch: async (req) => {
+      console.log("Fetching:", req.url);
       const headerOrApiKey =
         typeof authorization === "function"
           ? await authorization()
@@ -34,6 +35,7 @@ const api = (
           mergedHeaders.set(key, value);
         });
       }
+      console.log(`Request URL: ${req.url}`);
       return fetch(req, {
         headers: mergedHeaders,
         method: req.method,
