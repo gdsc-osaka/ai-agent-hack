@@ -33,6 +33,7 @@ const api = (
 
 export type Api = ReturnType<typeof api>;
 export type Store = components["schemas"]["Store"];
+export type CustomerSession = components["schemas"]["CustomerSession"];
 export type ApiError = components["schemas"]["ApiError"];
 
 export const bodySerializers = {

@@ -73,12 +73,7 @@ export const checkCustomerBelongsToStore = (
 
 export const createCustomer = (
   store: DBStore
-): Result<
-  DBCustomerForCreate & {
-    id: string;
-  },
-  never
-> => {
+): Result<DBCustomerForCreate, never> => {
   return ok({
     id: createId(), // CUID
     tosAcceptedAt: null,

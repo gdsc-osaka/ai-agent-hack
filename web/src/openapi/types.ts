@@ -33,7 +33,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/stores/{storeId}/customers/authenticate": {
+    "/api/v1/stores/{storeId}/face-auth/login": {
         parameters: {
             query?: never;
             header?: never;
@@ -50,15 +50,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/stores/{storeId}/customers": {
+    "/api/v1/stores/{storeId}/face-auth/signup": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** @description Get customers for a store */
-        get: operations["getCustomersByStore"];
+        get?: never;
         put?: never;
         /** @description Register a user's face for authentication */
         post: operations["registerCustomer"];
@@ -79,6 +78,23 @@ export interface paths {
         put?: never;
         /** @description Checkout a customer from the store */
         post: operations["checkoutCustomer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stores/{storeId}/customers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Get customers for a store */
+        get: operations["getCustomersByStore"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -252,7 +268,7 @@ export interface components {
             updatedAt: components["schemas"]["Timestamp"];
         };
         /** @enum {string} */
-        ApiErrorCode: "internal/database_error" | "internal/firestore_error" | "authorization/invalid_session" | "authorization/invalid_api_key" | "store/not_found" | "store/already_exists" | "store/invalid_store_id" | "store/invalid" | "store/wrong_store_id" | "customer/already_exists" | "customer/not_found" | "customer/invalid" | "customer/not_belongs_to_store" | "customer/tos_already_accepted" | "customer/face_auth_error" | "face_embedding/error" | "staff/not_found" | "staff/invalid" | "staff/invalid_role" | "staff/already_exists_in_store" | "staff/is_not_admin" | "staff_invitation/not_found" | "staff_invitation/already_exists" | "staff_invitation/duplicate" | "staff_invitation/permission_error" | "staff_invitation/expired" | "staff_invitation/not_pending" | "staff_invitation/wrong_email" | "staff_invitation/invalid" | "visit/not_found" | "store_api_key/already_exists" | "profile/invalid" | "cloud_function/error" | "cloud_function/upload_audio_error";
+        ApiErrorCode: "internal/database_error" | "internal/firestore_error" | "authorization/invalid_session" | "authorization/invalid_api_key" | "store/not_found" | "store/already_exists" | "store/invalid_store_id" | "store/invalid" | "store/wrong_store_id" | "customer/already_exists" | "customer/not_found" | "customer/invalid" | "customer/not_belongs_to_store" | "customer/tos_already_accepted" | "customer/face_auth_error" | "customer_session/already_exists" | "face_embedding/error" | "staff/not_found" | "staff/invalid" | "staff/invalid_role" | "staff/already_exists_in_store" | "staff/is_not_admin" | "staff_invitation/not_found" | "staff_invitation/already_exists" | "staff_invitation/duplicate" | "staff_invitation/permission_error" | "staff_invitation/expired" | "staff_invitation/not_pending" | "staff_invitation/wrong_email" | "staff_invitation/invalid" | "visit/not_found" | "store_api_key/already_exists" | "profile/invalid" | "cloud_function/error" | "cloud_function/upload_audio_error";
         ApiError: {
             message: string;
             code: components["schemas"]["ApiErrorCode"];
@@ -284,6 +300,11 @@ export interface components {
             tosAcceptedAt?: components["schemas"]["Timestamp"];
             createdAt: components["schemas"]["Timestamp"];
             updatedAt: components["schemas"]["Timestamp"];
+        };
+        CustomerSession: {
+            customer: components["schemas"]["Customer"];
+            token: string;
+            expiresAt: components["schemas"]["Timestamp"];
         };
         /** @description API key for the store */
         StoreApiKey: {
@@ -405,7 +426,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Customer"];
+                    "application/json": components["schemas"]["CustomerSession"];
                 };
             };
             /** @description Bad Request - Invalid input or missing image */
@@ -419,40 +440,6 @@ export interface operations {
             };
             /** @description Forbidden - User not authenticated */
             403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiError"];
-                };
-            };
-        };
-    };
-    getCustomersByStore: {
-        parameters: {
-            query: {
-                status: "visiting";
-            };
-            header?: never;
-            path: {
-                /** @description ID of the store to invite staff to */
-                storeId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Customer"][];
-                };
-            };
-            /** @description Bad Request - Invalid input or missing image */
-            400: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -490,7 +477,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Customer"];
+                    "application/json": components["schemas"]["CustomerSession"];
                 };
             };
             /** @description Bad Request - Invalid input or missing image */
@@ -524,6 +511,40 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Bad Request - Invalid input or missing image */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getCustomersByStore: {
+        parameters: {
+            query: {
+                status: "visiting";
+            };
+            header?: never;
+            path: {
+                /** @description ID of the store to invite staff to */
+                storeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Customer"][];
+                };
             };
             /** @description Bad Request - Invalid input or missing image */
             400: {

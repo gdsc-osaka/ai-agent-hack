@@ -31,7 +31,7 @@ async function authenticateFace(imageData: FormData, storeId: string): Promise<b
         return false;
     }
 
-    const { data, error } = await api().POST('/api/v1/stores/{storeId}/customers/authenticate', {
+    const { data, error } = await api().POST('/api/v1/stores/{storeId}/face-auth/login', {
       params: {
         path: {
           storeId,

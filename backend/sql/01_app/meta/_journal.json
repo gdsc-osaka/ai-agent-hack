@@ -8,6 +8,13 @@
       "when": 1751109473224,
       "tag": "0000_dear_goblin_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1751267164572,
+      "tag": "0001_lush_warbound",
+      "breakpoints": true
     }
   ]
 }

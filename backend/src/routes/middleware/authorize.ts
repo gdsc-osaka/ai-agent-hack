@@ -9,9 +9,11 @@ import { DBStoreApiKey } from "../../domain/store-api-key";
 import { Result } from "neverthrow";
 import { fetchDBStoreById } from "../../infra/store-repo";
 import { DBStore } from "../../domain/store";
-import { apiKeyHeaderKey } from "../../shared/const";
+import { apiKeyHeaderKey, customerSessionHeaderKey } from "../../shared/const";
 import { toHTTPException } from "../shared/exception";
 import { HTTPErrorCarrier, StatusCode } from "../../controller/error/api-error";
+import { fetchDBCustomerSessionByToken } from "../../infra/customer-session-repo";
+import { DBCustomerSession } from "../../domain/customer-session";
 
 export interface StoreClient {
   apiKey: DBStoreApiKey;
@@ -23,20 +25,31 @@ const authorize = createMiddleware<{
     user: typeof auth.$Infer.Session.user | null;
     session: typeof auth.$Infer.Session.session | null;
     client: StoreClient | null;
+    customerSession: DBCustomerSession | null;
   };
 }>(async (c, next) => {
-  const apiKeyHeader = c.req.header(apiKeyHeaderKey);
-  if (apiKeyHeader !== undefined) {
-    const apiKey = await fetchDBStoreApiKeyByApiKey(db)(apiKeyHeader);
-    if (apiKey.isOk()) {
-      const store = await fetchDBStoreById(db)(apiKey.value.storeId);
+  const apiKey = c.req.header(apiKeyHeaderKey);
+  if (apiKey !== undefined) {
+    const dbStoreApiKey = await fetchDBStoreApiKeyByApiKey(db)(apiKey);
+    if (dbStoreApiKey.isOk()) {
+      const store = await fetchDBStoreById(db)(dbStoreApiKey.value.storeId);
       if (store.isOk()) {
-        c.set("client", { apiKey: apiKey.value, store: store.value });
+        c.set("client", { apiKey: dbStoreApiKey.value, store: store.value });
       } else {
         c.set("client", null);
       }
     } else {
       c.set("client", null);
+    }
+  }
+
+  const customerSessionToken = c.req.header(customerSessionHeaderKey);
+  if (customerSessionToken !== undefined) {
+    const token = await fetchDBCustomerSessionByToken(db)(customerSessionToken);
+    if (token.isOk()) {
+      c.set("customerSession", token.value);
+    } else {
+      c.set("customerSession", null);
     }
   }
 
@@ -95,6 +108,29 @@ export const safeGetStoreClient = (
 ): Result<StoreClient, HTTPException> => {
   return Result.fromThrowable(
     () => getStoreClient(c),
+    (e) => e as HTTPException
+  )();
+};
+
+export const getCustomerSession = (c: Context): DBCustomerSession => {
+  const customerSession = c.get("customerSession") as DBCustomerSession | null;
+  if (!customerSession) {
+    throw toHTTPException(
+      HTTPErrorCarrier(StatusCode.Unauthorized, {
+        message: "Customer session not found or invalid",
+        code: "authorization/invalid_session",
+        details: [],
+      })
+    );
+  }
+  return customerSession;
+};
+
+export const safeGetCustomerSession = (
+  c: Context
+): Result<DBCustomerSession, HTTPException> => {
+  return Result.fromThrowable(
+    () => getCustomerSession(c),
     (e) => e as HTTPException
   )();
 };

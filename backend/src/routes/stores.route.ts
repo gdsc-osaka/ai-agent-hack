@@ -7,6 +7,7 @@ import tags from "./shared/tags";
 import { StaffRole } from "../domain/store-staff";
 import { StaffInvitation } from "../domain/staff-invitation";
 import { StoreApiKey } from "../domain/store-api-key";
+import { CustomerSession } from "../domain/customer-session";
 
 const createStore = createDefaultRoute({
   method: "post",
@@ -93,7 +94,7 @@ const inviteStaffToStore = createDefaultRoute({
 
 const authenticateCustomer = createDefaultRoute({
   method: "post",
-  path: "/{storeId}/customers/authenticate",
+  path: "/{storeId}/face-auth/login",
   tags: tags.customers,
   validateResponse: true,
   operationId: "authenticateCustomer",
@@ -120,7 +121,7 @@ const authenticateCustomer = createDefaultRoute({
       description: "Successful authenticated response",
       content: {
         "application/json": {
-          schema: Customer,
+          schema: CustomerSession,
         },
       },
     },
@@ -132,20 +133,12 @@ const authenticateCustomer = createDefaultRoute({
         },
       },
     },
-    400: {
-      description: "Bad Request - Invalid input or missing image",
-      content: {
-        "application/json": {
-          schema: ApiError,
-        },
-      },
-    },
   },
 });
 
 const registerCustomer = createDefaultRoute({
   method: "post",
-  path: "/{storeId}/customers",
+  path: "/{storeId}/face-auth/signup",
   tags: tags.customers,
   operationId: "registerCustomer",
   description: "Register a user's face for authentication",
@@ -171,15 +164,7 @@ const registerCustomer = createDefaultRoute({
       description: "Successful response",
       content: {
         "application/json": {
-          schema: Customer,
-        },
-      },
-    },
-    400: {
-      description: "Bad Request - Invalid input or missing image",
-      content: {
-        "application/json": {
-          schema: ApiError,
+          schema: CustomerSession,
         },
       },
     },
