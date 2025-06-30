@@ -4,7 +4,7 @@ import {
   DBCustomerForCreate,
   DBCustomerForUpdate,
 } from "../domain/customer";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { customers } from "../db/schema/app/customers";
 import { DBorTx } from "../db/db";
 import { DBInternalError } from "./shared/db-error";
@@ -12,6 +12,9 @@ import {
   CustomerAlreadyExistsError,
   CustomerNotFoundError,
 } from "./customer-repo.error";
+import { visits } from "../db/schema/app/visits";
+import { infraLogger } from "../logger";
+import { DBCustomerWithProfiles } from "../domain/profile";
 
 export type InserttDBCustomer = (
   db: DBorTx
@@ -49,23 +52,37 @@ export type FindVisitingDBCustomersByStoreId = (
   db: DBorTx
 ) => (
   storeId: string
-) => ResultAsync<DBCustomer[], DBInternalError | CustomerNotFoundError>;
+) => ResultAsync<
+  DBCustomerWithProfiles[],
+  DBInternalError | CustomerNotFoundError
+>;
 
 export const findVisitingDBCustomersByStoreId: FindVisitingDBCustomersByStoreId =
   (db) => (storeId) =>
     ResultAsync.fromPromise(
       db.query.visits.findMany({
-        where: (visits, { eq }) => eq(visits.storeId, storeId),
         with: {
-          customer: true,
+          customer: {
+            with: {
+              profiles: true,
+            },
+          },
         },
+        where: and(isNull(visits.checkoutAt), eq(visits.storeId, storeId)),
       }),
       DBInternalError.handle
-    ).andThen((records) =>
-      records.length > 0
-        ? ok(records.map((visit) => visit.customer))
-        : err(CustomerNotFoundError("No visiting customers found for store"))
-    );
+    )
+      .andThen((records) =>
+        records.length > 0
+          ? ok(
+              records.map(({ customer: { profiles, ...customer } }) => ({
+                customer: customer,
+                profiles: profiles || [],
+              }))
+            )
+          : err(CustomerNotFoundError("No visiting customers found for store"))
+      )
+      .orTee(infraLogger("findVisitingDBCustomersByStoreId").error);
 
 // ADDED: Function to update a customer record
 export type UpdateDBCustomer = (

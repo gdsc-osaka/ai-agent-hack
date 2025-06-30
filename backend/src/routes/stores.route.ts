@@ -2,12 +2,13 @@ import { Store, StoreId } from "../domain/store";
 import { z } from "zod";
 import { ApiError } from "../controller/error/api-error";
 import { createDefaultRoute } from "./shared/default-route";
-import { Customer, CustomerId } from "../domain/customer";
+import { CustomerId } from "../domain/customer";
 import tags from "./shared/tags";
 import { StaffRole } from "../domain/store-staff";
 import { StaffInvitation } from "../domain/staff-invitation";
 import { StoreApiKey } from "../domain/store-api-key";
 import { CustomerSession } from "../domain/customer-session";
+import { CustomerWithProfiles } from "../domain/profile";
 
 const createStore = createDefaultRoute({
   method: "post",
@@ -257,7 +258,9 @@ const getCustomersByStore = createDefaultRoute({
       description: "Successful response",
       content: {
         "application/json": {
-          schema: z.array(Customer).describe("List of customers for the store"),
+          schema: z
+            .array(CustomerWithProfiles)
+            .describe("List of customers for the store"),
         },
       },
     },
@@ -329,6 +332,33 @@ const createStoreApiKey = createDefaultRoute({
   },
 });
 
+const getStoreApiKeys = createDefaultRoute({
+  method: "get",
+  path: "/{storeId}/api-keys",
+  tags: tags.stores,
+  operationId: "getStoreApiKeys",
+  description: "Get API keys for the store",
+  request: {
+    params: z.object({
+      storeId: StoreId.describe("ID of the store to invite staff to"),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Successful response",
+      content: {
+        "application/json": {
+          schema: z.object({
+            apiKeys: z
+              .array(StoreApiKey)
+              .describe("List of API keys for the store"),
+          }),
+        },
+      },
+    },
+  },
+});
+
 export default {
   createStore,
   inviteStaffToStore,
@@ -340,4 +370,5 @@ export default {
   createStoreApiKey,
   getStoreById,
   getStoreByMe,
+  getStoreApiKeys,
 };

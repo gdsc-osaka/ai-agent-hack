@@ -4,6 +4,7 @@ import { z } from "@hono/zod-openapi";
 import { DBStore } from "./store";
 import { ok, Result } from "neverthrow";
 import { randomBytes } from "crypto";
+import { Timestamp, toTimestamp } from "./timestamp";
 
 export type DBStoreApiKey = typeof storeApiKeys.$inferSelect;
 export type DBStoreApiKeyForCreate = typeof storeApiKeys.$inferInsert;
@@ -15,6 +16,7 @@ export type ApiKey = z.infer<typeof ApiKey>;
 export const StoreApiKey = z
   .object({
     apiKey: ApiKey,
+    createdAt: Timestamp,
   })
   .openapi("StoreApiKey");
 export type StoreApiKey = z.infer<typeof StoreApiKey>;
@@ -36,5 +38,6 @@ export const validateStoreApiKey = (
 ): Result<StoreApiKey, never> => {
   return ok({
     apiKey: storeApiKey.apiKey as ApiKey,
+    createdAt: toTimestamp(storeApiKey.createdAt),
   });
 };

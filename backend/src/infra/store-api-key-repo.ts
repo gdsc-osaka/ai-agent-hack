@@ -60,3 +60,20 @@ export const fetchDBStoreApiKeyByApiKey: FetchDBStoreApiKeyByApiKey =
         ? okAsync(records[0])
         : errAsync(DBStoreApiKeyNotFoundError("Store API key not found"))
     );
+
+export type FetchDBStoreApiKeysByStoreId = (
+  db: DBorTx
+) => (
+  storeId: string
+) => ResultAsync<DBStoreApiKey[], DBInternalError | DBStoreApiKeyNotFoundError>;
+
+export const fetchDBStoreApiKeysByStoreId: FetchDBStoreApiKeysByStoreId =
+  (db) => (storeId) =>
+    ResultAsync.fromPromise(
+      db.select().from(storeApiKeys).where(eq(storeApiKeys.storeId, storeId)),
+      DBInternalError.handle
+    ).andThen((records) =>
+      records.length > 0
+        ? okAsync(records)
+        : errAsync(DBStoreApiKeyNotFoundError("Store API keys not found"))
+    );

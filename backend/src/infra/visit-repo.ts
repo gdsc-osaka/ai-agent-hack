@@ -28,13 +28,13 @@ export const insertDBVisit: InsertDBVisit = (db) => (visit) =>
       : errAsync(DBInternalError("Unexpected error: no records returned"))
   );
 
-export type UpdateDBVisit = (
+export type UpdateDBVisitById = (
   db: DBorTx
 ) => (
   visit: DBVisitForUpdate
 ) => ResultAsync<DBVisit, DBInternalError | DBVisitNotFoundError>;
 
-export const updateDBVisit: UpdateDBVisit = (db) => (visit) =>
+export const updateDBVisitById: UpdateDBVisitById = (db) => (visit) =>
   ResultAsync.fromPromise(
     db.update(visits).set(visit).where(eq(visits.id, visit.id)).returning(),
     DBInternalError.handle
@@ -43,6 +43,31 @@ export const updateDBVisit: UpdateDBVisit = (db) => (visit) =>
       ? okAsync(records[0])
       : errAsync(DBVisitNotFoundError("Unexpected error: no records returned"))
   );
+
+export type UpdateDBVisitByStoreIdAndCustomerId = (
+  db: DBorTx
+) => (
+  storeId: string,
+  customerId: CustomerId,
+  visit: Omit<DBVisitForUpdate, "id">
+) => ResultAsync<DBVisit, DBInternalError | DBVisitNotFoundError>;
+
+export const updateDBVisitByStoreIdAndCustomerId: UpdateDBVisitByStoreIdAndCustomerId =
+  (db) => (storeId, customerId, visit) =>
+    ResultAsync.fromPromise(
+      db
+        .update(visits)
+        .set(visit)
+        .where(
+          and(eq(visits.storeId, storeId), eq(visits.customerId, customerId))
+        )
+        .returning(),
+      DBInternalError.handle
+    ).andThen((records) =>
+      records.length > 0
+        ? okAsync(records[0])
+        : errAsync(DBVisitNotFoundError("Visit not found"))
+    );
 
 export type FetchDBVisitByStoreIdAndCustomerId = (
   db: DBorTx
