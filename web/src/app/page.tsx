@@ -103,7 +103,7 @@ export default function Home() {
         {!showCamera && <FaceCameraSkeleton />}
         <p className={'text-xs'}>
           {authState.error ? `顔認証に失敗しました\nエラー: ${authState.error}`
-            : authState.customerId ? `顔認証に成功しました！ ${authState.customerId}`
+            : authState.session ? `顔認証に成功しました！ ${authState.session.customer.id}`
               : faceDetection.isFaceDetected ? '顔を検出しました。認証を開始します...'
                 : '顔を検出していません。カメラを確認してください'
           }
