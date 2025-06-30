@@ -21,7 +21,8 @@ export type CloudFunctionProfileData = {
 
 export type CallCloudFunction = (
   functionName: string,
-  file: File
+  file: File,
+  customerId: string
 ) => ResultAsync<UploadAudioResponse, CloudFunctionError | UploadAudioError>;
 
 export interface UploadAudioResponse {
@@ -40,13 +41,18 @@ const url =
     ? "https://asia-northeast1-recall-you.cloudfunctions.net/"
     : "http://127.0.0.1:5001/recall-you/asia-northeast1/";
 
-export const callCloudFunction: CallCloudFunction = (functionName, file) =>
+export const callCloudFunction: CallCloudFunction = (
+  functionName,
+  file,
+  customerId
+) =>
   ResultAsync.fromPromise(
     fetch(new URL(functionName, url), {
       method: "POST",
       body: iife(() => {
         const formData = new FormData();
         formData.append("recording", file);
+        formData.append("customerId", customerId);
         return formData;
       }),
     }).then(async (res) => ({

@@ -48,7 +48,7 @@ export const uploadAudio = onRequest(
     }
 
     try {
-      const { buffer: audioBuffer, audioMime } = await parseAudio(req);
+      const { buffer: audioBuffer, audioMime, customerId } = await parseAudio(req);
       const id = uuidv4();
 
       console.log(`Queuing audio file for processing with ID: ${id}`);
@@ -59,6 +59,7 @@ export const uploadAudio = onRequest(
             id,
             audioMime,
             audioBase64: audioBuffer.toString("base64"),
+            customerId,
           },
           id: id,
           queueName: 'generateProfile',
@@ -73,6 +74,7 @@ export const uploadAudio = onRequest(
           id,
           audioMime,
           audioBase64: audioBuffer.toString("base64"),
+          customerId
         })
       }
       console.log(`✅ Audio file queued successfully with ID: ${id}`);
@@ -97,7 +99,7 @@ export const uploadAudio = onRequest(
 // multipart/form-dataで音声ファイルを抽出
 function parseAudio(
   req: HttpsRequest
-): Promise<{ buffer: Buffer; audioMime: string }> {
+): Promise<{ buffer: Buffer; audioMime: string, customerId: string }> {
   return new Promise((resolve, reject) => {
     // eslint-disable-next-line new-cap
     const busboy = Busboy({
@@ -110,6 +112,7 @@ function parseAudio(
     });
     let audioBuffer: Buffer | null = null;
     let audioMimeType: string | null = null;
+    let customerId: string | null = null;
 
     busboy.on("file", (field, file, info) => {
       if (field === 'recording' && info.mimeType === 'audio/webm') {
@@ -136,6 +139,18 @@ function parseAudio(
       }
     });
 
+    // get customerId
+    busboy.on("field", (fieldname, val) => {
+      if (fieldname === 'customerId') {
+        if (typeof val === 'string' && val.trim() !== '') {
+          customerId = val.trim();
+          console.log(`Customer ID received: ${customerId}`);
+        } else {
+          console.warn(`Invalid or missing customerId field: ${val}`);
+        }
+      }
+    });
+
     busboy.on('error', (err: Error) => {
       console.error('Busboy parsing error:', err);
       reject(err);
@@ -144,8 +159,9 @@ function parseAudio(
     busboy.on("finish", () => {
       if (!audioBuffer || !audioMimeType) return reject(new Error("No audio/webm file found with key \"recording\" in the request."));
       if (audioBuffer.length === 0) return reject(new Error("Empty file uploaded"));
+      if (!customerId) return reject(new Error("Missing customerId field in the request."));
 
-      resolve({ buffer: audioBuffer, audioMime: audioMimeType });
+      resolve({ buffer: audioBuffer, audioMime: audioMimeType, customerId: customerId });
     });
 
     // Firebase Functionsではreq.rawBodyを使用する
@@ -169,11 +185,12 @@ export const generateProfile = onTaskDispatched(
     id: string;
     audioMime: string;
     audioBase64: string;
+    customerId: string;
   }>) => {
     try {
       logger.log(`🚀 Processing audio file for task ID: ${req.data.id}`, req);
 
-      const { audioMime, audioBase64 } = req.data;
+      const { audioMime, audioBase64, customerId } = req.data;
       const buffer = Buffer.from(audioBase64, "base64");
       const blob = new Blob([buffer], { type: audioMime });
 
@@ -248,6 +265,7 @@ export const generateProfile = onTaskDispatched(
 
       const profile: typeof profiles.$inferInsert = {
         ...profileList[0],
+        customerId,
         birthday: iife(() => {
           const date = new Date(profileList[0].birthday);
           if (isNaN(date.getTime())) { // 日付が無効な場合
