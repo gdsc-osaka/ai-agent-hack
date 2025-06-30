@@ -1,4 +1,4 @@
-import { Flame, Wine } from 'lucide-react';
+import { Wine } from 'lucide-react';
 
 export default function AppLogo() {
   return (
