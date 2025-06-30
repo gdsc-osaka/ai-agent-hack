@@ -1,4 +1,4 @@
-import { Result, ResultAsync } from "neverthrow";
+import { okAsync, Result, ResultAsync } from "neverthrow";
 import { GetFaceEmbedding } from "../infra/face-embedding-repo";
 import {
   DeleteFaceEmbedding,
@@ -46,7 +46,7 @@ import {
   UpdateDBVisit,
 } from "../infra/visit-repo";
 import { createVisit, createVisitForCheckout } from "../domain/visit";
-import { unpack2, iife, pickFirst, voidify } from "../shared/func";
+import { unpack2, iife, voidify } from "../shared/func";
 import { StoreId } from "../domain/store";
 import {
   DBCustomerSessionAlreadyExistsError,
@@ -98,13 +98,18 @@ export const registerCustomer =
       )
         .andThen(() =>
           runTransaction(db)((tx) =>
-            ResultAsync.combine([
-              insertDBCustomer(tx)(customer),
-              createCustomerSession(customer).asyncAndThen(
-                insertDBCustomerSession(tx)
-              ),
-              createVisit(storeId, customer.id).asyncAndThen(insertDBVisit(tx)),
-            ])
+            // customer を先に insert しないと foregin key violation になるので注意
+            insertDBCustomer(tx)(customer).andThen((customer) =>
+              ResultAsync.combine([
+                okAsync(customer),
+                createCustomerSession(customer).asyncAndThen(
+                  insertDBCustomerSession(tx)
+                ),
+                createVisit(customer.storeId, customer.id).asyncAndThen(
+                  insertDBVisit(tx)
+                ),
+              ])
+            )
           )
         )
         .andThen(unpack2(validateCustomerSession))
@@ -158,32 +163,30 @@ export const authenticateCustomer =
       )
       .andThen(([customerId, store, visit]) =>
         runTransaction(db)((tx) =>
-          ResultAsync.combine([
-            iife((): ResultAsync<CustomerSession, CustomerSessionErrors> => {
-              const customer: ResultAsync<DBCustomer, CustomerSessionErrors> =
-                findDBCustomerById(tx)(customerId).andThen((customer) =>
-                  checkCustomerBelongsToStore(customer, store)
-                );
-
-              const session: ResultAsync<
-                DBCustomerSession,
-                CustomerSessionErrors
-              > = customer.andThen((customer) =>
-                createCustomerSession(customer).asyncAndThen(
-                  insertDBCustomerSession(tx)
-                )
+          // TODO: Refactor this code
+          iife((): ResultAsync<CustomerSession, CustomerSessionErrors> => {
+            console.debug(customerId);
+            const customer: ResultAsync<DBCustomer, CustomerSessionErrors> =
+              findDBCustomerById(tx)(customerId).andThen((customer) =>
+                checkCustomerBelongsToStore(customer, store)
               );
 
-              return ResultAsync.combine([customer, session]).andThen(
-                ([customer, session]) =>
-                  validateCustomerSession(customer, session)
-              );
-            }),
-            insertDBVisit(tx)(visit),
-          ])
+            const session: ResultAsync<
+              DBCustomerSession,
+              CustomerSessionErrors
+            > = customer.andThen((customer) =>
+              createCustomerSession(customer).asyncAndThen(
+                insertDBCustomerSession(tx)
+              )
+            );
+
+            return ResultAsync.combine([customer, session]).andThen(
+              ([customer, session]) =>
+                validateCustomerSession(customer, session)
+            );
+          }).andThen((session) => insertDBVisit(tx)(visit).map(() => session))
         )
-      )
-      .map(pickFirst);
+      );
 
 export type CheckoutCustomer = (
   customerId: CustomerId,

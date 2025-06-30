@@ -9,8 +9,7 @@ import stores from "./routes/stores";
 import staffs from "./routes/staffs";
 import invitations from "./routes/invitations";
 import customers from "./routes/customers";
-import { apiKeyHeaderKey } from "./shared/const";
-import profiles from "./routes/profiles";
+import { apiKeyHeaderKey, customerSessionHeaderKey } from "./shared/const";
 
 const app = MyOpenAPIHono({
   docPath: "/api/openapi",
@@ -49,7 +48,6 @@ app.route("/api/v1/stores", stores);
 app.route("/api/v1/staffs", staffs);
 app.route("/api/v1/invitations", invitations);
 app.route("/api/v1/customers", customers);
-app.route("/api/v1/profiles", profiles);
 
 serve({
   fetch: app.fetch,

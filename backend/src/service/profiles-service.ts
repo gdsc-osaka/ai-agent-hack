@@ -9,10 +9,11 @@ import {
 } from "../infra/cloud-function-repo.error";
 
 export type GenerateProfile = (
-  audioFile: File
+  audioFile: File,
+  customerId: string
 ) => ResultAsync<UploadAudioResponse, CloudFunctionError | UploadAudioError>;
 
 export const generateProfile =
   (callCloudFunction: CallCloudFunction): GenerateProfile =>
-  (audioFile: File) =>
-    callCloudFunction("uploadAudio", audioFile);
+  (audioFile: File, customerId: string) =>
+    callCloudFunction("uploadAudio", audioFile, customerId);

@@ -1,6 +1,7 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { swaggerUI } from "@hono/swagger-ui";
 import env from "./env";
+import { apiKeyHeaderKey, customerSessionHeaderKey } from "./shared/const";
 
 export const MyOpenAPIHono = (args: {
   docPath: string;
@@ -33,6 +34,9 @@ export const MyOpenAPIHono = (args: {
       {
         apikey: [],
       },
+      {
+        customerSession: [],
+      },
     ],
   });
 
@@ -45,7 +49,13 @@ export const MyOpenAPIHono = (args: {
   app.openAPIRegistry.registerComponent("securitySchemes", "apikey", {
     type: "apiKey",
     in: "header",
-    name: "X-Api-Key",
+    name: apiKeyHeaderKey,
+  });
+
+  app.openAPIRegistry.registerComponent("securitySchemes", "customerSession", {
+    type: "apiKey",
+    in: "header",
+    name: customerSessionHeaderKey,
   });
 
   app.get(

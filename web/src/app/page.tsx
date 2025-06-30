@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { TermsOfServiceDialog } from '@/components/terms-of-service-dialog';
-import { useCamera, useFaceAuthentication, useFaceDetection } from '@/lib/face-detect-hooks';
+import { useCamera, useFaceDetection } from '@/lib/face-detect-hooks';
 import FaceCamera from '@/app/_components/FaceCamera';
 import { CameraToggleButton } from '@/components/CameraToggleButton';
 import FaceCameraSkeleton from '@/app/_components/FaceCameraSkeleton';
@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation';
 import { useConfirmDialog } from '@/lib/ui-hooks';
 import { useRecording } from '@/lib/recording-hooks';
 import { toast } from 'sonner';
+import { useFaceAuthentication } from '@/lib/face-auth';
 
 export default function Home() {
   // const [faceRecognition, setFaceRecognition] = useAtom(faceRecognitionAtom);
@@ -46,7 +47,7 @@ export default function Home() {
     faceAuth.signOut();
     await stopRecording();
 
-    const { data, error } = await api(apiKey).POST('/api/v1/profiles/generate-profile', {
+    const { data, error } = await api(authState.session).POST('/api/v1/stores/{storeId}/customers/me/profiles', {
       body: {
         file: await getAudio(),
       },

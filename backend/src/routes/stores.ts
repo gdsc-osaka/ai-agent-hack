@@ -1,5 +1,6 @@
 import {
   getAuthUser,
+  getCustomerSession,
   getStoreClient,
   safeGetAuthUser,
   safeGetStoreClient,
@@ -62,6 +63,9 @@ import { createStoreApiKeyController } from "../controller/store-api-key-control
 import { createStoreApiKey } from "../service/store-api-key-service";
 import { insertDBStoreApiKey } from "../infra/store-api-key-repo";
 import { insertDBCustomerSession } from "../infra/customer-session-repo";
+import { generateProfileController } from "../controller/profiles-controller";
+import { generateProfile } from "../service/profiles-service";
+import { callCloudFunction } from "../infra/cloud-function-repo";
 
 const app = new OpenAPIHono();
 
@@ -190,6 +194,20 @@ app.openapi(storesRoute.checkoutCustomer, async (c) => {
     throw toHTTPException(res.error);
   }
   return c.text("ok", 201);
+});
+
+app.openapi(storesRoute.generateProfile, async (c) => {
+  const { file } = c.req.valid("form");
+
+  const res = await generateProfileController(
+    generateProfile(callCloudFunction)(file, getCustomerSession(c).customerId)
+  );
+
+  if (res.isErr()) {
+    throw toHTTPException(res.error);
+  }
+
+  return c.json(res.value, 200);
 });
 
 app.openapi(storesRoute.getCustomersByStore, async (c) => {
