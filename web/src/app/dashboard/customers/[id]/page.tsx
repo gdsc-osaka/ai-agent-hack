@@ -3,11 +3,12 @@ import { mockCustomers } from "@/lib/data";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-interface Props {
+// PageのPropsの型定義
+type PageProps = {
   params: { id: string };
-}
+};
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const customer = mockCustomers.find((c) => c.id === params.id);
 
   if (!customer) {
@@ -34,7 +35,8 @@ export async function generateStaticParams() {
   }));
 }
 
-export default function Page({ params }: Props) {
+// Pageコンポーネントの型定義を修正
+export default function Page({ params }: PageProps) {
   const customer = mockCustomers.find((c) => c.id === params.id);
 
   if (!customer) {
