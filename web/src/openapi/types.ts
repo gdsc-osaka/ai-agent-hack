@@ -67,23 +67,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/stores/{storeId}/customers/:customerId/checkout": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** @description Checkout a customer from the store */
-        post: operations["checkoutCustomer"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/stores/{storeId}/customers/me/profiles": {
         parameters: {
             query?: never;
@@ -499,38 +482,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["CustomerSession"];
                 };
-            };
-            /** @description Bad Request - Invalid input or missing image */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiError"];
-                };
-            };
-        };
-    };
-    checkoutCustomer: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description ID of the store to invite staff to */
-                storeId: string;
-                /** @description ID of the customer to checkout */
-                customerId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             /** @description Bad Request - Invalid input or missing image */
             400: {
