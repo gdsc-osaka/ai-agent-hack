@@ -41,7 +41,7 @@ import {
   UploadAudioError,
 } from "../../infra/cloud-function-repo.error";
 import { InvalidProfileError } from "../../domain/profile";
-import { DBCustomerSessionAlreadyExistsError } from '../../infra/customer-session-repo';
+import { DBCustomerSessionAlreadyExistsError } from "../../infra/customer-session-repo";
 
 export const errorCodeMap = {
   [DBInternalError._tag]: "internal/database_error",

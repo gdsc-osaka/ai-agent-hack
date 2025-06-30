@@ -9,11 +9,11 @@ import { DBStoreApiKey } from "../../domain/store-api-key";
 import { Result } from "neverthrow";
 import { fetchDBStoreById } from "../../infra/store-repo";
 import { DBStore } from "../../domain/store";
-import { apiKeyHeaderKey, customerSessionHeaderKey } from '../../shared/const';
+import { apiKeyHeaderKey, customerSessionHeaderKey } from "../../shared/const";
 import { toHTTPException } from "../shared/exception";
 import { HTTPErrorCarrier, StatusCode } from "../../controller/error/api-error";
-import { fetchDBCustomerSessionByToken } from '../../infra/customer-session-repo';
-import { DBCustomerSession } from '../../domain/customer-session';
+import { fetchDBCustomerSessionByToken } from "../../infra/customer-session-repo";
+import { DBCustomerSession } from "../../domain/customer-session";
 
 export interface StoreClient {
   apiKey: DBStoreApiKey;
@@ -124,13 +124,15 @@ export const getCustomerSession = (c: Context): DBCustomerSession => {
     );
   }
   return customerSession;
-}
+};
 
-export const safeGetCustomerSession = (c: Context): Result<DBCustomerSession, HTTPException> => {
+export const safeGetCustomerSession = (
+  c: Context
+): Result<DBCustomerSession, HTTPException> => {
   return Result.fromThrowable(
     () => getCustomerSession(c),
     (e) => e as HTTPException
   )();
-}
+};
 
 export default authorize;

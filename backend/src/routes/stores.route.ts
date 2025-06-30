@@ -7,7 +7,7 @@ import tags from "./shared/tags";
 import { StaffRole } from "../domain/store-staff";
 import { StaffInvitation } from "../domain/staff-invitation";
 import { StoreApiKey } from "../domain/store-api-key";
-import { CustomerSession } from '../domain/customer-session';
+import { CustomerSession } from "../domain/customer-session";
 
 const createStore = createDefaultRoute({
   method: "post",

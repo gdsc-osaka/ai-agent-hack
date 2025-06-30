@@ -1,9 +1,14 @@
-import { ForUpdate } from './shared/types';
-import { customerSessions } from '../db/schema/app/customer-sessions';
-import z from 'zod';
-import { Timestamp, toTimestamp } from './timestamp';
-import { Customer, DBCustomer, InvalidCustomerError, validateCustomer } from './customer';
-import { ok, Result } from 'neverthrow';
+import { ForUpdate } from "./shared/types";
+import { customerSessions } from "../db/schema/app/customer-sessions";
+import z from "zod";
+import { Timestamp, toTimestamp } from "./timestamp";
+import {
+  Customer,
+  DBCustomer,
+  InvalidCustomerError,
+  validateCustomer,
+} from "./customer";
+import { ok, Result } from "neverthrow";
 
 export type DBCustomerSession = typeof customerSessions.$inferSelect;
 export type DBCustomerSessionForCreate = typeof customerSessions.$inferInsert;

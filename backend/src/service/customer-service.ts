@@ -46,7 +46,7 @@ import {
   UpdateDBVisit,
 } from "../infra/visit-repo";
 import { createVisit, createVisitForCheckout } from "../domain/visit";
-import { unpack2, iife, pickFirst, voidify } from '../shared/func';
+import { unpack2, iife, pickFirst, voidify } from "../shared/func";
 import { StoreId } from "../domain/store";
 import {
   DBCustomerSessionAlreadyExistsError,
