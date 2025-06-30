@@ -39,7 +39,7 @@
     "@hono/zod-validator": "^0.7.0",
     "@paralleldrive/cuid2": "^2.2.2",
     "axios": "^1.10.0",
-    "better-auth": "^1.2.9",
+    "better-auth": "^1.2.12",
     "drizzle-orm": "^0.44.2",
     "firebase-admin": "^13.4.0",
     "google-auth-library": "^10.1.0",
