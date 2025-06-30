@@ -94,7 +94,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ faceRecognition }) => {
       formData.append('file', audioBlob, 'recording.webm');
 
       // Send to generate-profile endpoint
-      const { error } = await api().POST('/api/v1/profiles/generate-profile', {
+      const { error } = await api().POST('/api/v1/stores/{storeId}/customers/me/profiles', {
         body: {
           file: audioBlob,
         },
