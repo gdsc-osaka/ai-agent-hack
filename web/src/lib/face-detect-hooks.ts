@@ -346,7 +346,7 @@ export const useFaceAuthentication = ({
       error: undefined,
     });
     console.log("Sign out called, resetting authentication state.");
-  }
+  };
 
   return {
     authState,
