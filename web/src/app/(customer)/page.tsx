@@ -99,7 +99,7 @@ export default function Home() {
           店舗: {store?.id}
         </p>
       </div>
-      <div className={`px-48 w-full flex flex-col items-center gap-8`}>
+      <div className={`px-24 w-full flex flex-col items-center gap-8`}>
         <FaceCamera ref={videoRef} className={!showCamera ? 'hidden' : ''} />
         {!showCamera && <FaceCameraSkeleton />}
         <p className={'text-xs'}>
