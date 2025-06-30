@@ -16,6 +16,11 @@ const setSession = createMiddleware<{
   };
 }>(async (c, next) => {
   const cookie = getCookie(c, "__session");
+  if (cookie === undefined) {
+    c.set("session", null);
+    return next();
+  }
+
   const { data: session, error } = await getSession(cookie);
 
   if (error || !session) {
