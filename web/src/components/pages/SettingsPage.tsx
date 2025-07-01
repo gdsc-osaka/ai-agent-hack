@@ -1,20 +1,22 @@
 "use client";
 
 import React from "react";
-import { Navigation } from "@/components/Navigation";
 import { useRouter } from "next/navigation";
+import { MainDashboard } from "@/components/MainDashboard";
 
 export function SettingsPage() {
   const router = useRouter();
 
   const onTabChange = (tab: string) => {
-    router.push(tab === "settings" ? "/settings" : `/${tab}`);
+    router.push(`/dashboard/${tab}`);
   };
 
   return (
-    <div className="min-h-screen bg-gray-900">
-      <Navigation onTabChange={onTabChange} />
-
+    <MainDashboard
+      activeTab="settings"
+      onTabChange={onTabChange}
+      user={{ name: "Kaito" }}
+    >
       <div className="max-w-7xl mx-auto px-4 py-8">
         <h1 className="text-white text-3xl font-bold mb-8">設定</h1>
 
@@ -25,6 +27,6 @@ export function SettingsPage() {
           <p className="text-gray-400">設定画面の実装は開発中です。</p>
         </div>
       </div>
-    </div>
+    </MainDashboard>
   );
 }

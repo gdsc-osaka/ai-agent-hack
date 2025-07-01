@@ -1,20 +1,22 @@
 "use client";
 
 import React from "react";
-import { Navigation } from "@/components/Navigation";
 import { useRouter } from "next/navigation";
+import { MainDashboard } from "@/components/MainDashboard";
 
 export function AnalyticsPage() {
   const router = useRouter();
 
   const onTabChange = (tab: string) => {
-    router.push(tab === "analytics" ? "/analytics" : `/${tab}`);
+    router.push(`/dashboard/${tab}`);
   };
 
   return (
-    <div className="min-h-screen bg-gray-900">
-      <Navigation onTabChange={onTabChange} />
-
+    <MainDashboard
+      activeTab="analytics"
+      onTabChange={onTabChange}
+      user={{ name: "Kaito" }}
+    >
       <div className="max-w-7xl mx-auto px-4 py-8">
         <h1 className="text-white text-3xl font-bold mb-8">分析</h1>
 
@@ -23,6 +25,6 @@ export function AnalyticsPage() {
           <p className="text-gray-400">分析画面の実装は開発中です。</p>
         </div>
       </div>
-    </div>
+    </MainDashboard>
   );
 }

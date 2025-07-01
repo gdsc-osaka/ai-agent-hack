@@ -1,5 +1,4 @@
 "use client";
-
 import React from "react";
 import {
   Users,
@@ -7,12 +6,14 @@ import {
   Settings as SettingsIcon,
   Search,
 } from "lucide-react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 interface NavigationProps {
   onTabChange: (tab: string) => void;
   searchTerm?: string;
   onSearchChange?: (term: string) => void;
+  activeTab: string;
+  user: { name: string };
 }
 
 interface Tab {
@@ -26,14 +27,15 @@ export const Navigation: React.FC<NavigationProps> = ({
   onTabChange,
   searchTerm = "",
   onSearchChange,
+  activeTab,
+  user,
 }) => {
   const router = useRouter();
-  const pathname = usePathname();
 
   const tabs: Tab[] = [
-    { id: "customers", label: "顧客管理", icon: Users, path: "/customers" },
-    { id: "analytics", label: "分析", icon: BarChart3, path: "/analytics" },
-    { id: "settings", label: "設定", icon: SettingsIcon, path: "/settings" },
+    { id: "customers", label: "顧客管理", icon: Users, path: "/dashboard/customers" },
+    { id: "analytics", label: "分析", icon: BarChart3, path: "/dashboard/analytics" },
+    { id: "settings", label: "設定", icon: SettingsIcon, path: "/dashboard/settings" },
   ];
 
   const handleTabClick = (tab: Tab) => {
@@ -41,11 +43,8 @@ export const Navigation: React.FC<NavigationProps> = ({
     onTabChange(tab.id);
   };
 
-  const isActive = (tabPath: string) => {
-    if (tabPath === "/customers") {
-      return pathname === "/customers" || pathname.startsWith("/customers/");
-    }
-    return pathname === tabPath;
+  const isActive = (tabId: string) => {
+    return tabId === activeTab;
   };
 
   return (
@@ -76,7 +75,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                     key={tab.id}
                     onClick={() => handleTabClick(tab)}
                     className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                      isActive(tab.path)
+                      isActive(tab.id)
                         ? "bg-amber-500 text-gray-900 shadow-lg"
                         : "text-gray-300 hover:text-white hover:bg-gray-800"
                     }`}
@@ -90,7 +89,7 @@ export const Navigation: React.FC<NavigationProps> = ({
           </div>
 
           <div className="flex items-center space-x-4">
-            {pathname.startsWith("/customers") && onSearchChange && (
+            {activeTab === 'customers' && onSearchChange && (
               <div className="hidden md:block">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -105,8 +104,11 @@ export const Navigation: React.FC<NavigationProps> = ({
               </div>
             )}
 
-            <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center font-bold text-amber-500">
+                {user.name.charAt(0).toUpperCase()}
+              </div>
+              <span className="text-white font-medium text-sm hidden sm:block">{user.name}</span>
             </div>
           </div>
         </div>
@@ -121,7 +123,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                   key={tab.id}
                   onClick={() => handleTabClick(tab)}
                   className={`flex-1 flex items-center justify-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    isActive(tab.path)
+                    isActive(tab.id)
                       ? "bg-amber-500 text-gray-900"
                       : "text-gray-300 hover:text-white hover:bg-gray-800"
                   }`}
@@ -133,7 +135,7 @@ export const Navigation: React.FC<NavigationProps> = ({
             })}
           </div>
 
-          {pathname.startsWith("/customers") && onSearchChange && (
+          {activeTab === 'customers' && onSearchChange && (
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
