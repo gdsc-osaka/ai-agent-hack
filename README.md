@@ -40,6 +40,43 @@ npm run dev
 ## Firebase
 firebase/functions/generate_profile/.env.local をどうディレクトリの .env を参考に設定
 
+## Getting Started
+
+### Prerequisites
+- Node.js (v18 or later)
+- pnpm
+- Docker (for backend development)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd ai-agent-hack-1
+   ```
+
+2. **Install dependencies**
+   ```bash
+   # Install web frontend dependencies
+   cd web
+   pnpm install
+   
+   # Install backend dependencies
+   cd ../backend
+   pnpm install
+   ```
+
+3. **Start development servers**
+   ```bash
+   # Start backend (in backend directory)
+   cd backend
+   pnpm run dev
+   
+   # Start web frontend (in web directory)
+   cd web
+   pnpm run dev
+   ```
+
 ## Directory Structure
 ```
 ├── ai      // 顔認証サーバー

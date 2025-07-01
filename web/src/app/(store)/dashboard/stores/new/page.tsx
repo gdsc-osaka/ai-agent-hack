@@ -5,12 +5,12 @@ import CreateStoreForm from '@/app/(store)/dashboard/_components/CreateStoreForm
 //   'use server';
 // };
 
-export default function() {
+export default function () {
   return (
-    <main className={'h-full flex flex-col items-center justify-center'}>
-      <Card className={'gap-2'}>
-        <h1 className={'text-2xl'}>Set up your store</h1>
-        <CreateStoreForm/>
+    <main className={"h-full flex flex-col items-center justify-center"}>
+      <Card className={"gap-2"}>
+        <h1 className={"text-2xl"}>Set up your store</h1>
+        <CreateStoreForm />
       </Card>
     </main>
   );

@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { User } from 'better-auth';
-import { Separator } from '@/components/ui/separator';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { usePathname } from 'next/navigation';
+import { User } from "better-auth";
+import { Separator } from "@/components/ui/separator";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { usePathname } from "next/navigation";
 
 const navigations = [{ label: 'ダッシュボード', path: '/dashboard' }, { label: '認証情報', path: '/dashboard/credentials' }, { label: '設定', path: '/dashboard/settings' }];
 
@@ -24,8 +24,8 @@ export default function DashboardNavigations({ user }: {user: User}) {
         {navigations.map(({ label, path }) => (
           <Button
             key={path}
-            variant={path === pathname ? 'outline' : 'ghost'}
-            className={'w-full justify-start'}
+            variant={path === pathname ? "outline" : "ghost"}
+            className={"w-full justify-start"}
             disabled={path === pathname}
             asChild
           >
@@ -37,5 +37,5 @@ export default function DashboardNavigations({ user }: {user: User}) {
         ))}
       </div>
     </div>
-  )
+  );
 }

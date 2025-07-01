@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../../../../components/ui/card';
@@ -12,24 +12,27 @@ export default function LoginForm() {
   const router = useRouter();
 
   async function handleLogin(formData: FormData) {
-    await authClient.signIn.email({
-      email: formData.get('email') as string,
-      password: formData.get('password') as string,
-      callbackURL: '/dashboard',
-      rememberMe: true,
-    }, {
-      onSuccess: () => {
-        console.log('Login successful');
-        router.push('/dashboard');
+    await authClient.signIn.email(
+      {
+        email: formData.get("email") as string,
+        password: formData.get("password") as string,
+        callbackURL: "/dashboard",
+        rememberMe: true,
       },
-      onError: (error) => {
-        console.error('Login error:', error);
+      {
+        onSuccess: () => {
+          console.log("Login successful");
+          router.push("/dashboard");
+        },
+        onError: (error) => {
+          console.error("Login error:", error);
+        },
       }
-    });
+    );
   }
 
   return (
-    <form className={'h-full flex'} action={handleLogin} >
+    <form className={"h-full flex"} action={handleLogin}>
       <Card className="w-full max-w-sm m-auto">
         <CardHeader>
           <CardTitle>Login</CardTitle>
@@ -65,13 +68,13 @@ export default function LoginForm() {
             Login
           </Button>
           <hr className="mx-6 my-1" />
-          <Link href={'/signup'}>
-            <Button variant={'ghost'} className="w-full">
+          <Link href={"/signup"}>
+            <Button variant={"ghost"} className="w-full">
               Do not have an account? Create an account
             </Button>
           </Link>
         </CardFooter>
       </Card>
     </form>
-  )
+  );
 }
