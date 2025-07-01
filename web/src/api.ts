@@ -2,10 +2,9 @@ import createClient from "openapi-fetch";
 import { components, paths } from "./openapi/types";
 import type { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 
-const baseUrl =
-  process.env.NEXT_PUBLIC_API_URL ??
-  process.env.API_URL ??
-  "http://localhost:8080";
+// Preview 環境では NEXT_PUBLIC_API_URL = undefined, API_URL = (API の Cloud Run URL) になる
+// 本番環境では NEXT_PUBLIC_API_URL = (API の Cloud Run URL), API_URL = undefined になる?
+const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL;
 
 // サーバーサイドから呼び出す際は headers を渡す
 const api = (
@@ -18,6 +17,7 @@ const api = (
   createClient<paths>({
     baseUrl,
     fetch: async (req) => {
+      console.log("Fetching:", req.url);
       const headerOrApiKey =
         typeof authorization === "function"
           ? await authorization()
@@ -35,6 +35,7 @@ const api = (
           mergedHeaders.set(key, value);
         });
       }
+      console.log(`Request URL: ${req.url}`);
       return fetch(req, {
         headers: mergedHeaders,
         method: req.method,
@@ -45,7 +46,11 @@ const api = (
 
 export type Api = ReturnType<typeof api>;
 export type Store = components["schemas"]["Store"];
+export type Customer = components["schemas"]["Customer"];
+export type Profile = components["schemas"]["Profile"];
 export type CustomerSession = components["schemas"]["CustomerSession"];
+export type StoreApiKey = components["schemas"]["StoreApiKey"];
+export type Timestamp = components["schemas"]["Timestamp"];
 export type ApiError = components["schemas"]["ApiError"];
 
 export const bodySerializers = {

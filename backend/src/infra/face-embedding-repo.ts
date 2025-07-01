@@ -1,7 +1,8 @@
 import { ok, ResultAsync } from "neverthrow";
-import { GoogleAuth } from "google-auth-library";
 import { FaceEmbeddingError } from "./face-embedding-repo.error";
 import env from "../env";
+import { iife } from "../shared/func";
+import { infraLogger } from "../logger";
 
 export type GetFaceEmbedding = (
   image: File
@@ -24,7 +25,18 @@ export const getFaceEmbedding: GetFaceEmbedding = (image: File) =>
       const forwardForm = new FormData();
       forwardForm.append("file", image, image.name);
 
-      let res: Response | any;
+      infraLogger("getFaceEmbedding").debug("Forwarding image to ML server", {
+        url: `${env.ML_SERVER_URL}/face-embedding`,
+      });
+
+      const res = await iife(async () => {
+        // if (env.NODE_ENV === "development") {
+        // If ML server is running locally
+        return fetch(`${env.ML_SERVER_URL}/face-embedding`, {
+          method: "POST",
+          body: forwardForm,
+        });
+        // }
 
       if (env.NODE_ENV === "development") {
         // If ML server is running locally
@@ -34,14 +46,15 @@ export const getFaceEmbedding: GetFaceEmbedding = (image: File) =>
         });
       } else {
         // If ML server is running on Google Cloud Run
-        const auth = new GoogleAuth();
-        const client = await auth.getIdTokenClient(env.ML_SERVER_URL);
-        res = await client.request({
-          url: `${env.ML_SERVER_URL}/face-embedding`,
-          method: "POST",
-          data: forwardForm,
-        });
-      }
+        // FIXME: Use GoogleAuth to get an ID token for the request
+        // const auth = new GoogleAuth();
+        // const client = await auth.getIdTokenClient(env.ML_SERVER_URL);
+        // return client.request({
+        //   url: `${env.ML_SERVER_URL}/face-embedding`,
+        //   method: "POST",
+        //   data: forwardForm,
+        // });
+      });
 
       // Response型とGaxiosResponse型を適切に処理
       if ("ok" in res && !res.ok) {
@@ -57,5 +70,7 @@ export const getFaceEmbedding: GetFaceEmbedding = (image: File) =>
       ) as EmbeddingResponse;
       return result.embedding[0];
     })(),
-    (error: unknown) => FaceEmbeddingError.handle(error)
-  ).andThen((embedding) => ok(embedding));
+    FaceEmbeddingError.handle
+  )
+    .andThen((embedding) => ok(embedding))
+    .orTee(infraLogger("getFaceEmbedding").error);

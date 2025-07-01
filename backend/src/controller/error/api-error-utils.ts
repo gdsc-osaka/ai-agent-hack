@@ -35,7 +35,10 @@ import { DBStoreToStaffAlreadyExistsError } from "../../infra/store-to-staff-rep
 import { CreateNewStoreError, InvalidStoreError } from "../../domain/store";
 import { InvalidStaffError, StaffIsNotAdminError } from "../../domain/staff";
 import { DBVisitNotFoundError } from "../../infra/visit-repo";
-import { DBStoreApiKeyAlreadyExistsError } from "../../infra/store-api-key-repo";
+import {
+  DBStoreApiKeyAlreadyExistsError,
+  DBStoreApiKeyNotFoundError,
+} from "../../infra/store-api-key-repo";
 import {
   CloudFunctionError,
   UploadAudioError,
@@ -81,6 +84,7 @@ export const errorCodeMap = {
   [DBVisitNotFoundError._tag]: "visit/not_found",
   // store api key
   [DBStoreApiKeyAlreadyExistsError._tag]: "store_api_key/already_exists",
+  [DBStoreApiKeyNotFoundError._tag]: "store_api_key/not_found",
   // profile
   [CloudFunctionError._tag]: "cloud_function/error",
   [UploadAudioError._tag]: "cloud_function/upload_audio_error",

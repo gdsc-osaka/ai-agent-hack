@@ -16,6 +16,11 @@ const setSession = createMiddleware<{
   };
 }>(async (c, next) => {
   const cookie = getCookie(c, "__session");
+  if (cookie === undefined) {
+    c.set("session", null);
+    return next();
+  }
+
   const { data: session, error } = await getSession(cookie);
 
   if (error || !session) {
@@ -34,25 +39,31 @@ const app = new Hono()
     if (!c.get("session")) {
       return NextResponse.redirect(new URL("/login", c.req.url));
     }
-
+    console.log(`trying to get stores for ${c.req.raw.headers.get("cookie")}`);
     // check stores
-    const { data } = await api(c.req.raw.headers).GET(
-      "/api/v1/staffs/me/stores"
-    );
-    const stores = data?.stores;
-    if (c.req.path === "/dashboard" && stores && stores.length === 0) {
-      return NextResponse.redirect(new URL("/dashboard/stores/new", c.req.url));
-    }
+    try {
+      const { data } = await api(c.req.raw.headers).GET(
+        "/api/v1/staffs/me/stores"
+      );
+      console.log(`stores: ${JSON.stringify(data)}`);
+      const stores = data?.stores;
+      // if (c.req.path === "/dashboard" && stores && stores.length === 0) {
+      //   return NextResponse.redirect(new URL("/dashboard/stores/new", c.req.url));
+      // }
 
-    // check search params
-    const storeParam = c.req.query("store");
-    if (!storeParam && stores && stores.length > 0) {
-      const url = new URL(c.req.url);
-      url.searchParams.set("store", stores[0].id);
-      return NextResponse.redirect(url);
-    }
+      // check search params
+      const storeParam = c.req.query("store");
+      if (!storeParam && stores && stores.length > 0) {
+        const url = new URL(c.req.url);
+        url.searchParams.set("store", stores[0].id);
+        return NextResponse.redirect(url);
+      }
 
-    return next();
+      return next();
+    } catch (e) {
+      console.error("Error fetching stores:", e);
+      return next();
+    }
   })
   .use("/login", async (c, next) => {
     // check session

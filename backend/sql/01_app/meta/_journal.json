@@ -15,6 +15,13 @@
       "when": 1751267164572,
       "tag": "0001_lush_warbound",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1751284980547,
+      "tag": "0002_clear_thanos",
+      "breakpoints": true
     }
   ]
 }
